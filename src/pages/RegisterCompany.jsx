@@ -12,9 +12,19 @@ export default function RegisterCompany({ navigate }) {
   async function handleSubmit() {
     if (!form.name || !form.category || !form.area || !form.phone) return setError('Please fill required fields')
     setLoading(true)
-    const { error: e } = await supabase.from('company_registrations').insert({
-      company_name: form.name, category: form.category, area: form.area,
-      phone: form.phone, email: form.email
+    const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    const { error: e } = await supabase.from('company_applications').insert({
+      company_name: form.name,
+      category: form.category,
+      location: form.area,
+      phone: form.phone,
+      whatsapp: form.whatsapp || form.phone,
+      email: form.email,
+      description: form.description,
+      owner_name: '',
+      slug,
+      status: 'pending',
+      applied_at: new Date().toISOString()
     })
     setLoading(false)
     if (e) return setError('Failed to submit. Please try again.')
@@ -75,24 +85,4 @@ export default function RegisterCompany({ navigate }) {
               ? <textarea value={form[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
                   style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', minHeight: 70, resize: 'vertical' }} />
               : <input value={form[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none' }} />
-            }
-          </div>
-        ))}
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Service category *</label>
-          <select value={form.category} onChange={e => set('category', e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: '#fff' }}>
-            <option value="">Select category</option>
-            {['Interior Design','Renovation','AC Service','Plumbing','Cleaning','Painting','Electrical','Handyman'].map(c => <option key={c}>{c}</option>)}
-          </select>
-        </div>
-        {error && <p style={{ color: 'var(--red)', fontSize: 13, marginBottom: 10 }}>{error}</p>}
-        <button onClick={handleSubmit} disabled={loading} style={{
-          width: '100%', padding: 12, background: loading ? 'var(--text3)' : 'var(--primary)',
-          color: '#fff', border: 'none', borderRadius: 24, fontSize: 14, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer'
-        }}>{loading ? 'Submitting...' : 'Submit for Free Listing'}</button>
-      </div>
-    </div>
-  )
-}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none'
