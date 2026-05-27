@@ -33,9 +33,13 @@ export default function RegisterCompany({ navigate }) {
 
   if (success) return (
     <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-      <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 16 }}><i className="ti ti-circle-check" /></div>
+      <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 16 }}>
+        <i className="ti ti-circle-check" />
+      </div>
       <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Listing submitted!</div>
-      <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 24 }}>We'll contact you on {form.phone} within 24 hours.</p>
+      <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 24 }}>
+        We'll contact you on {form.phone} within 24 hours.
+      </p>
       <button onClick={() => navigate('home')} style={{
         background: 'var(--primary)', color: '#fff', border: 'none',
         borderRadius: 24, padding: '12px 32px', fontSize: 14, cursor: 'pointer'
@@ -52,10 +56,12 @@ export default function RegisterCompany({ navigate }) {
         <span style={{ fontSize: 14, fontWeight: 500 }}>List Your Business</span>
         <div style={{ width: 32 }} />
       </div>
+
       <div style={{ background: 'var(--primary)', padding: '20px 16px', color: '#fff', textAlign: 'center' }}>
         <div style={{ fontFamily: "'DM Serif Display',serif", fontSize: 20, marginBottom: 6 }}>Get Found on TrustDubai</div>
         <p style={{ fontSize: 12, opacity: 0.85 }}>100% free — no credit card required</p>
       </div>
+
       <div style={{ padding: '16px 16px 0' }}>
         {[
           { icon: 'ti-star', title: 'Collect verified reviews', desc: 'Share your unique link with clients' },
@@ -71,18 +77,65 @@ export default function RegisterCompany({ navigate }) {
           </div>
         ))}
       </div>
+
       <div style={{ padding: 16 }}>
         {[
-          { key: 'name', label: 'Company name *', placeholder: 'Your company name', type: 'input' },
-          { key: 'area', label: 'Area / Location *', placeholder: 'e.g. Business Bay, JVC, Marina', type: 'input' },
-          { key: 'phone', label: 'WhatsApp number *', placeholder: '+971 50 XXX XXXX', type: 'input' },
-          { key: 'email', label: 'Email address', placeholder: 'your@email.com', type: 'input' },
-          { key: 'description', label: 'About your company', placeholder: 'Brief description of your services...', type: 'textarea' },
+          { key: 'name', label: 'Company name *', placeholder: 'Your company name' },
+          { key: 'area', label: 'Area / Location *', placeholder: 'e.g. Business Bay, JVC, Marina' },
+          { key: 'phone', label: 'WhatsApp number *', placeholder: '+971 50 XXX XXXX' },
+          { key: 'email', label: 'Email address', placeholder: 'your@email.com' },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>{f.label}</label>
-            {f.type === 'textarea'
-              ? <textarea value={form[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', minHeight: 70, resize: 'vertical' }} />
-              : <input value={form[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none'
+            <input
+              value={form[f.key]}
+              onChange={e => set(f.key, e.target.value)}
+              placeholder={f.placeholder}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+        ))}
+
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>About your company</label>
+          <textarea
+            value={form.description}
+            onChange={e => set('description', e.target.value)}
+            placeholder="Brief description of your services..."
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', minHeight: 70, resize: 'vertical', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Service category *</label>
+          <select
+            value={form.category}
+            onChange={e => set('category', e.target.value)}
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: '#fff' }}
+          >
+            <option value="">Select category</option>
+            {['Interior Design','Renovation','AC Service','Plumbing','Cleaning','Painting','Electrical','Handyman'].map(c => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+
+        {error && <p style={{ color: 'var(--red)', fontSize: 13, marginBottom: 10 }}>{error}</p>}
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{
+            width: '100%', padding: 12,
+            background: loading ? 'var(--text3)' : 'var(--primary)',
+            color: '#fff', border: 'none', borderRadius: 24,
+            fontSize: 14, fontWeight: 500,
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {loading ? 'Submitting...' : 'Submit for Free Listing'}
+        </button>
+      </div>
+    </div>
+  )
+}
