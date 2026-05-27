@@ -1,8 +1,6 @@
 // v2 - company_applications
 import { useState } from 'react'
-  import { useState } from 'react'
 import { supabase } from '../supabase'
-
 export default function RegisterCompany({ navigate }) {
   const [form, setForm] = useState({ name: '', category: '', area: '', phone: '', email: '', description: '', whatsapp: '' })
   const [loading, setLoading] = useState(false)
