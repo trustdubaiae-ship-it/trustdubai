@@ -41,24 +41,24 @@ export default function Home({ navigate }) {
         padding: '12px 16px', borderBottom: '1px solid var(--border-default)',
         background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 100
       }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: 'var(--accent)' }}>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: '#03C1F5' }}>
           Trust<span style={{ color: 'var(--text-primary)' }}>Dubai</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <ThemeToggle />
           <button onClick={() => navigate('register-company')} style={{
             fontSize: 12, padding: '6px 14px', borderRadius: 20,
-            border: 'none', background: 'var(--accent)', color: 'var(--accent-text)', cursor: 'pointer'
+            border: 'none', background: '#03C1F5', color: '#ffffff', cursor: 'pointer'
           }}>List Free</button>
         </div>
       </div>
 
       {/* Hero */}
-      <div style={{ background: '#0a1628', padding: '32px 16px 28px', textAlign: 'center' }}>
+      <div style={{ background: '#03C1F5', padding: '32px 16px 28px', textAlign: 'center' }}>
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: '#fff', marginBottom: 6 }}>
           TrustDubai
         </div>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', marginBottom: 20 }}>
           Honest reviews for Dubai home services
         </p>
 
@@ -88,7 +88,7 @@ export default function Home({ navigate }) {
               background: 'var(--bg-card)',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#0a1628' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#03C1F5' }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-default)' }}
           >
             <span style={{ fontSize: 20 }}>{c.icon}</span>
@@ -110,7 +110,7 @@ export default function Home({ navigate }) {
               No companies yet — be the first to list yours!
             </p>
             <button onClick={() => navigate('register-company')} style={{
-              background: 'var(--accent)', color: 'var(--accent-text)', border: 'none',
+              background: '#03C1F5', color: '#ffffff', border: 'none',
               borderRadius: 20, padding: '8px 20px', fontSize: 13, cursor: 'pointer'
             }}>List Your Business Free</button>
           </div>
