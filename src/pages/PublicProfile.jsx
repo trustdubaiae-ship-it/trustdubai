@@ -2,6 +2,65 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 
+function setSEO({ title, description, image, url }) {
+  document.title = title
+
+  const setMeta = (name, content, prop = false) => {
+    const attr = prop ? 'property' : 'name'
+    let el = document.querySelector('meta[' + attr + '="' + name + '"]')
+    if (!el) { el = document.createElement('meta'); el.setAttribute(attr, name); document.head.appendChild(el) }
+    el.setAttribute('content', content)
+  }
+
+  setMeta('description', description)
+  setMeta('og:title', title, true)
+  setMeta('og:description', description, true)
+  setMeta('og:url', url, true)
+  setMeta('og:type', 'business.business', true)
+  setMeta('og:image', image, true)
+  setMeta('og:site_name', 'TrustDubai', true)
+  setMeta('twitter:card', 'summary')
+  setMeta('twitter:title', title)
+  setMeta('twitter:description', description)
+
+  // Remove old JSON-LD
+  const old = document.getElementById('jsonld-business')
+  if (old) old.remove()
+}
+
+function setJsonLD(company, reviews) {
+  const script = document.createElement('script')
+  script.id = 'jsonld-business'
+  script.type = 'application/ld+json'
+  script.text = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    'name': company.name,
+    'description': company.description || '',
+    'url': 'https://trustdubai.ae/' + company.slug,
+    'telephone': company.phone || '',
+    'address': {
+      '@type': 'PostalAddress',
+      'addressLocality': company.location || 'Dubai',
+      'addressCountry': 'AE'
+    },
+    'aggregateRating': reviews.length > 0 ? {
+      '@type': 'AggregateRating',
+      'ratingValue': (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1),
+      'reviewCount': reviews.length,
+      'bestRating': 5,
+      'worstRating': 1
+    } : undefined,
+    'review': reviews.slice(0, 5).map(r => ({
+      '@type': 'Review',
+      'reviewRating': { '@type': 'Rating', 'ratingValue': r.rating },
+      'author': { '@type': 'Person', 'name': r.reviewer_name || 'Anonymous' },
+      'reviewBody': r.review_text || ''
+    }))
+  })
+  document.head.appendChild(script)
+}
+
 export default function PublicProfile() {
   const { slug } = useParams()
   const [company, setCompany] = useState(null)
@@ -33,7 +92,8 @@ export default function PublicProfile() {
       supabase.from('lead_forms').select('*').eq('company_id', data.id).eq('is_active', true).single()
     ])
 
-    setReviews(reviewRes.data || [])
+    const reviewData = reviewRes.data || []
+    setReviews(reviewData)
 
     if (formRes.data) {
       setLeadForm(formRes.data)
@@ -44,6 +104,25 @@ export default function PublicProfile() {
         .order('order_num')
       setQuestions(qData || [])
     }
+
+    // SEO
+    const avgRating = reviewData.length > 0
+      ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1)
+      : null
+
+    const seoTitle = data.name + ' — ' + (data.category || 'Business') + ' Dubai | TrustDubai'
+    const seoDesc = (data.description
+      ? data.description.slice(0, 140)
+      : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.')
+      + (avgRating ? ' Rated ' + avgRating + '/5 by customers.' : '') + ' Contact on TrustDubai.'
+
+    setSEO({
+      title: seoTitle,
+      description: seoDesc,
+      image: 'https://trustdubai.ae/og-image.png',
+      url: 'https://trustdubai.ae/' + slug
+    })
+    setJsonLD(data, reviewData)
 
     setLoading(false)
   }
@@ -59,16 +138,12 @@ export default function PublicProfile() {
     await supabase.from('lead_submissions').insert({
       form_id: leadForm.id,
       company_id: company.id,
-      name,
-      phone,
-      email,
-      answers,
+      name, phone, email, answers,
       source_url: window.location.href,
     })
 
     await supabase.rpc('increment_leads', { p_company_id: company.id })
 
-    // WhatsApp message to company
     if (company.whatsapp) {
       const msg = [
         '🏢 *New Lead from TrustDubai*',
@@ -82,7 +157,6 @@ export default function PublicProfile() {
         '🔗 Via: trustdubai.ae/' + slug,
         '⏰ ' + new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai', dateStyle: 'medium', timeStyle: 'short' }) + ' Dubai',
       ].join('\n')
-
       window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank')
     }
 
@@ -119,7 +193,6 @@ export default function PublicProfile() {
   return (
     <div style={{ background: '#f9fafb', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
 
-      {/* Header */}
       <div style={{ background: '#03C1F5', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
           <svg width="24" height="24" viewBox="0 0 32 32">
@@ -134,7 +207,6 @@ export default function PublicProfile() {
         </button>
       </div>
 
-      {/* Hero */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '32px 24px' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
@@ -145,7 +217,16 @@ export default function PublicProfile() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
                 <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>{company.name}</h1>
                 {company.is_verified && (
-                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>Verified</span>
+                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>
+                )}
+                {company.plan && company.plan !== 'free' && (
+                  <span style={{
+                    background: company.plan === 'platinum' ? '#f5f3ff' : company.plan === 'gold' ? '#fffdf7' : '#f1f5f9',
+                    color: company.plan === 'platinum' ? '#8b5cf6' : company.plan === 'gold' ? '#e8b84b' : '#94a3b8',
+                    fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99
+                  }}>
+                    {company.plan === 'platinum' ? '💎' : company.plan === 'gold' ? '🥇' : '🥈'} {company.plan.charAt(0).toUpperCase() + company.plan.slice(1)}
+                  </span>
                 )}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -164,7 +245,7 @@ export default function PublicProfile() {
             </div>
             <div style={{ width: 1, height: 40, background: '#e5e7eb' }} />
             <div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{company.total_reviews || 0} Reviews</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{company.total_reviews || reviews.length} Reviews</div>
               <div style={{ fontSize: 13, color: '#6b7280' }}>From verified customers</div>
             </div>
             {company.whatsapp && (
@@ -188,7 +269,6 @@ export default function PublicProfile() {
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 24px 0' }}>
 
-        {/* Lead Form */}
         {leadForm && (
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '24px', marginBottom: 24 }}>
             {submitted ? (
@@ -204,29 +284,16 @@ export default function PublicProfile() {
               <form onSubmit={submitLead}>
                 <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4, color: '#111827' }}>{leadForm.title}</h3>
                 <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>Fill this form — {company.name} will respond shortly</p>
-
                 {questions.map(q => (
                   <div key={q.id} style={{ marginBottom: 16 }}>
                     <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', display: 'block', marginBottom: 6 }}>
-                      {q.question}
-                      {q.required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
+                      {q.question}{q.required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
                     </label>
                     {q.type === 'text' && (
-                      <input
-                        required={q.required}
-                        value={answers[q.question] || ''}
-                        onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))}
-                        placeholder="Your answer..."
-                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }}
-                      />
+                      <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} placeholder="Your answer..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                     )}
                     {q.type === 'select' && (
-                      <select
-                        required={q.required}
-                        value={answers[q.question] || ''}
-                        onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))}
-                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff' }}
-                      >
+                      <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff' }}>
                         <option value="">Select an option</option>
                         {(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}
                       </select>
@@ -235,13 +302,7 @@ export default function PublicProfile() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {(q.options || []).map((o, i) => (
                           <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#374151', cursor: 'pointer' }}>
-                            <input
-                              type="radio"
-                              name={q.id}
-                              value={o}
-                              required={q.required}
-                              onChange={() => setAnswers(prev => ({ ...prev, [q.question]: o }))}
-                            />
+                            <input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(prev => ({ ...prev, [q.question]: o }))} />
                             {o}
                           </label>
                         ))}
@@ -249,23 +310,15 @@ export default function PublicProfile() {
                     )}
                   </div>
                 ))}
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  style={{ width: '100%', padding: '12px', background: submitting ? '#9ca3af' : '#03C1F5', color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}
-                >
+                <button type="submit" disabled={submitting} style={{ width: '100%', padding: '12px', background: submitting ? '#9ca3af' : '#03C1F5', color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
                   {submitting ? 'Submitting...' : 'Submit — Get Quote'}
                 </button>
-                <div style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>
-                  Powered by TrustDubai
-                </div>
+                <div style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>Powered by TrustDubai</div>
               </form>
             )}
           </div>
         )}
 
-        {/* Reviews */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Customer Reviews</h2>
         </div>
@@ -293,7 +346,17 @@ export default function PublicProfile() {
                     {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
                   </div>
                 </div>
-                {r.review_text && <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: 0 }}>{r.review_text}</p>}
+                {(r.review_text || r.comment) && (
+                  <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: 0 }}>
+                    {r.review_text || r.comment}
+                  </p>
+                )}
+                {r.owner_reply && (
+                  <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 8, padding: '10px 12px', marginTop: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#065f46', marginBottom: 4 }}>Owner Reply</div>
+                    <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
