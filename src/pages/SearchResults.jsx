@@ -23,50 +23,55 @@ export default function SearchResults({ navigate, params }) {
   }
 
   return (
-    <div>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px',
-        borderBottom: '1px solid var(--border)', background: '#fff',
+        borderBottom: '1px solid var(--border-default)', background: 'var(--bg-primary)',
         position: 'sticky', top: 0, zIndex: 100
       }}>
-        <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text2)' }}>
+        <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-secondary)' }}>
           <i className="ti ti-arrow-left" />
         </button>
         <div style={{ position: 'relative', flex: 1 }}>
-          <i className="ti ti-search" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', fontSize: 13 }} />
+          <i className="ti ti-search" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontSize: 13 }} />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search companies..."
-            style={{ width: '100%', padding: '8px 12px 8px 32px', border: '1px solid var(--border)', borderRadius: 20, fontSize: 13, outline: 'none' }}
+            style={{
+              width: '100%', padding: '8px 12px 8px 32px',
+              border: '1px solid var(--border-default)', borderRadius: 20,
+              fontSize: 13, outline: 'none',
+              background: 'var(--bg-secondary)', color: 'var(--text-primary)'
+            }}
           />
         </div>
       </div>
 
       {/* Category filters */}
-      <div style={{ display: 'flex', gap: 6, padding: '10px 16px', overflowX: 'auto', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', gap: 6, padding: '10px 16px', overflowX: 'auto', borderBottom: '1px solid var(--border-default)' }}>
         {CATS.map(c => (
           <button key={c}
             onClick={() => setCategory(c === 'All' ? '' : c)}
             style={{
               whiteSpace: 'nowrap', fontSize: 12, padding: '5px 12px',
-              borderRadius: 16, border: '1px solid var(--border)', cursor: 'pointer',
-              background: (c === 'All' && !category) || c === category ? 'var(--primary)' : '#fff',
-              color: (c === 'All' && !category) || c === category ? '#fff' : 'var(--text2)'
+              borderRadius: 16, border: '1px solid var(--border-default)', cursor: 'pointer',
+              background: (c === 'All' && !category) || c === category ? 'var(--primary)' : 'var(--bg-secondary)',
+              color: (c === 'All' && !category) || c === category ? '#fff' : 'var(--text-secondary)'
             }}>{c}</button>
         ))}
       </div>
 
       <div style={{ padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 12, color: 'var(--text2)' }}>{companies.length} companies found</span>
+        <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{companies.length} companies found</span>
       </div>
 
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: '0 16px 100px' }}>
         {loading ? (
-          <p style={{ textAlign: 'center', color: 'var(--text3)', fontSize: 13, padding: 24 }}>Searching...</p>
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 24 }}>Searching...</p>
         ) : companies.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
-            <p style={{ color: 'var(--text3)', fontSize: 13, marginBottom: 12 }}>No companies found.</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 12 }}>No companies found.</p>
             <span onClick={() => navigate('register-company')} style={{ color: 'var(--primary)', fontSize: 13, cursor: 'pointer' }}>
               Be the first to list yours!
             </span>
