@@ -8,8 +8,8 @@ export default function BottomNav({ screen, navigate }) {
   return (
     <div style={{
       position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-      width: '100%', maxWidth: 480, background: '#fff',
-      borderTop: '1px solid var(--border)', display: 'flex', zIndex: 100
+      width: '100%', maxWidth: 480, background: 'var(--bg-primary)',
+      borderTop: '1px solid var(--border-default)', display: 'flex', zIndex: 100
     }}>
       {items.map(item => (
         <div key={item.id}
