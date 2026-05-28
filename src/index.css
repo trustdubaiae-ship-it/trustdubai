@@ -3,28 +3,28 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --primary: #1a73e8;
-  --primary-light: #e8f0fe;
-  --primary-dark: #1557b0;
-  --text: #202124;
-  --text2: #5f6368;
-  --text3: #9aa0a6;
-  --border: #e8eaed;
-  --bg: #f8f9fa;
-  --white: #fff;
-  --green: #1e8e3e;
-  --green-light: #e6f4ea;
-  --amber: #f9a825;
-  --red: #d93025;
-  --radius: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 20px;
+  --primary:       #03C1F5;
+  --primary-light: #e0f9ff;
+  --primary-dark:  #0299c4;
+  --text:          var(--text-primary);
+  --text2:         var(--text-secondary);
+  --text3:         var(--text-muted);
+  --border:        var(--border-default);
+  --bg:            var(--bg-secondary);
+  --white:         #ffffff;
+  --green:         #1e8e3e;
+  --green-light:   #e6f4ea;
+  --amber:         #f9a825;
+  --red:           #d93025;
+  --radius:        8px;
+  --radius-lg:     12px;
+  --radius-xl:     20px;
 }
 
 body {
   font-family: 'DM Sans', sans-serif;
-  color: var(--text);
-  background: var(--white);
+  color: var(--text-primary);
+  background: var(--bg-primary);
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
