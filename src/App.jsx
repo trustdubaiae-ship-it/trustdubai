@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './index.css'
+import './styles/theme.css'
 import Home from './pages/Home'
 import SearchResults from './pages/SearchResults'
 import CompanyProfile from './pages/CompanyProfile'
@@ -23,7 +24,7 @@ export default function App() {
   const screenProps = { navigate, params }
 
   return (
-    <div style={{ paddingBottom: 64 }}>
+    <div style={{ paddingBottom: 64, background: 'var(--bg-primary)', minHeight: '100vh' }}>
       {screen === 'home' && <Home {...screenProps} />}
       {screen === 'search' && <SearchResults {...screenProps} />}
       {screen === 'company' && <CompanyProfile {...screenProps} />}
