@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import CompanyCard from '../components/CompanyCard'
+import { SearchBar } from '../components/SearchBar'
+import { ThemeToggle } from '../components/ThemeToggle'
 
 const CATEGORIES = [
   { name: 'Interior', icon: '🛋️', cat: 'Interior Design' },
@@ -14,7 +16,6 @@ const CATEGORIES = [
 ]
 
 export default function Home({ navigate }) {
-  const [query, setQuery] = useState('')
   const [topCompanies, setTopCompanies] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -32,61 +33,44 @@ export default function Home({ navigate }) {
   }, [])
 
   return (
-    <div>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+
       {/* Top Nav */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px', borderBottom: '1px solid var(--border)',
-        background: '#fff', position: 'sticky', top: 0, zIndex: 100
+        padding: '12px 16px', borderBottom: '1px solid var(--border-default)',
+        background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 100
       }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: 'var(--primary)' }}>
-          Trust<span style={{ color: 'var(--text)' }}>Dubai</span>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: 'var(--accent)' }}>
+          Trust<span style={{ color: 'var(--text-primary)' }}>Dubai</span>
         </div>
-        <button onClick={() => navigate('register-company')} style={{
-          fontSize: 12, padding: '6px 14px', borderRadius: 20,
-          border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer'
-        }}>List Free</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <ThemeToggle />
+          <button onClick={() => navigate('register-company')} style={{
+            fontSize: 12, padding: '6px 14px', borderRadius: 20,
+            border: 'none', background: 'var(--accent)', color: 'var(--accent-text)', cursor: 'pointer'
+          }}>List Free</button>
+        </div>
       </div>
 
       {/* Hero */}
-      <div style={{ padding: '28px 16px 16px', textAlign: 'center' }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 34, color: 'var(--primary)', marginBottom: 4 }}>
-          Trust<span style={{ color: 'var(--text)' }}>Dubai</span>
+      <div style={{ background: '#0a1628', padding: '32px 16px 28px', textAlign: 'center' }}>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 30, color: '#fff', marginBottom: 6 }}>
+          TrustDubai
         </div>
-        <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 18 }}>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
           Honest reviews for Dubai home services
         </p>
-        {/* Search */}
-        <div style={{ position: 'relative' }}>
-          <i className="ti ti-search" style={{
-            position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-            color: 'var(--text3)', fontSize: 16
-          }} />
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && navigate('search', { query })}
-            placeholder="Search company or service..."
-            style={{
-              width: '100%', padding: '12px 80px 12px 42px',
-              border: '1.5px solid var(--border)', borderRadius: 24,
-              fontSize: 14, outline: 'none'
-            }}
-            onFocus={e => e.target.style.borderColor = 'var(--primary)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'}
-          />
-          <button
-            onClick={() => navigate('search', { query })}
-            style={{
-              position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
-              background: 'var(--primary)', color: '#fff', border: 'none',
-              borderRadius: 16, padding: '5px 14px', fontSize: 12, cursor: 'pointer'
-            }}>Search</button>
-        </div>
+
+        {/* Auto-suggest SearchBar */}
+        <SearchBar
+          placeholder="Search company or service..."
+          onSearch={(slugOrQuery) => navigate('search', { query: slugOrQuery })}
+        />
       </div>
 
       {/* Categories */}
-      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text2)', padding: '0 16px', marginBottom: 10 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', padding: '16px 16px 10px' }}>
         Browse by category
       </p>
       <div style={{
@@ -98,32 +82,35 @@ export default function Home({ navigate }) {
             onClick={() => navigate('search', { category: c.cat })}
             style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 5, padding: '10px 4px', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)', cursor: 'pointer', transition: 'all 0.2s'
+              gap: 5, padding: '10px 4px',
+              border: '1px solid var(--border-default)',
+              borderRadius: '12px', cursor: 'pointer',
+              background: 'var(--bg-card)',
+              transition: 'all 0.2s'
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.background = 'var(--primary-light)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = '#fff' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#0a1628' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-default)' }}
           >
             <span style={{ fontSize: 20 }}>{c.icon}</span>
-            <span style={{ fontSize: 10, color: 'var(--text2)', textAlign: 'center' }}>{c.name}</span>
+            <span style={{ fontSize: 10, color: 'var(--text-secondary)', textAlign: 'center' }}>{c.name}</span>
           </div>
         ))}
       </div>
 
       {/* Top Rated */}
-      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text2)', padding: '0 16px', marginBottom: 10 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', padding: '0 16px', marginBottom: 10 }}>
         Top rated companies
       </p>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: '0 16px 100px' }}>
         {loading ? (
-          <p style={{ textAlign: 'center', color: 'var(--text3)', fontSize: 13, padding: 24 }}>Loading...</p>
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 24 }}>Loading...</p>
         ) : topCompanies.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 24 }}>
-            <p style={{ color: 'var(--text3)', fontSize: 13, marginBottom: 12 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 12 }}>
               No companies yet — be the first to list yours!
             </p>
             <button onClick={() => navigate('register-company')} style={{
-              background: 'var(--primary)', color: '#fff', border: 'none',
+              background: 'var(--accent)', color: 'var(--accent-text)', border: 'none',
               borderRadius: 20, padding: '8px 20px', fontSize: 13, cursor: 'pointer'
             }}>List Your Business Free</button>
           </div>
