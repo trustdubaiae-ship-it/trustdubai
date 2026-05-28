@@ -16,11 +16,7 @@ export function useCompanySearch(query, minChars = 2) {
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
       const { data, error } = await supabase
-        .from('companies')
-        .select('id, company_name, category, slug')
-        .ilike('company_name', `%${query.trim()}%`)
-        .eq('status', 'approved')
-        .limit(6)
+        .rpc('search_companies', { query: query.trim() })
 
       if (!error && data) setResults(data)
       setLoading(false)
