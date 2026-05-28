@@ -56,7 +56,7 @@ export default function PublicProfile() {
       <div style={{ textAlign: 'center', padding: 40 }}>
         <div style={{ fontSize: 52, marginBottom: 16 }}>🔍</div>
         <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, color: '#111827' }}>Company not found</h2>
-        <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>The profile you're looking for doesn't exist.</p>
+        <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>The profile you are looking for does not exist.</p>
         <a href="/" style={{ display: 'inline-block', padding: '10px 24px', background: '#03C1F5', color: '#fff', borderRadius: 20, textDecoration: 'none', fontWeight: 500, fontSize: 14 }}>
           Go to TrustDubai
         </a>
@@ -71,18 +71,20 @@ export default function PublicProfile() {
   return (
     <div style={{ background: '#f9fafb', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
 
-      {/* Header */}
       <div style={{ background: '#03C1F5', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <svg width="24" height="24" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#fff"/><path d="M16 4L26 8L26 17C26 22.5 21.5 27 16 28C10.5 27 6 22.5 6 17L6 8Z" fill="#03C1F5" opacity="0.3"/><polyline points="11.5,16 14.5,19.5 20.5,13" fill="none" stroke="#03C1F5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="24" height="24" viewBox="0 0 32 32">
+            <rect width="32" height="32" rx="6" fill="#fff"/>
+            <path d="M16 4L26 8L26 17C26 22.5 21.5 27 16 28C10.5 27 6 22.5 6 17L6 8Z" fill="#03C1F5" opacity="0.3"/>
+            <polyline points="11.5,16 14.5,19.5 20.5,13" fill="none" stroke="#03C1F5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           <span style={{ color: '#fff', fontWeight: 600, fontSize: 16 }}>TrustDubai</span>
         </a>
-        <a href={'/'} style={{ fontSize: 13, color: '#fff', textDecoration: 'none', opacity: 0.8 }}>
-          Browse all companies →
+        <a href="/" style={{ fontSize: 13, color: '#fff', textDecoration: 'none', opacity: 0.8 }}>
+          Browse all companies
         </a>
       </div>
 
-      {/* Hero */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '32px 24px' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
@@ -97,7 +99,7 @@ export default function PublicProfile() {
                 <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>{company.name}</h1>
                 {company.is_verified && (
                   <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>
-                    ✓ Verified
+                    Verified
                   </span>
                 )}
               </div>
@@ -112,11 +114,13 @@ export default function PublicProfile() {
             </div>
           </div>
 
-          {/* Rating */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 20 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 32, fontWeight: 700, color: '#111827', lineHeight: 1 }}>{company.avg_rating || '0.0'}</div>
-              <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>{'★'.repeat(Math.round(company.avg_rating || 0))}{'☆'.repeat(5 - Math.round(company.avg_rating || 0))}</div>
+              <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>
+                {'★'.repeat(Math.round(company.avg_rating || 0))}
+                {'☆'.repeat(5 - Math.round(company.avg_rating || 0))}
+              </div>
             </div>
             <div style={{ width: 1, height: 40, background: '#e5e7eb' }} />
             <div>
@@ -126,13 +130,12 @@ export default function PublicProfile() {
             {company.whatsapp && (
               <>
                 <div style={{ width: 1, height: 40, background: '#e5e7eb', marginLeft: 'auto' }} />
-                
-                  href={'https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '')}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: '#25D366', color: '#fff', borderRadius: 20, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}
+                <button
+                  onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: '#25D366', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}
                 >
                   💬 WhatsApp
-                </a>
+                </button>
               </>
             )}
           </div>
@@ -143,19 +146,15 @@ export default function PublicProfile() {
         </div>
       </div>
 
-      {/* Reviews */}
       <div style={{ maxWidth: 720, margin: '24px auto', padding: '0 24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Customer Reviews</h2>
-          <a href={'/?review=' + slug} style={{ fontSize: 13, color: '#03C1F5', textDecoration: 'none', fontWeight: 500 }}>
-            + Write a Review
-          </a>
         </div>
 
         {reviews.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>⭐</div>
-            <p style={{ fontSize: 14, color: '#6b7280' }}>No reviews yet. Be the first to review!</p>
+            <p style={{ fontSize: 14, color: '#6b7280' }}>No reviews yet.</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -185,7 +184,6 @@ export default function PublicProfile() {
         )}
       </div>
 
-      {/* Footer */}
       <div style={{ textAlign: 'center', padding: '32px 24px', color: '#9ca3af', fontSize: 12 }}>
         <a href="/" style={{ color: '#03C1F5', textDecoration: 'none', fontWeight: 500 }}>TrustDubai</a>
         {' — Building trust in Dubai\'s business community'}
