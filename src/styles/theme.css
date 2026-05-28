@@ -12,11 +12,11 @@
   --border-default:  #e5e7eb;
   --border-subtle:   #f3f4f6;
 
-  --verified-bg:     #ecfdf5;
-  --verified-text:   #065f46;
-  --verified-border: #a7f3d0;
+  --verified-bg:     #e0f9ff;
+  --verified-text:   #0369a1;
+  --verified-border: #7dd3fc;
 
-  --accent:          #0a1628;
+  --accent:          #03C1F5;
   --accent-text:     #ffffff;
 
   color-scheme: light;
@@ -35,12 +35,12 @@
   --border-default:  rgba(255,255,255,0.08);
   --border-subtle:   rgba(255,255,255,0.05);
 
-  --verified-bg:     #1c2d1c;
-  --verified-text:   #4ade80;
-  --verified-border: #166534;
+  --verified-bg:     #0c2a33;
+  --verified-text:   #03C1F5;
+  --verified-border: #0369a1;
 
-  --accent:          #f0f6fc;
-  --accent-text:     #0d1117;
+  --accent:          #03C1F5;
+  --accent-text:     #ffffff;
 
   color-scheme: dark;
 }
