@@ -1,6 +1,7 @@
 // v2 - company_applications
 import { useState } from 'react'
 import { supabase } from '../supabase'
+
 export default function RegisterCompany({ navigate }) {
   const [form, setForm] = useState({ name: '', category: '', area: '', phone: '', email: '', description: '', whatsapp: '' })
   const [loading, setLoading] = useState(false)
@@ -32,12 +33,12 @@ export default function RegisterCompany({ navigate }) {
   }
 
   if (success) return (
-    <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 16 }}>
         <i className="ti ti-circle-check" />
       </div>
-      <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Listing submitted!</div>
-      <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 24 }}>
+      <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>Listing submitted!</div>
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
         We'll contact you on {form.phone} within 24 hours.
       </p>
       <button onClick={() => navigate('home')} style={{
@@ -48,12 +49,16 @@ export default function RegisterCompany({ navigate }) {
   )
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border)', background: '#fff', position: 'sticky', top: 0, zIndex: 100 }}>
-        <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text2)' }}>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '12px 16px', borderBottom: '1px solid var(--border-default)',
+        background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 100
+      }}>
+        <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-secondary)' }}>
           <i className="ti ti-arrow-left" />
         </button>
-        <span style={{ fontSize: 14, fontWeight: 500 }}>List Your Business</span>
+        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>List Your Business</span>
         <div style={{ width: 32 }} />
       </div>
 
@@ -71,8 +76,8 @@ export default function RegisterCompany({ navigate }) {
           <div key={b.title} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12 }}>
             <i className={`ti ${b.icon}`} style={{ fontSize: 18, color: 'var(--primary)', marginTop: 1 }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>{b.title}</div>
-              <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 1 }}>{b.desc}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{b.title}</div>
+              <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 1 }}>{b.desc}</div>
             </div>
           </div>
         ))}
@@ -86,32 +91,49 @@ export default function RegisterCompany({ navigate }) {
           { key: 'email', label: 'Email address', placeholder: 'your@email.com' },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>{f.label}</label>
+            <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>{f.label}</label>
             <input
               value={form[f.key]}
               onChange={e => set(f.key, e.target.value)}
               placeholder={f.placeholder}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+              style={{
+                width: '100%', padding: '10px 12px',
+                border: '1px solid var(--border-default)',
+                borderRadius: 'var(--radius)', fontSize: 13, outline: 'none',
+                boxSizing: 'border-box', background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)'
+              }}
             />
           </div>
         ))}
 
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>About your company</label>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>About your company</label>
           <textarea
             value={form.description}
             onChange={e => set('description', e.target.value)}
             placeholder="Brief description of your services..."
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', minHeight: 70, resize: 'vertical', boxSizing: 'border-box' }}
+            style={{
+              width: '100%', padding: '10px 12px',
+              border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius)', fontSize: 13, outline: 'none',
+              minHeight: 70, resize: 'vertical', boxSizing: 'border-box',
+              background: 'var(--bg-secondary)', color: 'var(--text-primary)'
+            }}
           />
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Service category *</label>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Service category *</label>
           <select
             value={form.category}
             onChange={e => set('category', e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: '#fff' }}
+            style={{
+              width: '100%', padding: '10px 12px',
+              border: '1px solid var(--border-default)',
+              borderRadius: 'var(--radius)', fontSize: 13, outline: 'none',
+              background: 'var(--bg-secondary)', color: 'var(--text-primary)'
+            }}
           >
             <option value="">Select category</option>
             {['Interior Design','Renovation','AC Service','Plumbing','Cleaning','Painting','Electrical','Handyman'].map(c => (
@@ -127,7 +149,7 @@ export default function RegisterCompany({ navigate }) {
           disabled={loading}
           style={{
             width: '100%', padding: 12,
-            background: loading ? 'var(--text3)' : 'var(--primary)',
+            background: loading ? 'var(--text-muted)' : 'var(--primary)',
             color: '#fff', border: 'none', borderRadius: 24,
             fontSize: 14, fontWeight: 500,
             cursor: loading ? 'not-allowed' : 'pointer'
