@@ -42,7 +42,6 @@ export default function AddReview({ navigate, params }) {
 
     if (reviewError) { setLoading(false); return setError('Failed to submit. Please try again.') }
 
-    // Upload photos
     for (const photo of photos) {
       const fileName = `${reviewData.id}_${Date.now()}_${photo.name}`
       const { data: uploadData } = await supabase.storage.from('review-photos').upload(fileName, photo)
@@ -58,9 +57,9 @@ export default function AddReview({ navigate, params }) {
 
   if (success) {
     return (
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
-          <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text2)' }}>
+      <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border-default)' }}>
+          <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-secondary)' }}>
             <i className="ti ti-arrow-left" />
           </button>
         </div>
@@ -68,8 +67,8 @@ export default function AddReview({ navigate, params }) {
           <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 16 }}>
             <i className="ti ti-circle-check" />
           </div>
-          <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Review submitted!</div>
-          <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 24 }}>Thank you for your honest review. It helps others make better decisions.</p>
+          <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>Review submitted!</div>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>Thank you for your honest review. It helps others make better decisions.</p>
           <button onClick={() => navigate('home')} style={{
             background: 'var(--primary)', color: '#fff', border: 'none',
             borderRadius: 24, padding: '12px 32px', fontSize: 14, cursor: 'pointer'
@@ -80,76 +79,75 @@ export default function AddReview({ navigate, params }) {
   }
 
   return (
-    <div>
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px', borderBottom: '1px solid var(--border)', background: '#fff', position: 'sticky', top: 0, zIndex: 100
+        padding: '12px 16px', borderBottom: '1px solid var(--border-default)',
+        background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 100
       }}>
-        <button onClick={() => company ? navigate('company', { company }) : navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text2)' }}>
+        <button onClick={() => company ? navigate('company', { company }) : navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-secondary)' }}>
           <i className="ti ti-arrow-left" />
         </button>
-        <span style={{ fontSize: 14, fontWeight: 500 }}>Write a Review</span>
+        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>Write a Review</span>
         <div style={{ width: 32 }} />
       </div>
 
       <div style={{ padding: 16 }}>
         {company && (
-          <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius-lg)', padding: '10px 12px', marginBottom: 16 }}>
-            <p style={{ fontSize: 11, color: 'var(--text2)' }}>Reviewing</p>
-            <p style={{ fontSize: 14, fontWeight: 500 }}>{company.name}</p>
-            <p style={{ fontSize: 11, color: 'var(--text3)' }}>{company.category} · {company.area}</p>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', padding: '10px 12px', marginBottom: 16 }}>
+            <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Reviewing</p>
+            <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{company.name}</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{company.category} · {company.area}</p>
           </div>
         )}
 
-        {/* Star Rating */}
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Your rating *</label>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Your rating *</label>
           <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
             {[1,2,3,4,5].map(i => (
               <span key={i} onClick={() => setRating(i)} style={{
                 fontSize: 30, cursor: 'pointer',
-                color: i <= rating ? 'var(--amber)' : 'var(--border)',
+                color: i <= rating ? 'var(--amber)' : 'var(--border-default)',
                 transition: 'color 0.15s'
               }}>★</span>
             ))}
           </div>
-          <p style={{ fontSize: 11, color: 'var(--text3)' }}>{rating ? labels[rating] : 'Tap to rate'}</p>
+          <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>{rating ? labels[rating] : 'Tap to rate'}</p>
         </div>
 
         {!company && (
           <div style={{ marginBottom: 14 }}>
-            <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Company name *</label>
+            <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Company name *</label>
             <input value={companyName} onChange={e => setCompanyName(e.target.value)}
               placeholder="Which company are you reviewing?"
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none' }} />
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
           </div>
         )}
 
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Your name</label>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Your name</label>
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Optional"
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none' }} />
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Your review *</label>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Your review *</label>
           <textarea value={text} onChange={e => setText(e.target.value)}
             placeholder="Quality of work, timeline, communication, value for money..."
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', minHeight: 80, resize: 'vertical' }} />
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', minHeight: 80, resize: 'vertical', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
         </div>
 
-        {/* Photo Upload */}
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>
-            Add photos <span style={{ fontWeight: 400, color: 'var(--text3)' }}>(optional — before/after welcome)</span>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>
+            Add photos <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}>(optional)</span>
           </label>
           <label style={{
-            display: 'block', border: '1.5px dashed var(--border)', borderRadius: 'var(--radius-lg)',
-            padding: 16, textAlign: 'center', cursor: 'pointer'
+            display: 'block', border: '1.5px dashed var(--border-default)', borderRadius: 'var(--radius-lg)',
+            padding: 16, textAlign: 'center', cursor: 'pointer', background: 'var(--bg-secondary)'
           }}>
-            <i className="ti ti-camera" style={{ fontSize: 24, color: 'var(--text3)' }} />
-            <p style={{ fontSize: 12, color: 'var(--text2)', marginTop: 6 }}>Tap to add photos</p>
-            <p style={{ fontSize: 11, color: 'var(--text3)' }}>Before/after, finished work, etc.</p>
+            <i className="ti ti-camera" style={{ fontSize: 24, color: 'var(--text-muted)' }} />
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6 }}>Tap to add photos</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)' }}>Before/after, finished work, etc.</p>
             <input type="file" multiple accept="image/*" style={{ display: 'none' }}
               onChange={e => setPhotos([...photos, ...e.target.files])} />
           </label>
@@ -170,9 +168,9 @@ export default function AddReview({ navigate, params }) {
         </div>
 
         <div style={{ marginBottom: 14 }}>
-          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text2)', display: 'block', marginBottom: 6 }}>Service type</label>
+          <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>Service type</label>
           <select value={service} onChange={e => setService(e.target.value)}
-            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: '#fff' }}>
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
             <option value="">Select service</option>
             {['Interior Design','Renovation','AC Service','Plumbing','Cleaning','Painting','Electrical','Handyman'].map(s => <option key={s}>{s}</option>)}
           </select>
@@ -181,7 +179,7 @@ export default function AddReview({ navigate, params }) {
         {error && <p style={{ color: 'var(--red)', fontSize: 13, marginBottom: 10 }}>{error}</p>}
 
         <button onClick={handleSubmit} disabled={loading} style={{
-          width: '100%', padding: 12, background: loading ? 'var(--text3)' : 'var(--primary)',
+          width: '100%', padding: 12, background: loading ? 'var(--text-muted)' : 'var(--primary)',
           color: '#fff', border: 'none', borderRadius: 24,
           fontSize: 14, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer'
         }}>{loading ? 'Submitting...' : 'Submit Review'}</button>
