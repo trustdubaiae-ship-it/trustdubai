@@ -59,7 +59,7 @@ export default function PublicProfile() {
   const [notFound, setNotFound] = useState(false)
   const [customer, setCustomer] = useState(null)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const [loginFor, setLoginFor] = useState(null) // 'review' | 'lead'
+  const [loginFor, setLoginFor] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewText, setReviewText] = useState('')
@@ -69,7 +69,6 @@ export default function PublicProfile() {
   useEffect(() => {
     fetchCompany()
     checkCustomer()
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const cust = await upsertCustomer(session.user)
@@ -90,13 +89,28 @@ export default function PublicProfile() {
   async function fetchCompany() {
     setLoading(true)
     const { data, error } = await supabase
-      .from('companies').select('*').eq('slug', slug).eq('status', 'approved').single()
+      .from('companies')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'approved')
+      .single()
     if (error || !data) { setNotFound(true); setLoading(false); return }
     setCompany(data)
 
     const [reviewRes, formRes] = await Promise.all([
-      supabase.from('reviews').select('*').eq('company_id', data.id).eq('is_approved', true).order('created_at', { ascending: false }).limit(10),
-      supabase.from('lead_forms').select('*').eq('company_id', data.id).eq('is_active', true).single()
+      supabase
+        .from('reviews')
+        .select('id, reviewer_name, rating, review_text, comment, owner_reply, owner_reply_at, created_at, is_approved')
+        .eq('company_id', data.id)
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('lead_forms')
+        .select('*')
+        .eq('company_id', data.id)
+        .eq('is_active', true)
+        .single()
     ])
 
     const reviewData = reviewRes.data || []
@@ -104,11 +118,17 @@ export default function PublicProfile() {
 
     if (formRes.data) {
       setLeadForm(formRes.data)
-      const { data: qData } = await supabase.from('lead_form_questions').select('*').eq('form_id', formRes.data.id).order('order_num')
+      const { data: qData } = await supabase
+        .from('lead_form_questions')
+        .select('*')
+        .eq('form_id', formRes.data.id)
+        .order('order_num')
       setQuestions(qData || [])
     }
 
-    const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
+    const avgRating = reviewData.length > 0
+      ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1)
+      : null
     const seoTitle = data.name + ' — ' + (data.category || 'Business') + ' Dubai | TrustDubai'
     const seoDesc = (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.')
       + (avgRating ? ' Rated ' + avgRating + '/5.' : '') + ' Contact on TrustDubai.'
@@ -128,17 +148,14 @@ export default function PublicProfile() {
     e.preventDefault()
     if (!requireLogin('lead')) return
     setSubmitting(true)
-
     const name = customer?.full_name || answers['Your name'] || ''
     const phone = answers['Your phone number'] || answers['phone'] || ''
     const email = customer?.email || answers['Email'] || ''
-
     await supabase.from('lead_submissions').insert({
       form_id: leadForm.id, company_id: company.id,
       name, phone, email, answers, source_url: window.location.href,
     })
     await supabase.rpc('increment_leads', { p_company_id: company.id })
-
     if (company.whatsapp) {
       const msg = ['🏢 *New Lead from TrustDubai*', '',
         '👤 Name: ' + (name || 'Not provided'),
@@ -174,7 +191,10 @@ export default function PublicProfile() {
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f9fafb' }}>
-      <div style={{ textAlign: 'center' }}><div style={{ fontSize: 32, marginBottom: 12 }}>⟳</div><div style={{ fontSize: 14, color: '#6b7280' }}>Loading...</div></div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 32, marginBottom: 12 }}>⟳</div>
+        <div style={{ fontSize: 14, color: '#6b7280' }}>Loading...</div>
+      </div>
     </div>
   )
 
@@ -228,7 +248,9 @@ export default function PublicProfile() {
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
             <div style={{ width: 72, height: 72, borderRadius: 16, flexShrink: 0, background: color + '22', color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700 }}>
-              {initials}
+              {company.logo_url
+                ? <img src={company.logo_url} alt={company.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 16 }} />
+                : initials}
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
@@ -311,7 +333,7 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Reviews */}
+        {/* Reviews Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Customer Reviews</h2>
           {!reviewSubmitted && (
@@ -357,6 +379,7 @@ export default function PublicProfile() {
           </div>
         )}
 
+        {/* Reviews List */}
         {reviews.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 24 }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>⭐</div>
@@ -378,10 +401,24 @@ export default function PublicProfile() {
                   </div>
                   <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
                 </div>
-                {(r.review_text || r.comment) && <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: 0 }}>{r.review_text || r.comment}</p>}
+
+                {(r.review_text || r.comment) && (
+                  <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: '0 0 10px 0' }}>
+                    {r.review_text || r.comment}
+                  </p>
+                )}
+
+                {/* Owner Reply — always show if exists */}
                 {r.owner_reply && (
-                  <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 8, padding: '10px 12px', marginTop: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: '#065f46', marginBottom: 4 }}>Owner Reply</div>
+                  <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#065f46', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      💬 Owner Reply
+                      {r.owner_reply_at && (
+                        <span style={{ fontWeight: 400, color: '#6b7280' }}>
+                          · {new Date(r.owner_reply_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
                     <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
                   </div>
                 )}
