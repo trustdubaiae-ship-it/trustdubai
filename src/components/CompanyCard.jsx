@@ -18,7 +18,9 @@ export default function CompanyCard({ company, onClick }) {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{company.company_name}</div>
+          <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
+            {company.name || company.company_name}
+          </div>
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 1 }}>{company.category}</div>
         </div>
         {company.is_verified && (
