@@ -17,9 +17,17 @@ export default function SearchResults({ navigate, params }) {
     let q = supabase.from('companies').select('*').eq('status', 'approved')
     if (category) q = q.eq('category', category)
     if (query) q = q.or(`name.ilike.%${query}%,category.ilike.%${query}%,area.ilike.%${query}%`)
-    const { data } = await q.order('avg_rating', { ascending: false })
+    const { data } = await q.order('created_at', { ascending: false })
     setCompanies(data || [])
     setLoading(false)
+  }
+
+  function goToCompany(company) {
+    if (company.slug) {
+      window.location.href = '/' + company.slug
+    } else {
+      navigate('company', { company })
+    }
   }
 
   return (
@@ -56,13 +64,13 @@ export default function SearchResults({ navigate, params }) {
             style={{
               whiteSpace: 'nowrap', fontSize: 12, padding: '5px 12px',
               borderRadius: 16, border: '1px solid var(--border-default)', cursor: 'pointer',
-              background: (c === 'All' && !category) || c === category ? 'var(--primary)' : 'var(--bg-secondary)',
+              background: (c === 'All' && !category) || c === category ? '#03C1F5' : 'var(--bg-secondary)',
               color: (c === 'All' && !category) || c === category ? '#fff' : 'var(--text-secondary)'
             }}>{c}</button>
         ))}
       </div>
 
-      <div style={{ padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ padding: '8px 16px' }}>
         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{companies.length} companies found</span>
       </div>
 
@@ -72,13 +80,13 @@ export default function SearchResults({ navigate, params }) {
         ) : companies.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40 }}>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 12 }}>No companies found.</p>
-            <span onClick={() => navigate('register-company')} style={{ color: 'var(--primary)', fontSize: 13, cursor: 'pointer' }}>
+            <span onClick={() => navigate('register-company')} style={{ color: '#03C1F5', fontSize: 13, cursor: 'pointer' }}>
               Be the first to list yours!
             </span>
           </div>
         ) : (
           companies.map(c => (
-            <CompanyCard key={c.id} company={c} onClick={() => navigate('company', { company: c })} />
+            <CompanyCard key={c.id} company={c} onClick={() => goToCompany(c)} />
           ))
         )}
       </div>
