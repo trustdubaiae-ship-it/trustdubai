@@ -70,33 +70,20 @@ function setJsonLD(company, reviews) {
   document.head.appendChild(script)
 }
 
-// Review Analysis Algorithm (no AI needed)
 function analyzeReview(review) {
   const text = (review.review_text || '').toLowerCase()
   const rating = review.rating || 3
-
-  // Positive words
   const positiveWords = ['excellent', 'great', 'amazing', 'good', 'best', 'perfect', 'wonderful', 'fantastic', 'outstanding', 'professional', 'recommended', 'happy', 'satisfied', 'love', 'awesome', 'superb', 'brilliant', 'helpful', 'fast', 'quality', 'clean', 'honest', 'reliable', 'trusted', 'efficient']
   const negativeWords = ['bad', 'poor', 'terrible', 'worst', 'horrible', 'awful', 'disappointing', 'slow', 'expensive', 'rude', 'unprofessional', 'late', 'damage', 'broken', 'wrong', 'issue', 'problem', 'complaint', 'refund', 'waste', 'dirty', 'fake', 'fraud', 'cheat', 'scam']
-
   const posCount = positiveWords.filter(w => text.includes(w)).length
   const negCount = negativeWords.filter(w => text.includes(w)).length
-
-  // Authenticity Score — longer review + middle rating = more authentic
   const lengthScore = Math.min(text.length / 200, 1) * 40
   const ratingScore = rating === 5 || rating === 1 ? 20 : rating === 4 || rating === 2 ? 35 : 45
   const wordScore = Math.min((posCount + negCount) * 5, 15)
   const authenticity = Math.round(lengthScore + ratingScore + wordScore)
-
-  // Bias Level
   const bias = rating === 5 && negCount === 0 ? 'High' : rating === 1 && posCount === 0 ? 'High' : rating === 4 || rating === 2 ? 'Medium' : 'Low'
-
-  // Emotional Tone
   const tone = posCount > negCount ? 'Positive' : negCount > posCount ? 'Negative' : rating >= 4 ? 'Positive' : rating <= 2 ? 'Negative' : 'Neutral'
-
-  // Trust Confidence
   const trust = authenticity >= 70 ? 'High' : authenticity >= 45 ? 'Medium' : 'Low'
-
   return { authenticity, bias, tone, trust }
 }
 
@@ -300,11 +287,8 @@ export default function PublicProfile() {
   const initials = company.name?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const avatarColors = ['#1a73e8', '#1e8e3e', '#d93025', '#f9a825', '#9c27b0', '#00897b']
   const avatarColor = avatarColors[company.name?.charCodeAt(0) % avatarColors.length]
-
-  // Multiple categories support
   const companyCategories = Array.isArray(company.categories) && company.categories.length > 0
-    ? company.categories
-    : company.category ? [company.category] : []
+    ? company.categories : company.category ? [company.category] : []
 
   return (
     <div style={{ background: T.bg, minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
@@ -389,8 +373,6 @@ export default function PublicProfile() {
                   <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>
                 )}
               </div>
-
-              {/* Multiple Categories */}
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
                 {companyCategories.map(cat => (
                   <span key={cat} style={{ background: plan === 'platinum' ? 'rgba(139,92,246,0.15)' : plan === 'gold' ? '#fef3c7' : '#f3f4f6', color: plan === 'platinum' ? '#a78bfa' : plan === 'gold' ? '#92400e' : '#374151', fontSize: 12, padding: '3px 10px', borderRadius: 99 }}>
@@ -403,7 +385,6 @@ export default function PublicProfile() {
                   </span>
                 )}
               </div>
-
               {company.description && plan !== 'free' && (
                 <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6, marginTop: 10, marginBottom: 0 }}>{company.description}</p>
               )}
@@ -478,16 +459,20 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Portfolio */}
+        {/* Portfolio — no titles, clean grid */}
         {portfolio.length > 0 && (
           <div style={{ marginBottom: 28 }}>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: T.text, margin: '0 0 14px 0' }}>🖼️ Portfolio</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 8 }}>
               {portfolio.map(item => (
                 <div key={item.id} onClick={() => setLightboxImg(item)}
-                  style={{ cursor: 'pointer', borderRadius: 10, overflow: 'hidden', border: '1px solid ' + T.border, background: T.cardBg }}>
-                  <img src={item.image_url} alt={item.title || 'Portfolio'} style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.display = 'none' }} />
-                  {item.title && <div style={{ padding: '8px 10px', fontSize: 12, fontWeight: 500, color: T.text }}>{item.title}</div>}
+                  style={{ cursor: 'pointer', borderRadius: 10, overflow: 'hidden', border: '1px solid ' + T.border, aspectRatio: '1', background: T.cardBg }}>
+                  <img
+                    src={item.image_url}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    onError={e => { e.target.style.display = 'none' }}
+                  />
                 </div>
               ))}
             </div>
@@ -567,9 +552,9 @@ export default function PublicProfile() {
 
                   {r.review_text && <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>}
 
-                  {/* Review Analysis */}
-                  {r.review_text && r.review_text.length > 20 && (
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10, padding: '8px 10px', background: plan === 'platinum' ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, border: '1px solid ' + T.border }}>
+                  {/* Review Analysis — shows for any review with 5+ chars */}
+                  {r.review_text && r.review_text.length > 5 && (
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '8px 10px', background: plan === 'platinum' ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, border: '1px solid ' + T.border, marginBottom: r.owner_reply ? 10 : 0 }}>
                       <div style={{ fontSize: 10, color: T.textSub, width: '100%', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>AI ANALYSIS</div>
                       {[
                         { label: 'Authenticity', value: analysis.authenticity + '%', color: analysis.authenticity >= 70 ? '#1e8e3e' : analysis.authenticity >= 45 ? '#e8b84b' : '#d93025' },
@@ -605,8 +590,7 @@ export default function PublicProfile() {
       {lightboxImg && (
         <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 24 }}>
           <div onClick={e => e.stopPropagation()} style={{ maxWidth: 700, width: '100%', textAlign: 'center' }}>
-            <img src={lightboxImg.image_url} alt={lightboxImg.title || ''} style={{ maxWidth: '100%', maxHeight: '75vh', borderRadius: 12, objectFit: 'contain' }} />
-            {lightboxImg.title && <div style={{ color: '#fff', fontSize: 14, fontWeight: 500, marginTop: 12 }}>{lightboxImg.title}</div>}
+            <img src={lightboxImg.image_url} alt="" style={{ maxWidth: '100%', maxHeight: '75vh', borderRadius: 12, objectFit: 'contain' }} />
             <button onClick={() => setLightboxImg(null)} style={{ marginTop: 16, padding: '8px 24px', background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 13 }}>✕ Close</button>
           </div>
         </div>
