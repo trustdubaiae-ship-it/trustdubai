@@ -100,7 +100,7 @@ export default function PublicProfile() {
     const [reviewRes, formRes] = await Promise.all([
       supabase
         .from('reviews')
-        .select('id, reviewer_name, rating, review_text, comment, owner_reply, owner_reply_at, created_at, is_approved')
+        .select('id, reviewer_name, rating, review_text, comment, owner_reply, replied_at, created_at, is_approved')
         .eq('company_id', data.id)
         .eq('is_approved', true)
         .order('created_at', { ascending: false })
@@ -157,11 +157,13 @@ export default function PublicProfile() {
     })
     await supabase.rpc('increment_leads', { p_company_id: company.id })
     if (company.whatsapp) {
-      const msg = ['🏢 *New Lead from TrustDubai*', '',
+      const msg = [
+        '🏢 *New Lead from TrustDubai*', '',
         '👤 Name: ' + (name || 'Not provided'),
         '📞 Phone: ' + (phone || 'Not provided'),
         '✉️ Email: ' + (email || 'Not provided'), '',
-        '📋 *Answers:*', ...Object.entries(answers).map(([q, a]) => '• ' + q + ': ' + a), '',
+        '📋 *Answers:*',
+        ...Object.entries(answers).map(([q, a]) => '• ' + q + ': ' + a), '',
         '🔗 Via: trustdubai.ae/' + slug,
         '⏰ ' + new Date().toLocaleString('en-AE', { timeZone: 'Asia/Dubai', dateStyle: 'medium', timeStyle: 'short' }) + ' Dubai',
       ].join('\n')
@@ -203,7 +205,9 @@ export default function PublicProfile() {
       <div style={{ textAlign: 'center', padding: 40 }}>
         <div style={{ fontSize: 52, marginBottom: 16 }}>🔍</div>
         <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, color: '#111827' }}>Company not found</h2>
-        <button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#03C1F5', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: 14 }}>Go to TrustDubai</button>
+        <button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#03C1F5', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: 14 }}>
+          Go to TrustDubai
+        </button>
       </div>
     </div>
   )
@@ -236,7 +240,12 @@ export default function PublicProfile() {
             </div>
           ) : (
             <button onClick={() => signInWithGoogle()} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', color: '#374151', border: 'none', borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
               Sign in with Google
             </button>
           )}
@@ -255,9 +264,15 @@ export default function PublicProfile() {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
                 <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>{company.name}</h1>
-                {company.is_verified && <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>}
+                {company.is_verified && (
+                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>
+                )}
                 {company.plan && company.plan !== 'free' && (
-                  <span style={{ background: company.plan === 'platinum' ? '#f5f3ff' : company.plan === 'gold' ? '#fffdf7' : '#f1f5f9', color: company.plan === 'platinum' ? '#8b5cf6' : company.plan === 'gold' ? '#e8b84b' : '#94a3b8', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99 }}>
+                  <span style={{
+                    background: company.plan === 'platinum' ? '#f5f3ff' : company.plan === 'gold' ? '#fffdf7' : '#f1f5f9',
+                    color: company.plan === 'platinum' ? '#8b5cf6' : company.plan === 'gold' ? '#e8b84b' : '#94a3b8',
+                    fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99
+                  }}>
                     {company.plan === 'platinum' ? '💎' : company.plan === 'gold' ? '🥇' : '🥈'} {company.plan.charAt(0).toUpperCase() + company.plan.slice(1)}
                   </span>
                 )}
@@ -272,7 +287,9 @@ export default function PublicProfile() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 20 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 32, fontWeight: 700, color: '#111827', lineHeight: 1 }}>{company.avg_rating || '0.0'}</div>
-              <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>{'★'.repeat(Math.round(company.avg_rating || 0))}{'☆'.repeat(5 - Math.round(company.avg_rating || 0))}</div>
+              <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>
+                {'★'.repeat(Math.round(company.avg_rating || 0))}{'☆'.repeat(5 - Math.round(company.avg_rating || 0))}
+              </div>
             </div>
             <div style={{ width: 1, height: 40, background: '#e5e7eb' }} />
             <div>
@@ -282,14 +299,18 @@ export default function PublicProfile() {
             {company.whatsapp && (
               <>
                 <div style={{ width: 1, height: 40, background: '#e5e7eb', marginLeft: 'auto' }} />
-                <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')}
+                <button
+                  onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: '#25D366', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
                   💬 WhatsApp
                 </button>
               </>
             )}
           </div>
-          {company.description && <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, margin: 0 }}>{company.description}</p>}
+
+          {company.description && (
+            <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, margin: 0 }}>{company.description}</p>
+          )}
         </div>
       </div>
 
@@ -303,7 +324,9 @@ export default function PublicProfile() {
                 <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
                 <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: '#111827' }}>Request Submitted!</h3>
                 <p style={{ fontSize: 14, color: '#6b7280' }}>{company.name} will contact you shortly.</p>
-                <div style={{ marginTop: 12, display: 'inline-block', background: '#e0f9ff', color: '#03C1F5', fontSize: 12, fontWeight: 500, padding: '4px 12px', borderRadius: 99 }}>Lead from TrustDubai</div>
+                <div style={{ marginTop: 12, display: 'inline-block', background: '#e0f9ff', color: '#03C1F5', fontSize: 12, fontWeight: 500, padding: '4px 12px', borderRadius: 99 }}>
+                  Lead from TrustDubai
+                </div>
               </div>
             ) : (
               <form onSubmit={submitLead}>
@@ -319,12 +342,31 @@ export default function PublicProfile() {
                     <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', display: 'block', marginBottom: 6 }}>
                       {q.question}{q.required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
                     </label>
-                    {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} placeholder="Your answer..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />}
-                    {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff' }}><option value="">Select an option</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
-                    {q.type === 'radio' && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{(q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#374151', cursor: 'pointer' }}><input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(prev => ({ ...prev, [q.question]: o }))} />{o}</label>)}</div>}
+                    {q.type === 'text' && (
+                      <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} placeholder="Your answer..."
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />
+                    )}
+                    {q.type === 'select' && (
+                      <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff' }}>
+                        <option value="">Select an option</option>
+                        {(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}
+                      </select>
+                    )}
+                    {q.type === 'radio' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {(q.options || []).map((o, i) => (
+                          <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#374151', cursor: 'pointer' }}>
+                            <input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(prev => ({ ...prev, [q.question]: o }))} />
+                            {o}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
-                <button type="submit" disabled={submitting} style={{ width: '100%', padding: '12px', background: submitting ? '#9ca3af' : '#03C1F5', color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+                <button type="submit" disabled={submitting}
+                  style={{ width: '100%', padding: '12px', background: submitting ? '#9ca3af' : '#03C1F5', color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
                   {submitting ? 'Submitting...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}
                 </button>
                 <div style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>Powered by TrustDubai</div>
@@ -357,7 +399,8 @@ export default function PublicProfile() {
                 ))}
               </div>
             </div>
-            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Share your experience with this company..."
+            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)}
+              placeholder="Share your experience with this company..."
               style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, minHeight: 100, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', resize: 'vertical' }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={submitReview} disabled={submittingReview}
@@ -396,10 +439,14 @@ export default function PublicProfile() {
                     </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 500, color: '#111827' }}>{r.reviewer_name || 'Anonymous'}</div>
-                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(r.created_at).toLocaleDateString('en-AE', { month: 'short', year: 'numeric', day: 'numeric' })}</div>
+                      <div style={{ fontSize: 11, color: '#9ca3af' }}>
+                        {new Date(r.created_at).toLocaleDateString('en-AE', { month: 'short', year: 'numeric', day: 'numeric' })}
+                      </div>
                     </div>
                   </div>
-                  <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                  <div style={{ color: '#f9a825', fontSize: 14 }}>
+                    {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                  </div>
                 </div>
 
                 {(r.review_text || r.comment) && (
@@ -408,14 +455,13 @@ export default function PublicProfile() {
                   </p>
                 )}
 
-                {/* Owner Reply — always show if exists */}
                 {r.owner_reply && (
                   <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: '#065f46', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                       💬 Owner Reply
-                      {r.owner_reply_at && (
+                      {r.replied_at && (
                         <span style={{ fontWeight: 400, color: '#6b7280' }}>
-                          · {new Date(r.owner_reply_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          · {new Date(r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       )}
                     </div>
@@ -442,7 +488,12 @@ export default function PublicProfile() {
                 : 'Sign in to submit your inquiry. This helps companies verify genuine leads.'}
             </p>
             <button onClick={() => signInWithGoogle()} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '12px 20px', background: '#fff', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 10, color: '#374151' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
               Continue with Google
             </button>
             <button onClick={() => setShowLoginPrompt(false)} style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: '#6b7280', fontSize: 13, cursor: 'pointer' }}>
