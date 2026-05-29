@@ -1,4 +1,3 @@
-```jsx
 {/* Reviews List */}
 {reviews.length === 0 ? (
   <div
@@ -90,8 +89,8 @@
             >
               <div
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 42,
+                  height: 42,
                   borderRadius: '50%',
                   background:
                     plan === 'platinum'
@@ -138,7 +137,7 @@
               </div>
             </div>
 
-            {/* Rating */}
+            {/* Stars */}
             <div
               style={{
                 color: '#f9a825',
@@ -150,7 +149,7 @@
             </div>
           </div>
 
-          {/* Review Text */}
+          {/* Review */}
           {r.review_text && (
             <p
               style={{
@@ -183,9 +182,6 @@
                 fontWeight: 700,
                 color: T.text,
                 marginBottom: 14,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
               }}
             >
               🧠 Review Analysis
@@ -270,7 +266,7 @@
                 </div>
               </div>
 
-              {/* Emotional Tone */}
+              {/* Tone */}
               <div
                 style={{
                   background:
@@ -396,4 +392,3 @@
     })}
   </div>
 )}
-```
