@@ -100,7 +100,7 @@ export default function PublicProfile() {
     const [reviewRes, formRes] = await Promise.all([
       supabase
         .from('reviews')
-        .select('id, reviewer_name, rating, review_text, owner_reply, replied_at, created_at, is_approved')
+        .select('id, reviewer_name, rating, review_text, owner_reply, replied_at, created_at')
         .eq('company_id', data.id)
         .eq('is_approved', true)
         .order('created_at', { ascending: false })
@@ -110,7 +110,8 @@ export default function PublicProfile() {
         .select('*')
         .eq('company_id', data.id)
         .eq('is_active', true)
-        .single()
+        .limit(1)
+        .maybeSingle()
     ])
 
     const reviewData = reviewRes.data || []
@@ -404,11 +405,9 @@ export default function PublicProfile() {
                   </div>
                   <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
                 </div>
-
                 {r.review_text && (
                   <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>
                 )}
-
                 {r.owner_reply && (
                   <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: '#065f46', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
