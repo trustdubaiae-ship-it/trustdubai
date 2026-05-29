@@ -27,9 +27,9 @@ export default function Home({ navigate }) {
       .from('companies')
       .select('*')
       .eq('status', 'approved')
-      .order('avg_rating', { ascending: false })
-      .limit(5)
-      .then(({ data }) => {
+      .order('created_at', { ascending: false })
+      .limit(10)
+      .then(({ data, error }) => {
         setTopCompanies(data || [])
         setLoading(false)
       })
@@ -68,6 +68,7 @@ export default function Home({ navigate }) {
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+
       {/* Top Nav */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -79,13 +80,11 @@ export default function Home({ navigate }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <ThemeToggle />
-
           <button
             onClick={() => window.open('https://business.trustdubai.ae', '_blank')}
             style={{ fontSize: 11, padding: '5px 12px', borderRadius: 20, border: '1px solid #03C1F5', background: 'transparent', color: '#03C1F5', cursor: 'pointer', fontWeight: 500 }}>
             My Biz
           </button>
-
           {customer ? (
             <div style={{ position: 'relative' }}>
               <button
@@ -165,7 +164,9 @@ export default function Home({ navigate }) {
         ) : topCompanies.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 24 }}>
             <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 12 }}>No companies yet — be the first to list yours!</p>
-            <button onClick={() => navigate('register-company')} style={{ background: '#03C1F5', color: '#ffffff', border: 'none', borderRadius: 20, padding: '8px 20px', fontSize: 13, cursor: 'pointer' }}>
+            <button
+              onClick={() => navigate('register-company')}
+              style={{ background: '#03C1F5', color: '#ffffff', border: 'none', borderRadius: 20, padding: '8px 20px', fontSize: 13, cursor: 'pointer' }}>
               List Your Business Free
             </button>
           </div>
@@ -179,6 +180,7 @@ export default function Home({ navigate }) {
           ))
         )}
       </div>
+
     </div>
   )
 }
