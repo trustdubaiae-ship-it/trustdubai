@@ -13,9 +13,24 @@ import RegisterEmployee from './pages/RegisterEmployee'
 import PublicProfile from './pages/PublicProfile'
 import BottomNav from './components/BottomNav'
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(
+    () => document.documentElement.clientWidth < 481
+  )
+  useState(() => {
+    function check() {
+      setMobile(document.documentElement.clientWidth < 481)
+    }
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  })
+  return mobile
+}
+
 export default function App() {
   const [screen, setScreen] = useState('home')
   const [params, setParams] = useState({})
+  const isMobile = useIsMobile()
 
   function navigate(to, p = {}) {
     setScreen(to)
@@ -28,21 +43,18 @@ export default function App() {
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <Routes>
-        {/* Public profile page — trustdubai.ae/[slug] */}
         <Route path="/:slug" element={<PublicProfile />} />
-
-        {/* Main SPA */}
         <Route path="/" element={
-          <div style={{ paddingBottom: 64 }}>
-            {screen === 'home' && <Home {...screenProps} />}
-            {screen === 'search' && <SearchResults {...screenProps} />}
-            {screen === 'company' && <CompanyProfile {...screenProps} />}
-            {screen === 'employee' && <EmployeeProfile {...screenProps} />}
-            {screen === 'add-review' && <AddReview {...screenProps} />}
-            {screen === 'add-emp-review' && <AddEmpReview {...screenProps} />}
+          <div style={{ paddingBottom: isMobile ? 64 : 0 }}>
+            {screen === 'home'             && <Home {...screenProps} />}
+            {screen === 'search'           && <SearchResults {...screenProps} />}
+            {screen === 'company'          && <CompanyProfile {...screenProps} />}
+            {screen === 'employee'         && <EmployeeProfile {...screenProps} />}
+            {screen === 'add-review'       && <AddReview {...screenProps} />}
+            {screen === 'add-emp-review'   && <AddEmpReview {...screenProps} />}
             {screen === 'register-company' && <RegisterCompany {...screenProps} />}
-            {screen === 'register-employee' && <RegisterEmployee {...screenProps} />}
-            <BottomNav screen={screen} navigate={navigate} />
+            {screen === 'register-employee'&& <RegisterEmployee {...screenProps} />}
+            {isMobile && <BottomNav screen={screen} navigate={navigate} />}
           </div>
         } />
       </Routes>
