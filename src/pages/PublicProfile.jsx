@@ -3,51 +3,25 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, signOut, getCustomer, upsertCustomer } from '../customerAuth'
 
-// Plan themes
 const PLAN_THEMES = {
   free: {
-    bg: '#f9fafb',
-    headerBg: '#03C1F5',
-    cardBg: '#fff',
-    border: '#e5e7eb',
-    accent: '#03C1F5',
-    text: '#111827',
-    textSub: '#6b7280',
-    badge: null,
-    heroBg: '#fff',
+    bg: '#f9fafb', headerBg: '#03C1F5', cardBg: '#fff', border: '#e5e7eb',
+    accent: '#03C1F5', text: '#111827', textSub: '#6b7280', badge: null, heroBg: '#fff',
   },
   silver: {
-    bg: '#f1f5f9',
-    headerBg: '#1e293b',
-    cardBg: '#fff',
-    border: '#cbd5e1',
-    accent: '#64748b',
-    text: '#0f172a',
-    textSub: '#475569',
-    badge: { bg: '#f1f5f9', color: '#64748b', label: '🥈 Silver' },
-    heroBg: '#fff',
+    bg: '#f1f5f9', headerBg: '#1e293b', cardBg: '#fff', border: '#cbd5e1',
+    accent: '#64748b', text: '#0f172a', textSub: '#475569',
+    badge: { bg: '#f1f5f9', color: '#64748b', label: '🥈 Silver' }, heroBg: '#fff',
   },
   gold: {
-    bg: '#fffbf0',
-    headerBg: '#92400e',
-    cardBg: '#fff',
-    border: '#fcd34d',
-    accent: '#d97706',
-    text: '#111827',
-    textSub: '#78350f',
-    badge: { bg: '#fffbf0', color: '#d97706', label: '🥇 Gold' },
-    heroBg: '#fffdf7',
+    bg: '#fffbf0', headerBg: '#92400e', cardBg: '#fff', border: '#fcd34d',
+    accent: '#d97706', text: '#111827', textSub: '#78350f',
+    badge: { bg: '#fffbf0', color: '#d97706', label: '🥇 Gold' }, heroBg: '#fffdf7',
   },
   platinum: {
-    bg: '#0f0f1a',
-    headerBg: '#0f0f1a',
-    cardBg: '#1a1a2e',
-    border: '#2d2d4e',
-    accent: '#8b5cf6',
-    text: '#f1f5f9',
-    textSub: '#a0aec0',
-    badge: { bg: '#1a1a2e', color: '#a78bfa', label: '💎 Platinum' },
-    heroBg: '#16162a',
+    bg: '#0f0f1a', headerBg: '#0f0f1a', cardBg: '#1a1a2e', border: '#2d2d4e',
+    accent: '#8b5cf6', text: '#f1f5f9', textSub: '#a0aec0',
+    badge: { bg: '#1a1a2e', color: '#a78bfa', label: '💎 Platinum' }, heroBg: '#16162a',
   },
 }
 
@@ -143,7 +117,7 @@ export default function PublicProfile() {
 
     const [reviewRes, formRes] = await Promise.all([
       supabase.from('reviews')
-        .select('id, reviewer_name, rating, review_text, owner_reply, replied_at, created_at')
+        .select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at')
         .eq('company_id', data.id).eq('is_approved', true)
         .order('created_at', { ascending: false }).limit(20),
       supabase.from('lead_forms').select('*')
@@ -185,11 +159,18 @@ export default function PublicProfile() {
     const name = customer?.full_name || answers['Your name'] || ''
     const phone = answers['Your phone number'] || answers['phone'] || ''
     const email = customer?.email || answers['Email'] || ''
+
     await supabase.from('lead_submissions').insert({
-      form_id: leadForm.id, company_id: company.id,
-      name, phone, email, answers, source_url: window.location.href,
+      form_id: leadForm.id,
+      company_id: company.id,
+      customer_id: customer?.id || null,
+      name, phone, email,
+      answers,
+      source_url: window.location.href,
     })
+
     await supabase.rpc('increment_leads', { p_company_id: company.id })
+
     if (company.whatsapp) {
       const msg = ['🏢 *New Lead from TrustDubai*', '',
         '👤 Name: ' + (name || 'Not provided'),
@@ -246,7 +227,6 @@ export default function PublicProfile() {
 
   const plan = company.plan || 'free'
   const T = PLAN_THEMES[plan] || PLAN_THEMES.free
-
   const initials = company.name?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const avatarColors = ['#1a73e8', '#1e8e3e', '#d93025', '#f9a825', '#9c27b0', '#00897b']
   const avatarColor = avatarColors[company.name?.charCodeAt(0) % avatarColors.length]
@@ -265,7 +245,6 @@ export default function PublicProfile() {
           <span style={{ color: plan === 'platinum' ? '#a78bfa' : '#fff', fontWeight: 600, fontSize: 16 }}>TrustDubai</span>
         </button>
 
-        {/* Plan badge in header for paid plans */}
         {T.badge && (
           <span style={{ background: 'rgba(255,255,255,0.15)', color: plan === 'platinum' ? '#a78bfa' : '#fff', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 99 }}>
             {T.badge.label}
@@ -301,26 +280,22 @@ export default function PublicProfile() {
         </div>
       </div>
 
-      {/* Platinum — special banner */}
       {plan === 'platinum' && (
         <div style={{ background: 'linear-gradient(135deg, #1a1a2e, #2d1b69)', borderBottom: '1px solid rgba(139,92,246,0.3)', padding: '10px 24px', textAlign: 'center', fontSize: 12, color: '#a78bfa', letterSpacing: '0.05em' }}>
           ✦ PLATINUM VERIFIED BUSINESS ✦
         </div>
       )}
 
-      {/* Gold — special banner */}
       {plan === 'gold' && (
         <div style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderBottom: '1px solid #fcd34d', padding: '8px 24px', textAlign: 'center', fontSize: 12, color: '#92400e', fontWeight: 500 }}>
           🏆 Gold Verified Business on TrustDubai
         </div>
       )}
 
-      {/* Hero Section */}
+      {/* Hero */}
       <div style={{ background: T.heroBg, borderBottom: '1px solid ' + T.border, padding: '32px 24px' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
-
-            {/* Avatar */}
             <div style={{
               width: plan === 'platinum' ? 80 : 72,
               height: plan === 'platinum' ? 80 : 72,
@@ -337,16 +312,11 @@ export default function PublicProfile() {
                 ? <img src={company.logo_url} alt={company.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: plan === 'platinum' ? 18 : 14 }} />
                 : initials}
             </div>
-
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-                <h1 style={{ fontSize: plan === 'platinum' ? 26 : 22, fontWeight: 700, color: T.text, margin: 0 }}>
-                  {company.name}
-                </h1>
+                <h1 style={{ fontSize: plan === 'platinum' ? 26 : 22, fontWeight: 700, color: T.text, margin: 0 }}>{company.name}</h1>
                 {company.is_verified && (
-                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>
-                    ✓ Verified
-                  </span>
+                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>
                 )}
               </div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -391,7 +361,6 @@ export default function PublicProfile() {
             )}
           </div>
 
-          {/* Description for free plan */}
           {plan === 'free' && company.description && (
             <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.7, margin: 0 }}>{company.description}</p>
           )}
@@ -511,7 +480,11 @@ export default function PublicProfile() {
                   <div style={{ background: plan === 'platinum' ? 'rgba(139,92,246,0.1)' : plan === 'gold' ? '#fffbf0' : '#f0fdf4', border: '1px solid ' + (plan === 'platinum' ? 'rgba(139,92,246,0.3)' : plan === 'gold' ? '#fcd34d' : '#a7f3d0'), borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: plan === 'platinum' ? '#a78bfa' : plan === 'gold' ? '#92400e' : '#065f46', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                       💬 Owner Reply
-                      {r.replied_at && <span style={{ fontWeight: 400, color: T.textSub }}>· {new Date(r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                      {(r.owner_reply_at || r.replied_at) && (
+                        <span style={{ fontWeight: 400, color: T.textSub }}>
+                          · {new Date(r.owner_reply_at || r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
+                      )}
                     </div>
                     <p style={{ fontSize: 13, color: T.textSub, margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
                   </div>
