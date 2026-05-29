@@ -34,6 +34,10 @@ export default function CompanyProfile({ navigate, params }) {
   const color = colors[company.name.charCodeAt(0) % colors.length]
   const TABS = ['overview', 'reviews', 'portfolio', 'team']
 
+  function goToPublicProfile() {
+    window.location.href = '/' + company.slug
+  }
+
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       {/* Nav */}
@@ -46,7 +50,7 @@ export default function CompanyProfile({ navigate, params }) {
           <i className="ti ti-arrow-left" />
         </button>
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{company.name}</span>
-        <button onClick={() => navigate('add-review', { company })} style={{
+        <button onClick={goToPublicProfile} style={{
           fontSize: 12, padding: '5px 12px', borderRadius: 16,
           border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer'
         }}>+ Review</button>
@@ -102,26 +106,29 @@ export default function CompanyProfile({ navigate, params }) {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               {company.whatsapp && (
-                <button onClick={() => window.open(`https://wa.me/${company.whatsapp.replace(/[^0-9]/g,'')}`)}
+                <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g,''))}
                   style={{ flex: 1, padding: 9, borderRadius: 20, background: 'var(--primary)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
                   WhatsApp
                 </button>
               )}
-              <button onClick={() => navigate('add-review', { company })}
+              <button onClick={goToPublicProfile}
                 style={{ flex: 1, padding: 9, borderRadius: 20, background: 'var(--bg-card)', color: 'var(--primary)', border: '1.5px solid var(--primary)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
                 Write Review
               </button>
             </div>
           </div>
+
           {company.description && (
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border-default)' }}>
               <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{company.description}</p>
             </div>
           )}
+
           <div style={{ padding: '14px 16px 8px', borderBottom: '1px solid var(--border-default)', fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
             Recent Reviews
           </div>
-          {loading ? <p style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</p>
+          {loading
+            ? <p style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</p>
             : reviews.slice(0,2).map(r => <ReviewItem key={r.id} review={r} />)}
           {reviews.length > 2 && (
             <div style={{ padding: '12px 16px' }}>
@@ -138,16 +145,24 @@ export default function CompanyProfile({ navigate, params }) {
       {/* REVIEWS TAB */}
       {tab === 'reviews' && (
         <div>
-          {loading ? <p style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</p>
+          {loading
+            ? <p style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Loading...</p>
             : reviews.length === 0
               ? <div style={{ padding: 40, textAlign: 'center' }}>
                   <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 12 }}>No reviews yet.</p>
-                  <button onClick={() => navigate('add-review', { company })} style={{
+                  <button onClick={goToPublicProfile} style={{
                     background: 'var(--primary)', color: '#fff', border: 'none',
                     borderRadius: 20, padding: '8px 20px', fontSize: 13, cursor: 'pointer'
                   }}>Be the first to review</button>
                 </div>
               : reviews.map(r => <ReviewItem key={r.id} review={r} />)}
+          <div style={{ padding: '12px 16px' }}>
+            <button onClick={goToPublicProfile} style={{
+              width: '100%', padding: 10, border: '1px solid var(--primary)',
+              borderRadius: 20, background: 'var(--bg-card)', color: 'var(--primary)',
+              fontSize: 13, cursor: 'pointer'
+            }}>+ Write a Review</button>
+          </div>
         </div>
       )}
 
