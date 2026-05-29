@@ -25,6 +25,8 @@ const PLAN_THEMES = {
   },
 }
 
+const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co'
+
 function setSEO({ title, description, image, url }) {
   document.title = title
   const setMeta = (name, content, prop = false) => {
@@ -152,10 +154,34 @@ export default function PublicProfile() {
     return false
   }
 
+  async function sendLeadEmail(name, phone, email) {
+    try {
+      const companyEmail = company.email || company.business_email || company.owner_email
+      if (!companyEmail) return
+      await fetch(`${SUPABASE_URL}/functions/v1/send-lead-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_name: company.name,
+          company_email: companyEmail,
+          company_whatsapp: company.whatsapp || '',
+          lead_name: name,
+          lead_phone: phone,
+          lead_email: email,
+          answers,
+          slug,
+        }),
+      })
+    } catch (e) {
+      console.error('Email send failed:', e)
+    }
+  }
+
   async function submitLead(e) {
     e.preventDefault()
     if (!requireLogin('lead')) return
     setSubmitting(true)
+
     const name = customer?.full_name || answers['Your name'] || ''
     const phone = answers['Your phone number'] || answers['phone'] || ''
     const email = customer?.email || answers['Email'] || ''
@@ -171,6 +197,10 @@ export default function PublicProfile() {
 
     await supabase.rpc('increment_leads', { p_company_id: company.id })
 
+    // Send email notification
+    await sendLeadEmail(name, phone, email)
+
+    // Send WhatsApp
     if (company.whatsapp) {
       const msg = ['🏢 *New Lead from TrustDubai*', '',
         '👤 Name: ' + (name || 'Not provided'),
@@ -182,6 +212,7 @@ export default function PublicProfile() {
       ].join('\n')
       window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank')
     }
+
     setSubmitting(false)
     setSubmitted(true)
   }
