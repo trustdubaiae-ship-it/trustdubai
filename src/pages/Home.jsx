@@ -58,6 +58,14 @@ export default function Home({ navigate }) {
     setShowUserMenu(false)
   }
 
+  function goToCompany(company) {
+    if (company.slug) {
+      window.location.href = '/' + company.slug
+    } else {
+      navigate('company', { company })
+    }
+  }
+
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       {/* Top Nav */}
@@ -72,14 +80,12 @@ export default function Home({ navigate }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <ThemeToggle />
 
-          {/* My Biz Button */}
           <button
             onClick={() => window.open('https://business.trustdubai.ae', '_blank')}
             style={{ fontSize: 11, padding: '5px 12px', borderRadius: 20, border: '1px solid #03C1F5', background: 'transparent', color: '#03C1F5', cursor: 'pointer', fontWeight: 500 }}>
             My Biz
           </button>
 
-          {/* Customer Login */}
           {customer ? (
             <div style={{ position: 'relative' }}>
               <button
@@ -165,7 +171,11 @@ export default function Home({ navigate }) {
           </div>
         ) : (
           topCompanies.map(c => (
-            <CompanyCard key={c.id} company={c} onClick={() => navigate('company', { company: c })} />
+            <CompanyCard
+              key={c.id}
+              company={c}
+              onClick={() => goToCompany(c)}
+            />
           ))
         )}
       </div>
