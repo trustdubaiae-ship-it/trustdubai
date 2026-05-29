@@ -110,6 +110,19 @@ export default function PublicProfile() {
     setCustomer(cust || null)
   }
 
+  async function trackProfileView(companyId) {
+    try {
+      await supabase.rpc('increment_profile_views', { p_company_id: companyId })
+      await supabase.from('profile_views_log').insert({
+        company_id: companyId,
+        visited_at: new Date().toISOString(),
+        user_agent: navigator.userAgent,
+      })
+    } catch (e) {
+      console.error('View tracking failed:', e)
+    }
+  }
+
   async function fetchCompany() {
     setLoading(true)
     const { data, error } = await supabase
@@ -143,6 +156,10 @@ export default function PublicProfile() {
       + (avgRating ? ' Rated ' + avgRating + '/5.' : '') + ' Contact on TrustDubai.'
     setSEO({ title: seoTitle, description: seoDesc, image: 'https://trustdubai.ae/og-image.png', url: 'https://trustdubai.ae/' + slug })
     setJsonLD(data, reviewData)
+
+    // Track profile view
+    trackProfileView(data.id)
+
     setLoading(false)
   }
 
