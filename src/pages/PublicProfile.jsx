@@ -100,7 +100,7 @@ export default function PublicProfile() {
     const [reviewRes, formRes] = await Promise.all([
       supabase
         .from('reviews')
-        .select('id, reviewer_name, rating, review_text, comment, owner_reply, replied_at, created_at, is_approved')
+        .select('id, reviewer_name, rating, review_text, owner_reply, replied_at, created_at, is_approved')
         .eq('company_id', data.id)
         .eq('is_approved', true)
         .order('created_at', { ascending: false })
@@ -219,7 +219,6 @@ export default function PublicProfile() {
   return (
     <div style={{ background: '#f9fafb', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
 
-      {/* Header */}
       <div style={{ background: '#03C1F5', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
           <svg width="24" height="24" viewBox="0 0 32 32">
@@ -252,7 +251,6 @@ export default function PublicProfile() {
         </div>
       </div>
 
-      {/* Hero */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '32px 24px' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
@@ -264,15 +262,9 @@ export default function PublicProfile() {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
                 <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>{company.name}</h1>
-                {company.is_verified && (
-                  <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>
-                )}
+                {company.is_verified && <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>}
                 {company.plan && company.plan !== 'free' && (
-                  <span style={{
-                    background: company.plan === 'platinum' ? '#f5f3ff' : company.plan === 'gold' ? '#fffdf7' : '#f1f5f9',
-                    color: company.plan === 'platinum' ? '#8b5cf6' : company.plan === 'gold' ? '#e8b84b' : '#94a3b8',
-                    fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99
-                  }}>
+                  <span style={{ background: company.plan === 'platinum' ? '#f5f3ff' : company.plan === 'gold' ? '#fffdf7' : '#f1f5f9', color: company.plan === 'platinum' ? '#8b5cf6' : company.plan === 'gold' ? '#e8b84b' : '#94a3b8', fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 99 }}>
                     {company.plan === 'platinum' ? '💎' : company.plan === 'gold' ? '🥇' : '🥈'} {company.plan.charAt(0).toUpperCase() + company.plan.slice(1)}
                   </span>
                 )}
@@ -287,9 +279,7 @@ export default function PublicProfile() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', background: '#f9fafb', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 20 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 32, fontWeight: 700, color: '#111827', lineHeight: 1 }}>{company.avg_rating || '0.0'}</div>
-              <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>
-                {'★'.repeat(Math.round(company.avg_rating || 0))}{'☆'.repeat(5 - Math.round(company.avg_rating || 0))}
-              </div>
+              <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>{'★'.repeat(Math.round(company.avg_rating || 0))}{'☆'.repeat(5 - Math.round(company.avg_rating || 0))}</div>
             </div>
             <div style={{ width: 1, height: 40, background: '#e5e7eb' }} />
             <div>
@@ -299,24 +289,19 @@ export default function PublicProfile() {
             {company.whatsapp && (
               <>
                 <div style={{ width: 1, height: 40, background: '#e5e7eb', marginLeft: 'auto' }} />
-                <button
-                  onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')}
+                <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: '#25D366', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
                   💬 WhatsApp
                 </button>
               </>
             )}
           </div>
-
-          {company.description && (
-            <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, margin: 0 }}>{company.description}</p>
-          )}
+          {company.description && <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.7, margin: 0 }}>{company.description}</p>}
         </div>
       </div>
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 24px 0' }}>
 
-        {/* Lead Form */}
         {leadForm && (
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '24px', marginBottom: 24 }}>
             {submitted ? (
@@ -324,9 +309,7 @@ export default function PublicProfile() {
                 <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
                 <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: '#111827' }}>Request Submitted!</h3>
                 <p style={{ fontSize: 14, color: '#6b7280' }}>{company.name} will contact you shortly.</p>
-                <div style={{ marginTop: 12, display: 'inline-block', background: '#e0f9ff', color: '#03C1F5', fontSize: 12, fontWeight: 500, padding: '4px 12px', borderRadius: 99 }}>
-                  Lead from TrustDubai
-                </div>
+                <div style={{ marginTop: 12, display: 'inline-block', background: '#e0f9ff', color: '#03C1F5', fontSize: 12, fontWeight: 500, padding: '4px 12px', borderRadius: 99 }}>Lead from TrustDubai</div>
               </div>
             ) : (
               <form onSubmit={submitLead}>
@@ -342,31 +325,12 @@ export default function PublicProfile() {
                     <label style={{ fontSize: 13, fontWeight: 500, color: '#374151', display: 'block', marginBottom: 6 }}>
                       {q.question}{q.required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}
                     </label>
-                    {q.type === 'text' && (
-                      <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} placeholder="Your answer..."
-                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />
-                    )}
-                    {q.type === 'select' && (
-                      <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))}
-                        style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff' }}>
-                        <option value="">Select an option</option>
-                        {(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}
-                      </select>
-                    )}
-                    {q.type === 'radio' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                        {(q.options || []).map((o, i) => (
-                          <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#374151', cursor: 'pointer' }}>
-                            <input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(prev => ({ ...prev, [q.question]: o }))} />
-                            {o}
-                          </label>
-                        ))}
-                      </div>
-                    )}
+                    {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} placeholder="Your answer..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />}
+                    {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff' }}><option value="">Select an option</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
+                    {q.type === 'radio' && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{(q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#374151', cursor: 'pointer' }}><input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(prev => ({ ...prev, [q.question]: o }))} />{o}</label>)}</div>}
                   </div>
                 ))}
-                <button type="submit" disabled={submitting}
-                  style={{ width: '100%', padding: '12px', background: submitting ? '#9ca3af' : '#03C1F5', color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+                <button type="submit" disabled={submitting} style={{ width: '100%', padding: '12px', background: submitting ? '#9ca3af' : '#03C1F5', color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>
                   {submitting ? 'Submitting...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}
                 </button>
                 <div style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>Powered by TrustDubai</div>
@@ -375,7 +339,6 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Reviews Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Customer Reviews</h2>
           {!reviewSubmitted && (
@@ -386,7 +349,6 @@ export default function PublicProfile() {
           )}
         </div>
 
-        {/* Review Form */}
         {showReviewForm && customer && (
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '20px', marginBottom: 20 }}>
             <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, color: '#111827' }}>Write a Review</h3>
@@ -399,8 +361,7 @@ export default function PublicProfile() {
                 ))}
               </div>
             </div>
-            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)}
-              placeholder="Share your experience with this company..."
+            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Share your experience..."
               style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, minHeight: 100, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', resize: 'vertical' }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={submitReview} disabled={submittingReview}
@@ -422,7 +383,6 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Reviews List */}
         {reviews.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 24 }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>⭐</div>
@@ -439,20 +399,14 @@ export default function PublicProfile() {
                     </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 500, color: '#111827' }}>{r.reviewer_name || 'Anonymous'}</div>
-                      <div style={{ fontSize: 11, color: '#9ca3af' }}>
-                        {new Date(r.created_at).toLocaleDateString('en-AE', { month: 'short', year: 'numeric', day: 'numeric' })}
-                      </div>
+                      <div style={{ fontSize: 11, color: '#9ca3af' }}>{new Date(r.created_at).toLocaleDateString('en-AE', { month: 'short', year: 'numeric', day: 'numeric' })}</div>
                     </div>
                   </div>
-                  <div style={{ color: '#f9a825', fontSize: 14 }}>
-                    {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
-                  </div>
+                  <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
                 </div>
 
-                {(r.review_text || r.comment) && (
-                  <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: '0 0 10px 0' }}>
-                    {r.review_text || r.comment}
-                  </p>
+                {r.review_text && (
+                  <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>
                 )}
 
                 {r.owner_reply && (
@@ -474,7 +428,6 @@ export default function PublicProfile() {
         )}
       </div>
 
-      {/* Login Prompt Modal */}
       {showLoginPrompt && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: 32, width: 380, textAlign: 'center' }}>
