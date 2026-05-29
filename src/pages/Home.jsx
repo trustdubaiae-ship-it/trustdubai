@@ -77,7 +77,6 @@ function CityMap({ height = 90 }) {
 }
 
 function ReviewGraph({ data }) {
-  const bars = [4,8,12,6,10,14,8,5,11,7,9,13,6,10,8,12,5,9,11,7]
   return (
     <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: '10px 12px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -141,7 +140,7 @@ function ReviewGraph({ data }) {
           <div key={p.label} style={{ display: 'flex', alignItems: 'center', gap: 4, background: p.bg, border: `0.5px solid ${p.border}`, borderRadius: 5, padding: '3px 7px' }}>
             <span style={{ fontSize: 8, color: p.color, fontWeight: 700 }}>{p.label}</span>
             <span style={{ fontSize: 8, color: p.color, fontWeight: 600 }}>{p.count}</span>
-            {p.up && <span style={{ fontSize: 7.5, color: p.color }}>↑{p.up}%</span>}
+            {p.up > 0 && <span style={{ fontSize: 7.5, color: p.color }}>↑{p.up}%</span>}
           </div>
         ))}
       </div>
@@ -152,17 +151,17 @@ function ReviewGraph({ data }) {
 function RightPanel({ recentReviews, navigate }) {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
+
   return (
-    <div style={{ background: 'var(--bg-card)', borderLeft: '0.5px solid var(--border-default)', padding: 12, display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ width: 240, flexShrink: 0, background: 'var(--bg-card)', borderLeft: '0.5px solid var(--border-default)', padding: 12, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
 
       {/* List Your Business CTA */}
       <div style={{ background: 'linear-gradient(135deg, #0099cc, #0077aa)', borderRadius: 12, padding: 12 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: '#fff', marginBottom: 3 }}>🏢 List Your Business</div>
-        <div style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.7)', marginBottom: 10, lineHeight: 1.5 }}>
-          Join 500+ verified companies on TrustDubai. Get leads, reviews & visibility.
+        <div style={{ fontSize: 8.5, color: 'rgba(255,255,255,0.75)', marginBottom: 10, lineHeight: 1.5 }}>
+          Join 500+ verified companies. Get leads, reviews & visibility in Dubai.
         </div>
-        <button
-          onClick={() => window.open('https://business.trustdubai.ae', '_blank')}
+        <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')}
           style={{ width: '100%', background: '#fff', border: 'none', borderRadius: 8, padding: '7px 0', fontSize: 10, color: '#0099cc', fontWeight: 700, cursor: 'pointer' }}>
           Register Free →
         </button>
@@ -177,13 +176,15 @@ function RightPanel({ recentReviews, navigate }) {
           { init: 'JI', bg: '#ede9fe', color: '#5b21b6', name: 'Jaguar Interiors', cat: 'Luxury Interior Design', rat: '★★★★★ 4.9' },
           { init: 'RF', bg: '#fef3c7', color: '#92400e', name: 'RenoFix Plus', cat: 'Construction & Renovation', rat: '★★★★½ 4.8' },
         ].map(s => (
-          <div key={s.name} style={{ background: '#f0faff', border: '0.5px solid #b3d9f0', borderRadius: 8, padding: 8, marginBottom: 5, position: 'relative' }}>
+          <div key={s.name} style={{ background: '#f0faff', border: '0.5px solid #b3d9f0', borderRadius: 8, padding: '8px 10px', marginBottom: 6, position: 'relative' }}>
             <span style={{ position: 'absolute', top: 5, right: 5, fontSize: 7, color: '#7a9ab5', background: '#e8f4fd', padding: '1px 4px', borderRadius: 3 }}>Ad</span>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: s.bg, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, marginBottom: 4 }}>{s.init}</div>
             <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-primary)' }}>{s.name}</div>
             <div style={{ fontSize: 7.5, color: 'var(--text-muted)' }}>{s.cat}</div>
             <div style={{ fontSize: 8.5, color: '#f5a623', marginTop: 2 }}>{s.rat}</div>
-            <button style={{ marginTop: 5, background: '#0099cc', border: 'none', borderRadius: 5, padding: '4px 0', fontSize: 8.5, color: '#fff', fontWeight: 600, cursor: 'pointer', width: '100%' }}>View Profile</button>
+            <button style={{ marginTop: 6, background: '#0099cc', border: 'none', borderRadius: 5, padding: '5px 0', fontSize: 9, color: '#fff', fontWeight: 600, cursor: 'pointer', width: '100%' }}>
+              View Profile
+            </button>
           </div>
         ))}
       </div>
@@ -194,18 +195,18 @@ function RightPanel({ recentReviews, navigate }) {
           <i className="ti ti-trending-up" style={{ fontSize: 11, color: '#0099cc' }} /> Trending
         </div>
         {[
-          { r: '1', name: 'RenoFix Plus', cat: 'Construction', hot: true },
+          { r: '1', name: 'RenoFix Plus',    cat: 'Construction',   hot: true },
           { r: '2', name: 'Jaguar Interiors', cat: 'Interior Design', hot: true },
-          { r: '3', name: 'AirCool Dubai', cat: 'AC Service' },
-          { r: '4', name: 'CleanPro Dubai', cat: 'Cleaning' },
+          { r: '3', name: 'AirCool Dubai',    cat: 'AC Service' },
+          { r: '4', name: 'CleanPro Dubai',   cat: 'Cleaning' },
         ].map((t, i) => (
-          <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: i < 3 ? '0.5px solid var(--border-default)' : 'none' }}>
-            <span style={{ fontSize: 10, fontWeight: 700, width: 12, color: t.hot ? '#f5a623' : 'var(--text-muted)' }}>{t.r}</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)' }}>{t.name}</div>
+          <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 0', borderBottom: i < 3 ? '0.5px solid var(--border-default)' : 'none' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, width: 14, color: t.hot ? '#f5a623' : 'var(--text-muted)', flexShrink: 0 }}>{t.r}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</div>
               <div style={{ fontSize: 7.5, color: 'var(--text-muted)' }}>{t.cat}</div>
             </div>
-            <i className="ti ti-arrow-up-right" style={{ fontSize: 10, color: '#0099cc' }} />
+            <i className="ti ti-arrow-up-right" style={{ fontSize: 10, color: '#0099cc', flexShrink: 0 }} />
           </div>
         ))}
       </div>
@@ -215,14 +216,18 @@ function RightPanel({ recentReviews, navigate }) {
         <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 4 }}>
           <i className="ti ti-message-circle" style={{ fontSize: 11, color: '#0099cc' }} /> Recent Reviews
         </div>
-        {recentReviews.slice(0, 3).map((r, i) => (
-          <div key={r.id || i} style={{ display: 'flex', gap: 6, padding: '5px 0', borderBottom: i < 2 ? '0.5px solid var(--border-default)' : 'none' }}>
+        {(recentReviews.length > 0 ? recentReviews : [
+          { id: 1, reviewer_name: 'M. Ahmed',    rating: 5, review_text: 'Incredible job! Highly recommend their services.' },
+          { id: 2, reviewer_name: 'S. Hassan',   rating: 4, review_text: 'Amazing interior design, very professional team.' },
+          { id: 3, reviewer_name: 'F. Al Rashid',rating: 5, review_text: 'Fast AC service, great response time!' },
+        ]).slice(0, 3).map((r, i) => (
+          <div key={r.id || i} style={{ display: 'flex', gap: 7, padding: '5px 0', borderBottom: i < 2 ? '0.5px solid var(--border-default)' : 'none' }}>
             <div style={{ width: 22, height: 22, borderRadius: '50%', background: ['#0099cc','#7c3aed','#059669'][i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
               {(r.reviewer_name || 'A')[0].toUpperCase()}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 8.5, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.reviewer_name || 'Anonymous'}</div>
-              <div style={{ fontSize: 7.5, color: 'var(--text-muted)', lineHeight: 1.3 }}>{(r.review_text || '').slice(0, 40)}...</div>
+              <div style={{ fontSize: 7.5, color: 'var(--text-muted)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{(r.review_text || '').slice(0, 45)}...</div>
               <div style={{ fontSize: 8, color: '#f5a623' }}>{'★'.repeat(r.rating || 5)}</div>
             </div>
           </div>
@@ -235,7 +240,7 @@ function RightPanel({ recentReviews, navigate }) {
           <i className="ti ti-mail" style={{ fontSize: 11, color: '#0099cc' }} /> Dubai Service Deals
         </div>
         <div style={{ fontSize: 8, color: 'var(--text-muted)', marginBottom: 8, lineHeight: 1.5 }}>
-          Get weekly deals & top-rated service alerts in Dubai.
+          Weekly deals & top-rated service alerts in Dubai.
         </div>
         {subscribed ? (
           <div style={{ background: '#f0fdf4', border: '0.5px solid #a7f3d0', borderRadius: 6, padding: '6px 8px', fontSize: 9, color: '#065f46', fontWeight: 600, textAlign: 'center' }}>
@@ -243,14 +248,9 @@ function RightPanel({ recentReviews, navigate }) {
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 5 }}>
-            <input
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              style={{ flex: 1, padding: '5px 8px', border: '0.5px solid var(--border-default)', borderRadius: 6, fontSize: 9, background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }}
-            />
-            <button
-              onClick={() => { if (email.includes('@')) setSubscribed(true) }}
+            <input value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com"
+              style={{ flex: 1, padding: '5px 8px', border: '0.5px solid var(--border-default)', borderRadius: 6, fontSize: 9, background: 'var(--bg-card)', color: 'var(--text-primary)', outline: 'none' }} />
+            <button onClick={() => { if (email.includes('@')) setSubscribed(true) }}
               style={{ padding: '5px 10px', background: '#0099cc', border: 'none', borderRadius: 6, fontSize: 9, color: '#fff', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               Join
             </button>
@@ -261,10 +261,10 @@ function RightPanel({ recentReviews, navigate }) {
       {/* App Download */}
       <div style={{ background: '#1a2744', borderRadius: 10, padding: 10 }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: '#fff', marginBottom: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
-          <i className="ti ti-device-mobile" style={{ fontSize: 11, color: '#0099cc' }} /> Download TrustDubai App
+          <i className="ti ti-device-mobile" style={{ fontSize: 11, color: '#0099cc' }} /> Download App
         </div>
         <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.45)', marginBottom: 8, lineHeight: 1.5 }}>
-          Find & book trusted services on the go.
+          Find & book trusted Dubai services on the go.
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button style={{ flex: 1, background: 'rgba(255,255,255,0.1)', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: 7, padding: '6px 4px', cursor: 'pointer', textAlign: 'center' }}>
@@ -288,7 +288,7 @@ export default function Home({ navigate }) {
   const [newCompanies, setNewCompanies]   = useState([])
   const [nearCompanies, setNearCompanies] = useState([])
   const [topCompanies, setTopCompanies]   = useState([])
-  const [stats, setStats]                 = useState({ companies: 0, reviews: 0, avgRating: 0, verified: 0 })
+  const [stats, setStats]                 = useState({ companies: 0, reviews: 0, avgRating: '0.0', verified: 0 })
   const [reviewData, setReviewData]       = useState({ total: 0, s5: 0, s4: 0, s3: 0, s2: 0, s1: 0, s5_pct: 0, s4_pct: 0 })
   const [trustScore, setTrustScore]       = useState(0)
   const [loading, setLoading]             = useState(true)
@@ -320,46 +320,35 @@ export default function Home({ navigate }) {
         { count: totalCo },
         { count: totalRev },
         { count: verifiedCo },
-        { data: avgData },
+        { data: ratData },
         { data: allCo },
         { data: revData },
         { data: recentRev },
-        { data: starData },
       ] = await Promise.all([
         supabase.from('companies').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
         supabase.from('reviews').select('*', { count: 'exact', head: true }).eq('is_approved', true),
-        supabase.from('companies').select('*', { count: 'exact', head: true }).eq('is_verified', true),
+        supabase.from('companies').select('*', { count: 'exact', head: true }).eq('status', 'approved').eq('is_verified', true),
         supabase.from('reviews').select('rating').eq('is_approved', true),
         supabase.from('companies').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(20),
         supabase.from('reviews').select('rating, created_at').eq('is_approved', true),
         supabase.from('reviews').select('id, reviewer_name, rating, review_text, created_at').eq('is_approved', true).order('created_at', { ascending: false }).limit(5),
-        supabase.from('reviews').select('rating').eq('is_approved', true),
       ])
 
-      // Stats
-      const avg = avgData?.length > 0
-        ? (avgData.reduce((s, r) => s + r.rating, 0) / avgData.length).toFixed(1)
+      const avg = ratData?.length > 0
+        ? (ratData.reduce((s, r) => s + r.rating, 0) / ratData.length).toFixed(1)
         : '0.0'
-      setStats({
-        companies: totalCo || 0,
-        reviews: totalRev || 0,
-        avgRating: avg,
-        verified: verifiedCo || 0,
-      })
 
-      // Companies
+      setStats({ companies: totalCo || 0, reviews: totalRev || 0, avgRating: avg, verified: verifiedCo || 0 })
+
       const approved = allCo || []
       setCompanies(approved)
-      setTopCompanies([...approved].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0)).slice(0, 5))
-      setNearCompanies([...approved].slice(0, 3))
-      setNewCompanies([...approved].slice(0, 3))
-
-      // Reviews
+      setTopCompanies([...approved].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0)).slice(0, 4))
+      setNearCompanies([...approved].slice(0, 4))
+      setNewCompanies([...approved].slice(0, 4))
       setRecentReviews(recentRev || [])
 
-      // Review graph data — this month
-      const now = new Date()
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+      // Review graph — this month
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
       const thisMonth = (revData || []).filter(r => r.created_at >= monthStart)
       const s5 = thisMonth.filter(r => r.rating === 5).length
       const s4 = thisMonth.filter(r => r.rating === 4).length
@@ -367,17 +356,12 @@ export default function Home({ navigate }) {
       const s2 = thisMonth.filter(r => r.rating === 2).length
       const s1 = thisMonth.filter(r => r.rating === 1).length
       const total = thisMonth.length
-      setReviewData({
-        total, s5, s4, s3, s2, s1,
-        s5_pct: total > 0 ? Math.round((s5 / total) * 100) : 0,
-        s4_pct: total > 0 ? Math.round((s4 / total) * 100) : 0,
-      })
+      setReviewData({ total, s5, s4, s3, s2, s1, s5_pct: total > 0 ? Math.round(s5/total*100) : 0, s4_pct: total > 0 ? Math.round(s4/total*100) : 0 })
 
-      // Trust Score
       const score = Math.min(100, Math.round(
         (verifiedCo / Math.max(totalCo, 1)) * 40 +
         (parseFloat(avg) / 5) * 40 +
-        Math.min(totalRev / 100, 1) * 20
+        Math.min((totalRev || 0) / 100, 1) * 20
       ))
       setTrustScore(score)
 
@@ -393,57 +377,73 @@ export default function Home({ navigate }) {
     setCustomer(cust)
   }
 
-  function goToCompany(company) {
-    if (company.slug) window.location.href = '/' + company.slug
-    else navigate('company', { company })
+  function goToCompany(c) {
+    if (c.slug) window.location.href = '/' + c.slug
+    else navigate('company', { company: c })
   }
 
   function formatStat(n) {
     if (n >= 1000) return Math.floor(n / 1000) + 'K+'
-    if (n > 0) return n + (n >= 100 ? '+' : '')
-    return '0'
+    if (n >= 100) return n + '+'
+    return String(n)
   }
 
-  // ── TOPBAR ────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────
+  // TOPBAR
+  // ─────────────────────────────────────────────────────
   const Topbar = () => (
-    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, padding: isMobile ? '10px 14px' : '10px 20px', background: 'var(--bg-card)', borderBottom: '0.5px solid var(--border-default)', position: 'sticky', top: 0, zIndex: 100, width: '100%', overflowX: 'hidden' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, padding: isMobile ? '10px 14px' : '0 20px', height: isMobile ? 'auto' : 48, background: 'var(--bg-card)', borderBottom: '0.5px solid var(--border-default)', position: 'sticky', top: 0, zIndex: 100, overflowX: 'hidden' }}>
       <Logo size={isMobile ? 13 : 15} />
+
       {isDesktop && (
-        <nav style={{ display: 'flex', gap: 14 }}>
+        <nav style={{ display: 'flex', gap: 14, marginLeft: 8 }}>
           {['Home','Categories','Top Rated','Near Me','City Map'].map((l, i) => (
-            <button key={l} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? '#0099cc' : 'var(--text-muted)', borderBottom: i === 0 ? '1.5px solid #0099cc' : 'none', paddingBottom: 1 }}>{l}</button>
+            <button key={l} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: i === 0 ? 700 : 500, color: i === 0 ? '#0099cc' : 'var(--text-muted)', borderBottom: i === 0 ? '1.5px solid #0099cc' : 'none', paddingBottom: 2, height: 48 }}>
+              {l}
+            </button>
           ))}
         </nav>
       )}
+
       {!isMobile && (
         <div style={{ flex: 1, maxWidth: 200, background: 'var(--bg-secondary)', border: '0.5px solid var(--border-default)', borderRadius: 20, padding: '5px 10px', display: 'flex', alignItems: 'center', gap: 5 }}>
           <i className="ti ti-search" style={{ fontSize: 10, color: '#0099cc' }} />
-          <input placeholder="Search companies..." onKeyDown={e => e.key === 'Enter' && navigate('search', { query: e.target.value })} style={{ border: 'none', background: 'none', outline: 'none', fontSize: 9, color: 'var(--text-primary)', width: '100%' }} />
+          <input placeholder="Search companies..." onKeyDown={e => e.key === 'Enter' && navigate('search', { query: e.target.value })}
+            style={{ border: 'none', background: 'none', outline: 'none', fontSize: 9, color: 'var(--text-primary)', width: '100%' }} />
         </div>
       )}
+
       <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 5 : 7, marginLeft: 'auto' }}>
         <ThemeToggle />
-        <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: isMobile ? '4px 8px' : '5px 10px', border: '0.5px solid #b3d9f0', borderRadius: 99, background: '#f0faff', color: '#0099cc', fontSize: isMobile ? 9 : 10, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+        <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: isMobile ? '4px 8px' : '5px 10px', border: '0.5px solid #b3d9f0', borderRadius: 99, background: '#f0faff', color: '#0099cc', fontSize: isMobile ? 9 : 10, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
           <i className="ti ti-briefcase" style={{ fontSize: 9 }} />
           {isMobile ? 'My Biz' : 'My Business'}
         </button>
         {customer ? (
           <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowUserMenu(!showUserMenu)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', border: '0.5px solid var(--border-default)', borderRadius: 99, background: 'var(--bg-card)', cursor: 'pointer' }}>
+            <button onClick={() => setShowUserMenu(!showUserMenu)}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', border: '0.5px solid var(--border-default)', borderRadius: 99, background: 'var(--bg-card)', cursor: 'pointer' }}>
               <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#1a2744', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: '#fff' }}>
                 {(customer.full_name || customer.email)[0].toUpperCase()}
               </div>
-              {!isMobile && <span style={{ fontSize: 10, color: 'var(--text-primary)', fontWeight: 600 }}>{(customer.full_name || customer.email.split('@')[0]).slice(0, 10)}</span>}
+              {!isMobile && <span style={{ fontSize: 10, color: 'var(--text-primary)', fontWeight: 600 }}>
+                {(customer.full_name || customer.email.split('@')[0]).slice(0, 12)}
+              </span>}
             </button>
             {showUserMenu && (
-              <div style={{ position: 'absolute', right: 0, top: 34, background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: 8, minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
+              <div style={{ position: 'absolute', right: 0, top: 36, background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: 8, minWidth: 160, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200 }}>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', padding: '4px 8px', borderBottom: '0.5px solid var(--border-default)', marginBottom: 4 }}>{customer.email}</div>
-                <button onClick={() => { signOut(); setCustomer(null); setShowUserMenu(false) }} style={{ width: '100%', padding: '7px 8px', background: '#fff0f0', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer', textAlign: 'left' }}>Sign Out</button>
+                <button onClick={() => { signOut(); setCustomer(null); setShowUserMenu(false) }}
+                  style={{ width: '100%', padding: '7px 8px', background: '#fff0f0', color: '#dc2626', border: 'none', borderRadius: 6, fontSize: 11, cursor: 'pointer', textAlign: 'left' }}>
+                  Sign Out
+                </button>
               </div>
             )}
           </div>
         ) : (
-          <button onClick={() => signInWithGoogle()} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: isMobile ? '4px 8px' : '5px 10px', border: 'none', borderRadius: 99, background: '#fff', color: '#374151', fontSize: isMobile ? 9 : 10, fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', whiteSpace: 'nowrap' }}>
+          <button onClick={() => signInWithGoogle()}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: isMobile ? '4px 8px' : '5px 10px', border: 'none', borderRadius: 99, background: '#fff', color: '#374151', fontSize: isMobile ? 9 : 10, fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', whiteSpace: 'nowrap' }}>
             <svg width="12" height="12" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -457,36 +457,38 @@ export default function Home({ navigate }) {
     </div>
   )
 
-  // ── HERO ──────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────
+  // HERO
+  // ─────────────────────────────────────────────────────
   const Hero = () => (
-    <div style={{ background: 'var(--bg-card)', padding: isMobile ? '20px 14px 16px' : '24px 20px 20px', borderBottom: '0.5px solid var(--border-default)', textAlign: isDesktop ? 'center' : 'left', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--bg-card)', padding: isMobile ? '20px 14px 16px' : '24px 20px 20px', borderBottom: '0.5px solid var(--border-default)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', width: 200, height: 200, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,153,204,0.05) 0%, transparent 70%)', top: -60, right: -40, pointerEvents: 'none' }} />
-      <div style={{ position: 'relative', maxWidth: isDesktop ? 600 : '100%', margin: isDesktop ? '0 auto' : 0 }}>
+      <div style={{ position: 'relative', maxWidth: 560, margin: '0 auto' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--bg-secondary)', border: '0.5px solid var(--border-default)', borderRadius: 99, padding: '3px 10px', marginBottom: 10 }}>
           <i className="ti ti-shield-check" style={{ fontSize: 10, color: '#0099cc' }} />
           <span style={{ fontSize: 9, color: '#0099cc', fontWeight: 600 }}>Dubai's Most Trusted Review Platform</span>
         </div>
-        <h1 style={{ fontSize: isMobile ? 24 : isTablet ? 28 : 32, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-1px', lineHeight: 1.1, marginBottom: 6 }}>
+        <h1 style={{ fontSize: isMobile ? 22 : isTablet ? 26 : 30, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-1px', lineHeight: 1.1, marginBottom: 6 }}>
           Find Trusted <span style={{ color: '#0099cc' }}>Services</span> in Dubai
         </h1>
         <p style={{ fontSize: isMobile ? 11 : 12, color: 'var(--text-muted)', marginBottom: 14, lineHeight: 1.6 }}>
           Verified companies · Real reviews from real customers
         </p>
-        <div style={{ maxWidth: isDesktop ? 460 : '100%', margin: isDesktop ? '0 auto 14px' : '0 0 14px' }}>
+        <div style={{ maxWidth: 440, margin: '0 auto 14px' }}>
           <SearchBar placeholder="AC repair, plumbing, interiors..." onSearch={(q) => navigate('search', { query: q })} />
         </div>
-        <div style={{ display: 'flex', gap: 10, justifyContent: isDesktop ? 'center' : 'flex-start', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
           {[
             ['companies', 'Verified Companies'],
-            ['reviews', 'Customer Reviews'],
+            ['reviews',   'Customer Reviews'],
             ['avgRating', 'Avg Rating'],
-            ['verified', 'Verified Businesses'],
+            ['verified',  'Verified Businesses'],
           ].map(([key, label]) => (
-            <div key={key} style={{ background: 'var(--bg-secondary)', border: '0.5px solid var(--border-default)', borderRadius: 8, padding: isMobile ? '6px 10px' : '8px 14px', textAlign: 'center', minWidth: isMobile ? 60 : 80 }}>
-              <div style={{ fontSize: isMobile ? 13 : 16, fontWeight: 700, color: '#0099cc', lineHeight: 1 }}>
-                {key === 'avgRating' ? (stats.avgRating + '★') : formatStat(stats[key])}
+            <div key={key} style={{ background: 'var(--bg-secondary)', border: '0.5px solid var(--border-default)', borderRadius: 8, padding: '7px 12px', textAlign: 'center', minWidth: 70 }}>
+              <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: '#0099cc', lineHeight: 1 }}>
+                {key === 'avgRating' ? stats.avgRating + '★' : formatStat(stats[key])}
               </div>
-              <div style={{ fontSize: isMobile ? 7 : 8, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
+              <div style={{ fontSize: 7.5, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
             </div>
           ))}
         </div>
@@ -494,60 +496,71 @@ export default function Home({ navigate }) {
     </div>
   )
 
-  // ── CATEGORIES ────────────────────────────────────────
+  // ─────────────────────────────────────────────────────
+  // CATEGORIES — 1:1 square cards
+  // ─────────────────────────────────────────────────────
   const Categories = () => (
-    <div style={{ padding: isMobile ? '10px 14px' : '10px 16px' }}>
+    <div style={{ padding: isMobile ? '10px 14px 6px' : '10px 14px 6px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
         <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Services</span>
         <button onClick={() => navigate('search', {})} style={{ background: 'none', border: 'none', fontSize: 9, color: '#0099cc', cursor: 'pointer', fontWeight: 600 }}>See all</button>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? 'repeat(8,1fr)' : 'repeat(4,1fr)', gap: 5 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
         {CATEGORIES.map(c => (
           <div key={c.cat} onClick={() => navigate('search', { category: c.cat })}
-            style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: isDesktop ? 7 : 9, padding: isDesktop ? '5px 2px' : '8px 3px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, cursor: 'pointer', transition: 'all 0.15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#0099cc'; e.currentTarget.style.transform = 'translateY(-1px)' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.transform = 'none' }}
+            style={{ cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)' }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none' }}
           >
-            <span style={{ fontSize: isMobile ? 18 : 14 }}>{c.icon}</span>
-            <span style={{ fontSize: isMobile ? 8 : 7.5, color: 'var(--text-muted)', textAlign: 'center', fontWeight: 500 }}>{c.name}</span>
+            {/* 1:1 square via paddingTop trick */}
+            <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                <span style={{ fontSize: 20, lineHeight: 1 }}>{c.icon}</span>
+                <span style={{ fontSize: 8, color: 'var(--text-muted)', textAlign: 'center', fontWeight: 500, lineHeight: 1.2, padding: '0 2px' }}>{c.name}</span>
+              </div>
+            </div>
           </div>
         ))}
       </div>
     </div>
   )
 
-  // ── SIDEBAR ───────────────────────────────────────────
+  // ─────────────────────────────────────────────────────
+  // SIDEBAR
+  // ─────────────────────────────────────────────────────
   const Sidebar = () => (
-    <div style={{ width: 150, background: 'var(--bg-card)', borderRight: '0.5px solid var(--border-default)', padding: '10px 0', flexShrink: 0 }}>
+    <div style={{ width: 200, flexShrink: 0, background: 'var(--bg-card)', borderRight: '0.5px solid var(--border-default)', padding: '10px 0' }}>
       {[
         { label: 'Browse', items: [
-          { icon: 'ti-home', name: 'Home', active: true },
-          { icon: 'ti-search', name: 'Search' },
-          { icon: 'ti-star', name: 'Top Rated' },
+          { icon: 'ti-home',    name: 'Home',           active: true },
+          { icon: 'ti-search',  name: 'Search' },
+          { icon: 'ti-star',    name: 'Top Rated' },
           { icon: 'ti-map-pin', name: 'Near Me' },
-          { icon: 'ti-clock', name: 'Recently Added' },
+          { icon: 'ti-clock',   name: 'Recently Added' },
         ]},
         { label: 'Services', items: [
           { icon: 'ti-snowflake', name: 'AC Service' },
-          { icon: 'ti-tool', name: 'Plumbing' },
-          { icon: 'ti-brush', name: 'Painting' },
-          { icon: 'ti-bolt', name: 'Electrical' },
-          { icon: 'ti-sofa', name: 'Interior' },
+          { icon: 'ti-tool',      name: 'Plumbing' },
+          { icon: 'ti-brush',     name: 'Painting' },
+          { icon: 'ti-bolt',      name: 'Electrical' },
+          { icon: 'ti-sofa',      name: 'Interior' },
+          { icon: 'ti-building',  name: 'Renovation' },
         ]},
         { label: 'Explore', items: [
-          { icon: 'ti-map-2', name: 'City Map' },
+          { icon: 'ti-map-2',      name: 'City Map' },
           { icon: 'ti-chart-line', name: 'Review Trends' },
-          { icon: 'ti-users', name: 'Community' },
+          { icon: 'ti-users',      name: 'Community' },
         ]},
       ].map(section => (
         <div key={section.label}>
-          <div style={{ fontSize: 7.5, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '6px 12px 3px' }}>{section.label}</div>
+          <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '8px 14px 3px' }}>{section.label}</div>
           {section.items.map(item => (
-            <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', fontSize: 10, color: item.active ? '#0099cc' : 'var(--text-muted)', background: item.active ? '#f0faff' : 'transparent', borderRight: item.active ? '2px solid #0099cc' : 'none', fontWeight: item.active ? 600 : 400, cursor: 'pointer', transition: 'all 0.15s' }}
+            <div key={item.name}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 14px', fontSize: 11, color: item.active ? '#0099cc' : 'var(--text-secondary)', background: item.active ? '#f0faff' : 'transparent', borderRight: item.active ? '2px solid #0099cc' : 'none', fontWeight: item.active ? 600 : 400, cursor: 'pointer', transition: 'all 0.15s' }}
               onMouseEnter={e => { if (!item.active) e.currentTarget.style.background = 'var(--bg-secondary)' }}
               onMouseLeave={e => { if (!item.active) e.currentTarget.style.background = 'transparent' }}
             >
-              <i className={`ti ${item.icon}`} style={{ fontSize: 12 }} />
+              <i className={`ti ${item.icon}`} style={{ fontSize: 14, flexShrink: 0 }} />
               {item.name}
             </div>
           ))}
@@ -556,110 +569,119 @@ export default function Home({ navigate }) {
     </div>
   )
 
-  // ── MAIN CONTENT (Desktop) ────────────────────────────
+  // ─────────────────────────────────────────────────────
+  // SECTION CARD — reusable
+  // ─────────────────────────────────────────────────────
+  function SectionCard({ icon, title, subtitle, children }) {
+    return (
+      <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: '10px 12px' }}>
+        <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <i className={`ti ${icon}`} style={{ fontSize: 12, color: '#0099cc' }} />
+          {title}
+          {subtitle && <span style={{ fontSize: 8, color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>{subtitle}</span>}
+        </div>
+        {children}
+      </div>
+    )
+  }
+
+  function CoRow({ company, i, total, badge, extra }) {
+    const colors = [
+      { bg: '#fef3c7', color: '#92400e' },
+      { bg: '#ede9fe', color: '#5b21b6' },
+      { bg: '#d1fae5', color: '#065f46' },
+      { bg: '#e0f9ff', color: '#0077aa' },
+    ]
+    const c = colors[i % colors.length]
+    return (
+      <div onClick={() => goToCompany(company)}
+        style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 0', borderBottom: i < total - 1 ? '0.5px solid var(--border-default)' : 'none', cursor: 'pointer' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 7, background: c.bg, color: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+          {company.name?.slice(0, 2).toUpperCase()}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{company.name}</div>
+          <div style={{ fontSize: 8, color: 'var(--text-muted)' }}>{company.category || company.categories?.[0] || '—'}</div>
+        </div>
+        {badge}
+        {extra}
+      </div>
+    )
+  }
+
+  // ─────────────────────────────────────────────────────
+  // MAIN CONTENT (Desktop)
+  // ─────────────────────────────────────────────────────
   const MainContent = () => (
-    <div style={{ padding: '10px 12px', background: 'var(--bg-secondary)', flex: 1, minWidth: 0, overflow: 'hidden' }}>
+    <div style={{ flex: 1, minWidth: 0, maxWidth: 'calc(100vw - 440px)', padding: '10px 14px', background: 'var(--bg-secondary)', overflowX: 'hidden' }}>
+
       <Categories />
+
       <TrustWave score={trustScore} />
 
-      {/* 2x2 grid */}
+      {/* 2×2 grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
 
-        {/* TOP RATED */}
-        <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <i className="ti ti-star" style={{ fontSize: 11, color: '#0099cc' }} /> Top Rated
-          </div>
-          {(topCompanies.length > 0 ? topCompanies : companies).slice(0, 3).map((c, i) => (
-            <div key={c.id} onClick={() => goToCompany(c)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: i < 2 ? '0.5px solid var(--border-default)' : 'none', cursor: 'pointer' }}>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: ['#fef3c7','#ede9fe','#d1fae5'][i], color: ['#92400e','#5b21b6','#065f46'][i], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>
-                {c.name?.slice(0, 2).toUpperCase()}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
-                <div style={{ fontSize: 7.5, color: 'var(--text-muted)' }}>{c.category}</div>
-              </div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: '#f5a623', whiteSpace: 'nowrap' }}>
-                {c.avg_rating || '0.0'}★
-                <span style={{ fontSize: 7, padding: '1px 4px', borderRadius: 3, marginLeft: 3, background: c.plan === 'gold' ? '#fef3c7' : c.plan === 'platinum' ? '#ede9fe' : 'transparent', color: c.plan === 'gold' ? '#92400e' : c.plan === 'platinum' ? '#5b21b6' : 'transparent', fontWeight: 700 }}>
-                  {c.plan === 'gold' ? 'G' : c.plan === 'platinum' ? 'P' : ''}
-                </span>
-              </div>
-            </div>
+        <SectionCard icon="ti-star" title="Top Rated">
+          {(topCompanies.length > 0 ? topCompanies : companies).slice(0, 4).map((c, i, arr) => (
+            <CoRow key={c.id} company={c} i={i} total={arr.length}
+              badge={
+                <div style={{ fontSize: 9, fontWeight: 700, color: '#f5a623', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
+                  {c.avg_rating || '—'}★
+                  {c.plan === 'gold' && <span style={{ fontSize: 7, padding: '1px 4px', borderRadius: 3, background: '#fef3c7', color: '#92400e' }}>G</span>}
+                  {c.plan === 'platinum' && <span style={{ fontSize: 7, padding: '1px 4px', borderRadius: 3, background: '#ede9fe', color: '#5b21b6' }}>P</span>}
+                </div>
+              }
+            />
           ))}
-        </div>
+        </SectionCard>
 
-        {/* NEAR ME */}
-        <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <i className="ti ti-map-pin" style={{ fontSize: 11, color: '#0099cc' }} /> Near Me
-            <span style={{ fontSize: 8, color: 'var(--text-muted)', fontWeight: 400, textTransform: 'none' }}>· Dubai</span>
-          </div>
-          {nearCompanies.slice(0, 3).map((c, i) => (
-            <div key={c.id} onClick={() => goToCompany(c)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: i < 2 ? '0.5px solid var(--border-default)' : 'none', cursor: 'pointer' }}>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: '#e0f9ff', color: '#0077aa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>
-                {c.name?.slice(0, 2).toUpperCase()}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
-                <div style={{ fontSize: 7.5, color: 'var(--text-muted)' }}>{c.category}</div>
-              </div>
-              <div style={{ fontSize: 8, color: '#0099cc', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                <i className="ti ti-map-pin" style={{ fontSize: 7 }} /> {(i + 1) * 0.8} km
-              </div>
-            </div>
+        <SectionCard icon="ti-map-pin" title="Near Me" subtitle="· Dubai">
+          {(nearCompanies.length > 0 ? nearCompanies : companies).slice(0, 4).map((c, i, arr) => (
+            <CoRow key={c.id} company={c} i={i} total={arr.length}
+              badge={<span style={{ fontSize: 8, color: '#0099cc', fontWeight: 600, whiteSpace: 'nowrap' }}>{((i + 1) * 0.8).toFixed(1)} km</span>}
+            />
           ))}
-        </div>
+        </SectionCard>
 
-        {/* RECENTLY ADDED */}
-        <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <i className="ti ti-clock" style={{ fontSize: 11, color: '#0099cc' }} /> Recently Added
-          </div>
-          {newCompanies.slice(0, 3).map((c, i) => (
-            <div key={c.id} onClick={() => goToCompany(c)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderBottom: i < 2 ? '0.5px solid var(--border-default)' : 'none', cursor: 'pointer' }}>
-              <div style={{ width: 26, height: 26, borderRadius: 7, background: '#d1fae5', color: '#065f46', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>
-                {c.name?.slice(0, 2).toUpperCase()}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
-                <div style={{ fontSize: 7.5, color: 'var(--text-muted)' }}>{c.category}</div>
-              </div>
-              <span style={{ fontSize: 7, background: '#e0f9ff', color: '#0077aa', padding: '2px 5px', borderRadius: 4, fontWeight: 700 }}>New</span>
-            </div>
+        <SectionCard icon="ti-clock" title="Recently Added">
+          {(newCompanies.length > 0 ? newCompanies : companies).slice(0, 4).map((c, i, arr) => (
+            <CoRow key={c.id} company={c} i={i} total={arr.length}
+              badge={<span style={{ fontSize: 7, background: '#e0f9ff', color: '#0077aa', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>New</span>}
+            />
           ))}
-        </div>
+        </SectionCard>
 
-        {/* CITY MAP */}
-        <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: '10px 12px' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <i className="ti ti-map-2" style={{ fontSize: 11, color: '#0099cc' }} /> City Network
-          </div>
-          <CityMap height={68} />
+        <SectionCard icon="ti-map-2" title="City Network">
+          <CityMap height={78} />
           <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginTop: 6 }}>
-            {['Downtown','Business Bay','JBR','DIFC','+8'].map(a => (
-              <span key={a} style={{ fontSize: 7, background: '#e0f9ff', color: '#0077aa', padding: '1px 5px', borderRadius: 3, fontWeight: 600 }}>{a}</span>
+            {['Downtown','Business Bay','JBR','DIFC','+8 more'].map(a => (
+              <span key={a} style={{ fontSize: 7.5, background: '#e0f9ff', color: '#0077aa', padding: '2px 6px', borderRadius: 3, fontWeight: 600 }}>{a}</span>
             ))}
           </div>
-        </div>
+        </SectionCard>
 
       </div>
 
-      {/* REVIEW GRAPH — full width */}
+      {/* Review Graph — full width */}
       <ReviewGraph data={reviewData} />
+
     </div>
   )
 
-  // ── BOTTOM NAV (Mobile) ───────────────────────────────
+  // ─────────────────────────────────────────────────────
+  // BOTTOM NAV (Mobile)
+  // ─────────────────────────────────────────────────────
   const BottomNav = () => (
     <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxWidth: 480, margin: '0 auto', background: 'var(--bg-card)', borderTop: '0.5px solid var(--border-default)', padding: '8px 0 10px', display: 'flex', justifyContent: 'space-around', zIndex: 100 }}>
       {[
-        { icon: 'ti-home', label: 'Home', active: true },
-        { icon: 'ti-search', label: 'Search', action: () => navigate('search', {}) },
+        { icon: 'ti-home',           label: 'Home',     active: true },
+        { icon: 'ti-search',         label: 'Search',   action: () => navigate('search', {}) },
         { icon: 'ti-building-store', label: 'List Biz', action: () => window.open('https://business.trustdubai.ae', '_blank') },
-        { icon: 'ti-star', label: 'Reviews' },
+        { icon: 'ti-star',           label: 'Reviews' },
       ].map(item => (
-        <button key={item.label} onClick={item.action} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, background: 'none', border: 'none', cursor: 'pointer', padding: '0 8px' }}>
+        <button key={item.label} onClick={item.action}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, background: 'none', border: 'none', cursor: 'pointer', padding: '0 8px' }}>
           <i className={`ti ${item.icon}`} style={{ fontSize: 18, color: item.active ? '#0099cc' : 'var(--text-muted)' }} />
           {item.active && <div style={{ width: 4, height: 4, background: '#0099cc', borderRadius: '50%' }} />}
           <span style={{ fontSize: 8, color: item.active ? '#0099cc' : 'var(--text-muted)', fontWeight: item.active ? 600 : 400 }}>{item.label}</span>
@@ -668,45 +690,60 @@ export default function Home({ navigate }) {
     </div>
   )
 
-  // ── MOBILE/TABLET SIMPLE LAYOUT ───────────────────────
+  // ─────────────────────────────────────────────────────
+  // MOBILE / TABLET SECTIONS
+  // ─────────────────────────────────────────────────────
   const SimpleSections = () => (
-    <>
-      <div style={{ padding: isMobile ? '8px 14px' : '10px 16px' }}>
-        <TrustWave score={trustScore} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Top Rated</span>
-          <button onClick={() => navigate('search', {})} style={{ background: 'none', border: 'none', fontSize: 9, color: '#0099cc', cursor: 'pointer', fontWeight: 600 }}>View all</button>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr 1fr' : '1fr', gap: isTablet ? 10 : 0 }}>
-          {loading ? (
-            [1,2,3].map(i => <div key={i} style={{ height: 70, background: 'var(--bg-tertiary)', borderRadius: 10, marginBottom: 6 }} />)
-          ) : companies.map(c => (
-            <CompanyCard key={c.id} company={c} onClick={() => goToCompany(c)} />
-          ))}
-        </div>
+    <div style={{ padding: isMobile ? '8px 14px' : '10px 16px' }}>
+      <TrustWave score={trustScore} />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Top Rated</span>
+        <button onClick={() => navigate('search', {})} style={{ background: 'none', border: 'none', fontSize: 9, color: '#0099cc', cursor: 'pointer', fontWeight: 600 }}>View all</button>
       </div>
-      <div style={{ padding: isMobile ? '0 14px 10px' : '0 16px 12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr 1fr' : '1fr', gap: isTablet ? 10 : 0 }}>
+        {loading
+          ? [1,2,3].map(i => <div key={i} style={{ height: 70, background: 'var(--bg-tertiary)', borderRadius: 10, marginBottom: 6 }} />)
+          : companies.map(c => <CompanyCard key={c.id} company={c} onClick={() => goToCompany(c)} />)
+        }
+      </div>
+      <div style={{ marginTop: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
           <i className="ti ti-map-2" style={{ fontSize: 12, color: '#0099cc' }} />
           <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>City Network</span>
         </div>
-        <CityMap height={isMobile ? 90 : 110} />
+        <CityMap height={isMobile ? 90 : 120} />
       </div>
-      {!isMobile && (
-        <div style={{ padding: '0 16px 14px' }}>
+      {isTablet && (
+        <div style={{ marginTop: 12 }}>
           <ReviewGraph data={reviewData} />
         </div>
       )}
-    </>
+    </div>
   )
 
-  // ── RENDER ────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────
   if (isMobile) {
     return (
       <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', paddingBottom: 70, overflowX: 'hidden' }}>
         <Topbar />
         <Hero />
-        <Categories />
+        <div style={{ padding: '10px 14px 6px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+            {CATEGORIES.map(c => (
+              <div key={c.cat} onClick={() => navigate('search', { category: c.cat })}
+                style={{ cursor: 'pointer' }}>
+                <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 22, lineHeight: 1 }}>{c.icon}</span>
+                    <span style={{ fontSize: 8, color: 'var(--text-muted)', textAlign: 'center', fontWeight: 500 }}>{c.name}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
         <SimpleSections />
         <BottomNav />
       </div>
@@ -721,7 +758,20 @@ export default function Home({ navigate }) {
         <div style={{ display: 'flex' }}>
           <Sidebar />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Categories />
+            <div style={{ padding: '10px 16px 6px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 6 }}>
+                {CATEGORIES.map(c => (
+                  <div key={c.cat} onClick={() => navigate('search', { category: c.cat })} style={{ cursor: 'pointer' }}>
+                    <div style={{ position: 'relative', width: '100%', paddingTop: '100%', background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                        <span style={{ fontSize: 18, lineHeight: 1 }}>{c.icon}</span>
+                        <span style={{ fontSize: 8, color: 'var(--text-muted)', textAlign: 'center', fontWeight: 500 }}>{c.name}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
             <SimpleSections />
           </div>
         </div>
@@ -729,16 +779,15 @@ export default function Home({ navigate }) {
     )
   }
 
+  // Desktop
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', overflowX: 'hidden' }}>
       <Topbar />
       <Hero />
-      <div style={{ display: 'flex', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', alignItems: 'stretch', minHeight: 'calc(100vh - 48px - 160px)' }}>
         <Sidebar />
         <MainContent />
-        <div style={{ width: 200, flexShrink: 0 }}>
-          <RightPanel recentReviews={recentReviews} navigate={navigate} />
-        </div>
+        <RightPanel recentReviews={recentReviews} navigate={navigate} />
       </div>
     </div>
   )
