@@ -27,21 +27,18 @@ const MAP_PINS = [
   { top: '50%', left: '42%' },
 ]
 
+// ── Device detection using documentElement.clientWidth ──
 function useDevice() {
-  const [device, setDevice] = useState(() => {
+  function getDevice() {
     if (typeof window === 'undefined') return 'desktop'
-    const w = window.innerWidth
+    const w = document.documentElement.clientWidth
     if (w >= 1025) return 'desktop'
-    if (w >= 481) return 'tablet'
+    if (w >= 481)  return 'tablet'
     return 'mobile'
-  })
+  }
+  const [device, setDevice] = useState(getDevice)
   useEffect(() => {
-    function detect() {
-      const w = window.innerWidth
-      if (w >= 1025) setDevice('desktop')
-      else if (w >= 481) setDevice('tablet')
-      else setDevice('mobile')
-    }
+    function detect() { setDevice(getDevice()) }
     window.addEventListener('resize', detect)
     return () => window.removeEventListener('resize', detect)
   }, [])
@@ -61,24 +58,24 @@ function Logo({ size = 15 }) {
 function TrustWave({ score }) {
   const bars = [4,8,12,6,10,14,8,5,11,7,9,13,6,10,8,12,5,9,11,7,8,11,7,13]
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 8, padding: '5px 10px', marginBottom: 8 }}>
-      <i className="ti ti-heart-rate-monitor" style={{ fontSize: 11, color: '#0099cc' }} />
-      <span style={{ fontSize: 8, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Platform Trust Score</span>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 1, height: 14 }}>
-        {bars.map((h, i) => <div key={i} style={{ width: 2, height: h, background: '#0099cc', borderRadius: 1, opacity: 0.6 }} />)}
+    <div style={{ display:'flex', alignItems:'center', gap:7, background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:8, padding:'5px 10px', marginBottom:8 }}>
+      <i className="ti ti-heart-rate-monitor" style={{ fontSize:11, color:'#0099cc' }} />
+      <span style={{ fontSize:8, color:'var(--text-muted)', whiteSpace:'nowrap' }}>Platform Trust Score</span>
+      <div style={{ flex:1, display:'flex', alignItems:'center', gap:1, height:14 }}>
+        {bars.map((h,i) => <div key={i} style={{ width:2, height:h, background:'#0099cc', borderRadius:1, opacity:0.6 }} />)}
       </div>
-      <span style={{ fontSize: 10, fontWeight: 700, color: '#0099cc', minWidth: 44 }}>{score}/100</span>
+      <span style={{ fontSize:10, fontWeight:700, color:'#0099cc', minWidth:44 }}>{score}/100</span>
     </div>
   )
 }
 
 function CityMap({ height = 100 }) {
   return (
-    <div style={{ background: 'linear-gradient(135deg, #e8f4fd, #dbeafe)', borderRadius: 8, position: 'relative', overflow: 'hidden', height }}>
-      <div style={{ position: 'absolute', inset: 0, opacity: 0.1, backgroundImage: 'linear-gradient(#0099cc 1px, transparent 1px), linear-gradient(90deg, #0099cc 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
-      <div style={{ position: 'relative', fontSize: 8, fontWeight: 700, color: '#0077aa', padding: '8px 10px 4px' }}>🗺️ Dubai Service Heatmap</div>
-      {MAP_PINS.map((pin, i) => (
-        <div key={i} style={{ position: 'absolute', top: pin.top, left: pin.left, width: 8, height: 8, background: '#0099cc', borderRadius: '50%', border: '1.5px solid #fff' }} />
+    <div style={{ background:'linear-gradient(135deg, #e8f4fd, #dbeafe)', borderRadius:8, position:'relative', overflow:'hidden', height }}>
+      <div style={{ position:'absolute', inset:0, opacity:0.1, backgroundImage:'linear-gradient(#0099cc 1px, transparent 1px), linear-gradient(90deg, #0099cc 1px, transparent 1px)', backgroundSize:'16px 16px' }} />
+      <div style={{ position:'relative', fontSize:8, fontWeight:700, color:'#0077aa', padding:'8px 10px 4px' }}>🗺️ Dubai Service Heatmap</div>
+      {MAP_PINS.map((pin,i) => (
+        <div key={i} style={{ position:'absolute', top:pin.top, left:pin.left, width:8, height:8, background:'#0099cc', borderRadius:'50%', border:'1.5px solid #fff' }} />
       ))}
     </div>
   )
@@ -86,29 +83,29 @@ function CityMap({ height = 100 }) {
 
 function ReviewGraph({ data }) {
   return (
-    <div style={{ background: 'var(--bg-card)', border: '0.5px solid var(--border-default)', borderRadius: 10, padding: '10px 12px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <i className="ti ti-chart-line" style={{ fontSize: 11, color: '#0099cc' }} />
-          <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Reviews This Month</span>
-          <span style={{ fontSize: 8, color: 'var(--text-muted)' }}>— star-wise trend</span>
+    <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'10px 12px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+          <i className="ti ti-chart-line" style={{ fontSize:11, color:'#0099cc' }} />
+          <span style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.04em', textTransform:'uppercase' }}>Reviews This Month</span>
+          <span style={{ fontSize:8, color:'var(--text-muted)' }}>— star-wise trend</span>
         </div>
-        <span style={{ fontSize: 8, color: 'var(--text-muted)' }}>
-          {new Date().toLocaleString('en-AE', { month: 'long', year: 'numeric' })} · {data.total} total
+        <span style={{ fontSize:8, color:'var(--text-muted)' }}>
+          {new Date().toLocaleString('en-AE',{month:'long',year:'numeric'})} · {data.total} total
         </span>
       </div>
-      <div style={{ display: 'flex', gap: 14, marginBottom: 8, flexWrap: 'wrap' }}>
+      <div style={{ display:'flex', gap:14, marginBottom:8, flexWrap:'wrap' }}>
         {[['#10b981','5★'],['#0099cc','4★'],['#f5a623','3★'],['#f97316','2★'],['#ef4444','1★']].map(([c,l]) => (
-          <div key={l} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8.5, color: 'var(--text-muted)' }}>
-            <div style={{ width: 12, height: 3, background: c, borderRadius: 99 }} />{l}
+          <div key={l} style={{ display:'flex', alignItems:'center', gap:4, fontSize:8.5, color:'var(--text-muted)' }}>
+            <div style={{ width:12, height:3, background:c, borderRadius:99 }} />{l}
           </div>
         ))}
       </div>
-      <div style={{ position: 'relative', height: 80 }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 16, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: 22 }}>
-          {['30','15','0'].map(l => <span key={l} style={{ fontSize: 7, color: 'var(--text-muted)' }}>{l}</span>)}
+      <div style={{ position:'relative', height:80 }}>
+        <div style={{ position:'absolute', left:0, top:0, bottom:16, display:'flex', flexDirection:'column', justifyContent:'space-between', width:22 }}>
+          {['30','15','0'].map(l => <span key={l} style={{ fontSize:7, color:'var(--text-muted)' }}>{l}</span>)}
         </div>
-        <div style={{ position: 'absolute', left: 24, right: 0, top: 0, bottom: 16 }}>
+        <div style={{ position:'absolute', left:24, right:0, top:0, bottom:16 }}>
           <svg width="100%" height="100%" viewBox="0 0 540 64" preserveAspectRatio="none">
             <defs>
               <linearGradient id="g5h" x1="0" y1="0" x2="0" y2="1">
@@ -127,11 +124,11 @@ function ReviewGraph({ data }) {
             <circle cx="540" cy="28" r="2" fill="#0099cc"/>
           </svg>
         </div>
-        <div style={{ position: 'absolute', left: 24, right: 0, bottom: 0, display: 'flex', justifyContent: 'space-between' }}>
-          {['1','7','14','21','30'].map(l => <span key={l} style={{ fontSize: 7, color: 'var(--text-muted)' }}>{l}</span>)}
+        <div style={{ position:'absolute', left:24, right:0, bottom:0, display:'flex', justifyContent:'space-between' }}>
+          {['1','7','14','21','30'].map(l => <span key={l} style={{ fontSize:7, color:'var(--text-muted)' }}>{l}</span>)}
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 6, marginTop: 9, flexWrap: 'wrap' }}>
+      <div style={{ display:'flex', gap:6, marginTop:9, flexWrap:'wrap' }}>
         {[
           { label:'★★★★★', count:data.s5, up:data.s5_pct, bg:'#f0fdf4', border:'#a7f3d0', color:'#065f46' },
           { label:'★★★★',  count:data.s4, up:data.s4_pct, bg:'#e0f9ff', border:'#b3d9f0', color:'#0077aa' },
@@ -159,7 +156,6 @@ function RightPanel({ recentReviews }) {
     { id:3, reviewer_name:'F. Al Rashid', rating:5, review_text:'Fast service, great response time!' },
   ]
   const reviews = recentReviews.length > 0 ? recentReviews : fallback
-
   return (
     <div style={{ width:230, flexShrink:0, background:'var(--bg-card)', borderLeft:'0.5px solid var(--border-default)', padding:12, display:'flex', flexDirection:'column', gap:14, overflowY:'auto' }}>
 
@@ -192,10 +188,10 @@ function RightPanel({ recentReviews }) {
           <i className="ti ti-trending-up" style={{ fontSize:11, color:'#0099cc' }} /> Trending
         </div>
         {[
-          { r:'1', name:'RenoFix Plus',    cat:'Construction',   hot:true },
-          { r:'2', name:'Jaguar Interiors', cat:'Interior Design', hot:true },
-          { r:'3', name:'AirCool Dubai',    cat:'AC Service' },
-          { r:'4', name:'CleanPro Dubai',   cat:'Cleaning' },
+          { r:'1', name:'RenoFix Plus',     cat:'Construction',   hot:true },
+          { r:'2', name:'Jaguar Interiors',  cat:'Interior Design', hot:true },
+          { r:'3', name:'AirCool Dubai',     cat:'AC Service' },
+          { r:'4', name:'CleanPro Dubai',    cat:'Cleaning' },
         ].map((t,i) => (
           <div key={t.name} style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 0', borderBottom:i<3?'0.5px solid var(--border-default)':'none' }}>
             <span style={{ fontSize:10, fontWeight:700, width:14, color:t.hot?'#f5a623':'var(--text-muted)', flexShrink:0 }}>{t.r}</span>
@@ -269,7 +265,7 @@ function Sidebar({ navigate }) {
     { label:'Browse', items:[
       { icon:'ti-home',    name:'Home',           active:true },
       { icon:'ti-search',  name:'Search',         action:()=>navigate('search',{}) },
-      { icon:'ti-star',    name:'Top Rated' },
+      { icon:'ti-star',    name:'Top Rated',      action:()=>navigate('search',{}) },
       { icon:'ti-map-pin', name:'Near Me' },
       { icon:'ti-clock',   name:'Recently Added' },
     ]},
@@ -322,7 +318,7 @@ function CoCard({ company, badge, extra, onClick }) {
   const av = avColors[(name.charCodeAt(0)||0) % avColors.length]
   return (
     <div onClick={onClick}
-      style={{ background: plan==='gold'?'#fffef8': plan==='platinum'?'#fdfbff':'var(--bg-card)', border:`0.5px solid ${plan==='gold'?'rgba(232,184,75,0.5)':plan==='platinum'?'rgba(139,92,246,0.35)':'var(--border-default)'}`, borderRadius:10, padding:'9px 10px', cursor:'pointer', transition:'all 0.15s' }}
+      style={{ background:plan==='gold'?'#fffef8':plan==='platinum'?'#fdfbff':'var(--bg-card)', border:`0.5px solid ${plan==='gold'?'rgba(232,184,75,0.5)':plan==='platinum'?'rgba(139,92,246,0.35)':'var(--border-default)'}`, borderRadius:10, padding:'9px 10px', cursor:'pointer', transition:'all 0.15s' }}
       onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 4px 12px rgba(0,153,204,0.12)' }}
       onMouseLeave={e=>{ e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='none' }}
     >
@@ -330,7 +326,7 @@ function CoCard({ company, badge, extra, onClick }) {
         <div style={{ width:28, height:28, borderRadius:7, background:av.bg, color:av.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{initials}</div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</div>
-          <div style={{ fontSize:7.5, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{company?.category || company?.categories?.[0] || '—'}</div>
+          <div style={{ fontSize:7.5, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{company?.category||company?.categories?.[0]||'—'}</div>
         </div>
       </div>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>{badge}</div>
@@ -432,13 +428,13 @@ export default function Home({ navigate }) {
         <nav style={{ display:'flex', gap:4, marginLeft:8 }}>
           {['Home','Categories','Top Rated','Near Me','City Map'].map((l,i)=>(
             <button key={l}
-              onClick={()=>{ if(l==='Categories'||l==='Top Rated') navigate('search',{}) }}
+              onClick={()=>{ if(l!=='Home') navigate('search',{}) }}
               style={{ background:'none', border:'none', cursor:'pointer', fontSize:10, fontWeight:i===0?700:500, color:i===0?'#0099cc':'var(--text-muted)', borderBottom:i===0?'1.5px solid #0099cc':'none', padding:'0 8px', height:48, whiteSpace:'nowrap' }}>
               {l}
             </button>
           ))}
         </nav>
-        <div style={{ flex:1, maxWidth:220, minWidth:120, background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:20, padding:'5px 10px', display:'flex', alignItems:'center', gap:5 }}>
+        <div style={{ flex:1, maxWidth:220, minWidth:100, background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:20, padding:'5px 10px', display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-search" style={{ fontSize:10, color:'#0099cc', flexShrink:0 }} />
           <input placeholder="Search companies..."
             onKeyDown={e=>{ if(e.key==='Enter'&&e.target.value.trim()) navigate('search',{query:e.target.value.trim()}) }}
@@ -495,7 +491,7 @@ export default function Home({ navigate }) {
             <i className="ti ti-shield-check" style={{ fontSize:10, color:'#0099cc' }} />
             <span style={{ fontSize:9, color:'#0099cc', fontWeight:600 }}>Dubai's Most Trusted Review Platform</span>
           </div>
-          <h1 style={{ fontSize:isMobile?22:isTablet?26:28, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-1px', lineHeight:1.1, marginBottom:5 }}>
+          <h1 style={{ fontSize:28, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-1px', lineHeight:1.1, marginBottom:5 }}>
             Find Trusted <span style={{ color:'#0099cc' }}>Services</span> in Dubai
           </h1>
           <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:12, lineHeight:1.6 }}>
@@ -578,13 +574,10 @@ export default function Home({ navigate }) {
     const top  = loading ? empty : (topCos.length>0  ? topCos  : empty)
     const near = loading ? empty : (nearCos.length>0 ? nearCos : empty)
     const novo = loading ? empty : (newCos.length>0  ? newCos  : empty)
-
     return (
       <div style={{ flex:1, minWidth:0, padding:'10px 14px', background:'var(--bg-secondary)', overflowX:'hidden' }}>
         <ServicesRow />
         <TrustWave score={trustScore} />
-
-        {/* ROW 1 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-star" title="Top Rated Companies" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
@@ -611,8 +604,6 @@ export default function Home({ navigate }) {
             />
           </div>
         </div>
-
-        {/* ROW 2 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-clock" title="Recently Added" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
@@ -633,14 +624,12 @@ export default function Home({ navigate }) {
             </div>
           </div>
         </div>
-
-        {/* Review Graph */}
         <ReviewGraph data={reviewData} />
       </div>
     )
   }
 
-  // MOBILE BOTTOM NAV — sirf mobile ke liye
+  // ══ MOBILE ONLY — Bottom Nav ══
   function BottomNav() {
     return (
       <div style={{ position:'fixed', bottom:0, left:0, right:0, maxWidth:480, margin:'0 auto', background:'var(--bg-card)', borderTop:'0.5px solid var(--border-default)', padding:'8px 0 10px', display:'flex', justifyContent:'space-around', zIndex:100 }}>
