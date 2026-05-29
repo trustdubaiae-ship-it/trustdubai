@@ -4,7 +4,9 @@ export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.href,
+      redirectTo: window.location.href.includes('trustdubai.ae') 
+        ? window.location.href 
+        : 'https://trustdubai.ae',
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
@@ -22,11 +24,12 @@ export async function getCustomer() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
 
+  // Business portal user hai toh customer nahi hai
   const { data } = await supabase
     .from('customers')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
   return data || null
 }
