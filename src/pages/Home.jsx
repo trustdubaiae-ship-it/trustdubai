@@ -153,29 +153,26 @@ function ReviewGraph({ data }) {
 function RightPanel({ recentReviews }) {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
-
-  const fallbackReviews = [
+  const fallback = [
     { id:1, reviewer_name:'M. Ahmed',     rating:5, review_text:'Incredible job! Highly recommend their services.' },
     { id:2, reviewer_name:'S. Hassan',    rating:4, review_text:'Amazing design, professional team.' },
     { id:3, reviewer_name:'F. Al Rashid', rating:5, review_text:'Fast service, great response time!' },
   ]
-
-  const reviews = recentReviews.length > 0 ? recentReviews : fallbackReviews
+  const reviews = recentReviews.length > 0 ? recentReviews : fallback
 
   return (
-    <div style={{ width: 230, flexShrink: 0, background: 'var(--bg-card)', borderLeft: '0.5px solid var(--border-default)', padding: 12, display: 'flex', flexDirection: 'column', gap: 14, overflowY: 'auto' }}>
+    <div style={{ width:230, flexShrink:0, background:'var(--bg-card)', borderLeft:'0.5px solid var(--border-default)', padding:12, display:'flex', flexDirection:'column', gap:14, overflowY:'auto' }}>
 
-      {/* Sponsored */}
       <div>
-        <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <i className="ti ti-ad-2" style={{ fontSize: 11, color: '#0099cc' }} /> Sponsored
+        <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
+          <i className="ti ti-ad-2" style={{ fontSize:11, color:'#0099cc' }} /> Sponsored
         </div>
         {[
           { init:'JI', bg:'#ede9fe', color:'#5b21b6', name:'Jaguar Interiors',  cat:'Luxury Interior Design',   rat:'★★★★★ 4.9' },
           { init:'RF', bg:'#fef3c7', color:'#92400e', name:'RenoFix Plus',      cat:'Construction & Renovation', rat:'★★★★½ 4.8' },
           { init:'AC', bg:'#d1fae5', color:'#065f46', name:'AirCool Dubai',     cat:'AC Service & Maintenance',  rat:'★★★★★ 4.6' },
         ].map(s => (
-          <div key={s.name} style={{ background: '#f0faff', border: '0.5px solid #b3d9f0', borderRadius: 8, padding: '8px 10px', marginBottom: 6, position: 'relative' }}>
+          <div key={s.name} style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px 10px', marginBottom:6, position:'relative' }}>
             <span style={{ position:'absolute', top:5, right:5, fontSize:7, color:'#7a9ab5', background:'#e8f4fd', padding:'1px 4px', borderRadius:3 }}>Ad</span>
             <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:4 }}>
               <div style={{ width:26, height:26, borderRadius:6, background:s.bg, color:s.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, fontWeight:700, flexShrink:0 }}>{s.init}</div>
@@ -190,7 +187,6 @@ function RightPanel({ recentReviews }) {
         ))}
       </div>
 
-      {/* Trending */}
       <div>
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-trending-up" style={{ fontSize:11, color:'#0099cc' }} /> Trending
@@ -200,8 +196,8 @@ function RightPanel({ recentReviews }) {
           { r:'2', name:'Jaguar Interiors', cat:'Interior Design', hot:true },
           { r:'3', name:'AirCool Dubai',    cat:'AC Service' },
           { r:'4', name:'CleanPro Dubai',   cat:'Cleaning' },
-        ].map((t, i) => (
-          <div key={t.name} style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 0', borderBottom: i<3?'0.5px solid var(--border-default)':'none' }}>
+        ].map((t,i) => (
+          <div key={t.name} style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 0', borderBottom:i<3?'0.5px solid var(--border-default)':'none' }}>
             <span style={{ fontSize:10, fontWeight:700, width:14, color:t.hot?'#f5a623':'var(--text-muted)', flexShrink:0 }}>{t.r}</span>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.name}</div>
@@ -212,7 +208,6 @@ function RightPanel({ recentReviews }) {
         ))}
       </div>
 
-      {/* Recent Reviews */}
       <div>
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-message-circle" style={{ fontSize:11, color:'#0099cc' }} /> Recent Reviews
@@ -231,7 +226,6 @@ function RightPanel({ recentReviews }) {
         ))}
       </div>
 
-      {/* Newsletter */}
       <div style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:10 }}>
         <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-mail" style={{ fontSize:11, color:'#0099cc' }} /> Service Deals
@@ -249,7 +243,6 @@ function RightPanel({ recentReviews }) {
         )}
       </div>
 
-      {/* App Download */}
       <div style={{ background:'#1a2744', borderRadius:10, padding:10 }}>
         <div style={{ fontSize:10, fontWeight:700, color:'#fff', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-device-mobile" style={{ fontSize:11, color:'#0099cc' }} /> Download App
@@ -294,15 +287,13 @@ function Sidebar({ navigate }) {
       { icon:'ti-users',      name:'Community' },
     ]},
   ]
-
   return (
     <div style={{ width:190, flexShrink:0, background:'var(--bg-card)', borderRight:'0.5px solid var(--border-default)', padding:'10px 0' }}>
       {sections.map(section => (
         <div key={section.label}>
           <div style={{ fontSize:8, fontWeight:700, color:'var(--text-muted)', letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 14px 3px' }}>{section.label}</div>
           {section.items.map(item => (
-            <div key={item.name}
-              onClick={item.action}
+            <div key={item.name} onClick={item.action}
               style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', fontSize:11, color:item.active?'#0099cc':'var(--text-secondary)', background:item.active?'#f0faff':'transparent', borderRight:item.active?'2px solid #0099cc':'none', fontWeight:item.active?600:400, cursor:item.action?'pointer':'default', transition:'all 0.15s' }}
               onMouseEnter={e=>{ if(!item.active) e.currentTarget.style.background='var(--bg-secondary)' }}
               onMouseLeave={e=>{ if(!item.active) e.currentTarget.style.background='transparent' }}
@@ -317,7 +308,6 @@ function Sidebar({ navigate }) {
   )
 }
 
-// ── Company Card ──────────────────────────────────────
 function CoCard({ company, badge, extra, onClick }) {
   const plan = company?.plan || 'free'
   const name = company?.name || '...'
@@ -330,19 +320,14 @@ function CoCard({ company, badge, extra, onClick }) {
     { bg:'#fce7f3', color:'#9d174d' },
   ]
   const av = avColors[(name.charCodeAt(0)||0) % avColors.length]
-  const borderColor = plan==='gold' ? 'rgba(232,184,75,0.5)' : plan==='platinum' ? 'rgba(139,92,246,0.35)' : 'var(--border-default)'
-  const bgColor = plan==='gold' ? '#fffef8' : plan==='platinum' ? '#fdfbff' : 'var(--bg-card)'
-
   return (
     <div onClick={onClick}
-      style={{ background:bgColor, border:`0.5px solid ${borderColor}`, borderRadius:10, padding:'9px 10px', cursor:'pointer', transition:'all 0.15s' }}
+      style={{ background: plan==='gold'?'#fffef8': plan==='platinum'?'#fdfbff':'var(--bg-card)', border:`0.5px solid ${plan==='gold'?'rgba(232,184,75,0.5)':plan==='platinum'?'rgba(139,92,246,0.35)':'var(--border-default)'}`, borderRadius:10, padding:'9px 10px', cursor:'pointer', transition:'all 0.15s' }}
       onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 4px 12px rgba(0,153,204,0.12)' }}
       onMouseLeave={e=>{ e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='none' }}
     >
       <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-        <div style={{ width:28, height:28, borderRadius:7, background:av.bg, color:av.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>
-          {initials}
-        </div>
+        <div style={{ width:28, height:28, borderRadius:7, background:av.bg, color:av.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{initials}</div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</div>
           <div style={{ fontSize:7.5, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{company?.category || company?.categories?.[0] || '—'}</div>
@@ -355,14 +340,11 @@ function CoCard({ company, badge, extra, onClick }) {
 }
 
 function PlanTag({ plan }) {
-  if (plan === 'gold')     return <span style={{ fontSize:7, padding:'1px 5px', borderRadius:3, fontWeight:700, background:'#fef3c7', color:'#92400e' }}>Gold</span>
-  if (plan === 'platinum') return <span style={{ fontSize:7, padding:'1px 5px', borderRadius:3, fontWeight:700, background:'#ede9fe', color:'#5b21b6' }}>Platinum</span>
+  if (plan==='gold')     return <span style={{ fontSize:7, padding:'1px 5px', borderRadius:3, fontWeight:700, background:'#fef3c7', color:'#92400e' }}>Gold</span>
+  if (plan==='platinum') return <span style={{ fontSize:7, padding:'1px 5px', borderRadius:3, fontWeight:700, background:'#ede9fe', color:'#5b21b6' }}>Platinum</span>
   return <span style={{ fontSize:7, padding:'1px 5px', borderRadius:3, fontWeight:700, background:'#d1fae5', color:'#065f46' }}>✓</span>
 }
 
-// ═══════════════════════════════════════════════════
-// MAIN EXPORT
-// ═══════════════════════════════════════════════════
 export default function Home({ navigate }) {
   const [topCos,        setTopCos]        = useState([])
   const [nearCos,       setNearCos]       = useState([])
@@ -383,8 +365,8 @@ export default function Home({ navigate }) {
     fetchAll()
     checkCustomer()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) setCustomer(await upsertCustomer(session.user))
-      else if (event === 'SIGNED_OUT') setCustomer(null)
+      if (event==='SIGNED_IN' && session?.user) setCustomer(await upsertCustomer(session.user))
+      else if (event==='SIGNED_OUT') setCustomer(null)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -408,29 +390,20 @@ export default function Home({ navigate }) {
         supabase.from('reviews').select('rating,created_at').eq('is_approved',true),
         supabase.from('reviews').select('id,reviewer_name,rating,review_text,created_at').eq('is_approved',true).order('created_at',{ascending:false}).limit(5),
       ])
-
-      const avg = ratData?.length > 0
-        ? (ratData.reduce((s,r)=>s+r.rating,0)/ratData.length).toFixed(1) : '0.0'
+      const avg = ratData?.length>0 ? (ratData.reduce((s,r)=>s+r.rating,0)/ratData.length).toFixed(1) : '0.0'
       setStats({ companies:totalCo||0, reviews:totalRev||0, avgRating:avg, verified:verifiedCo||0 })
-
       const approved = allCo || []
       setTopCos([...approved].sort((a,b)=>(b.avg_rating||0)-(a.avg_rating||0)).slice(0,4))
       setNearCos([...approved].slice(0,4))
       setNewCos([...approved].slice(0,4))
       setRecentReviews(recentRev || [])
-
-      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+      const monthStart = new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()
       const tm = (revData||[]).filter(r=>r.created_at>=monthStart)
       const s5=tm.filter(r=>r.rating===5).length, s4=tm.filter(r=>r.rating===4).length
       const s3=tm.filter(r=>r.rating===3).length, s2=tm.filter(r=>r.rating===2).length
       const s1=tm.filter(r=>r.rating===1).length, total=tm.length
-      setReviewData({ total, s5, s4, s3, s2, s1,
-        s5_pct: total>0?Math.round(s5/total*100):0,
-        s4_pct: total>0?Math.round(s4/total*100):0
-      })
-      setTrustScore(Math.min(100,Math.round(
-        (verifiedCo/Math.max(totalCo,1))*40+(parseFloat(avg)/5)*40+Math.min((totalRev||0)/100,1)*20
-      )))
+      setReviewData({ total,s5,s4,s3,s2,s1, s5_pct:total>0?Math.round(s5/total*100):0, s4_pct:total>0?Math.round(s4/total*100):0 })
+      setTrustScore(Math.min(100,Math.round((verifiedCo/Math.max(totalCo,1))*40+(parseFloat(avg)/5)*40+Math.min((totalRev||0)/100,1)*20)))
     } catch(e) { console.error(e) }
     finally { setLoading(false) }
   }
@@ -447,17 +420,15 @@ export default function Home({ navigate }) {
   }
 
   function fmt(n) {
-    if (n >= 1000) return Math.floor(n/1000)+'K+'
-    if (n >= 100) return n+'+'
+    if (n>=1000) return Math.floor(n/1000)+'K+'
+    if (n>=100) return n+'+'
     return String(n||0)
   }
 
-  // ── Topbar ─────────────────────────────────────────
   function Topbar() {
     return (
       <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 20px', height:48, background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100, width:'100%' }}>
         <Logo size={15} />
-        {/* Nav links */}
         <nav style={{ display:'flex', gap:4, marginLeft:8 }}>
           {['Home','Categories','Top Rated','Near Me','City Map'].map((l,i)=>(
             <button key={l}
@@ -467,16 +438,12 @@ export default function Home({ navigate }) {
             </button>
           ))}
         </nav>
-        {/* Search bar in nav */}
         <div style={{ flex:1, maxWidth:220, minWidth:120, background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:20, padding:'5px 10px', display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-search" style={{ fontSize:10, color:'#0099cc', flexShrink:0 }} />
-          <input
-            placeholder="Search companies..."
+          <input placeholder="Search companies..."
             onKeyDown={e=>{ if(e.key==='Enter'&&e.target.value.trim()) navigate('search',{query:e.target.value.trim()}) }}
-            style={{ border:'none', background:'none', outline:'none', fontSize:9, color:'var(--text-primary)', width:'100%', minWidth:0 }}
-          />
+            style={{ border:'none', background:'none', outline:'none', fontSize:9, color:'var(--text-primary)', width:'100%', minWidth:0 }} />
         </div>
-        {/* Right actions */}
         <div style={{ display:'flex', alignItems:'center', gap:7, marginLeft:'auto' }}>
           <ThemeToggle />
           <button onClick={()=>window.open('https://business.trustdubai.ae','_blank')}
@@ -519,10 +486,9 @@ export default function Home({ navigate }) {
     )
   }
 
-  // ── Hero ───────────────────────────────────────────
   function Hero() {
     return (
-      <div style={{ background:'var(--bg-card)', padding:isMobile?'16px 14px 14px':'14px 20px 14px', borderBottom:'0.5px solid var(--border-default)', textAlign:'center', position:'relative', overflow:'hidden' }}>
+      <div style={{ background:'var(--bg-card)', padding:'14px 20px', borderBottom:'0.5px solid var(--border-default)', textAlign:'center', position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', width:180, height:180, borderRadius:'50%', background:'radial-gradient(circle, rgba(0,153,204,0.05) 0%, transparent 70%)', top:-50, right:-30, pointerEvents:'none' }} />
         <div style={{ position:'relative', maxWidth:520, margin:'0 auto' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:99, padding:'3px 10px', marginBottom:8 }}>
@@ -535,25 +501,13 @@ export default function Home({ navigate }) {
           <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:12, lineHeight:1.6 }}>
             Verified companies · Real reviews from real customers
           </p>
-          {/* Search bar */}
           <div style={{ maxWidth:440, margin:'0 auto 12px' }}>
-            <SearchBar
-              placeholder="AC repair, plumbing, renovation..."
-              onSearch={q=>navigate('search',{query:q})}
-            />
+            <SearchBar placeholder="AC repair, plumbing, renovation..." onSearch={q=>navigate('search',{query:q})} />
           </div>
-          {/* Stats */}
           <div style={{ display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap' }}>
-            {[
-              ['companies','Companies'],
-              ['reviews','Reviews'],
-              ['avgRating','Avg Rating'],
-              ['verified','Verified'],
-            ].map(([k,l])=>(
+            {[['companies','Companies'],['reviews','Reviews'],['avgRating','Avg Rating'],['verified','Verified']].map(([k,l])=>(
               <div key={k} style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, padding:'6px 12px', textAlign:'center', minWidth:65 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:'#0099cc', lineHeight:1 }}>
-                  {k==='avgRating' ? stats.avgRating+'★' : fmt(stats[k])}
-                </div>
+                <div style={{ fontSize:14, fontWeight:700, color:'#0099cc', lineHeight:1 }}>{k==='avgRating'?stats.avgRating+'★':fmt(stats[k])}</div>
                 <div style={{ fontSize:7.5, color:'var(--text-muted)', marginTop:2 }}>{l}</div>
               </div>
             ))}
@@ -563,7 +517,6 @@ export default function Home({ navigate }) {
     )
   }
 
-  // ── Services scroll ────────────────────────────────
   function ServicesRow() {
     return (
       <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'7px 10px', marginBottom:8 }}>
@@ -576,8 +529,7 @@ export default function Home({ navigate }) {
         </div>
         <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
           {CATEGORIES.map((c,i)=>(
-            <div key={c.cat}
-              onClick={()=>navigate('search',{category:c.cat})}
+            <div key={c.cat} onClick={()=>navigate('search',{category:c.cat})}
               style={{ flexShrink:0, width:52, height:52, background:i===0?'#f0faff':'var(--bg-secondary)', border:`0.5px solid ${i===0?'#0099cc':'var(--border-default)'}`, borderRadius:9, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, cursor:'pointer', transition:'all 0.15s' }}
               onMouseEnter={e=>{ e.currentTarget.style.borderColor='#0099cc'; e.currentTarget.style.background='#f0faff' }}
               onMouseLeave={e=>{ if(i!==0){ e.currentTarget.style.borderColor='var(--border-default)'; e.currentTarget.style.background='var(--bg-secondary)' }}}
@@ -591,7 +543,6 @@ export default function Home({ navigate }) {
     )
   }
 
-  // ── Section header ─────────────────────────────────
   function SecHeader({ icon, title, subtitle, viewAll, onViewAll }) {
     return (
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:9 }}>
@@ -605,83 +556,73 @@ export default function Home({ navigate }) {
     )
   }
 
-  // ── Desktop Main ───────────────────────────────────
+  function CardGrid({ companies, renderBadge, renderExtra }) {
+    return (
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(130px, 1fr))', gap:7 }}>
+        {companies.map((c,i) => c ? (
+          <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
+            badge={renderBadge(c,i)}
+            extra={renderExtra ? renderExtra(c,i) : null}
+          />
+        ) : (
+          <div key={i} style={{ height:80, background:'linear-gradient(90deg,var(--bg-tertiary) 25%,var(--bg-secondary) 50%,var(--bg-tertiary) 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.5s infinite', borderRadius:10 }}>
+            <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}`}</style>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   function MainContent() {
     const empty = [null,null,null,null]
-    const top  = loading ? empty : (topCos.length  > 0 ? topCos  : empty)
-    const near = loading ? empty : (nearCos.length > 0 ? nearCos : empty)
-    const novo = loading ? empty : (newCos.length  > 0 ? newCos  : empty)
-
-    function CardGrid({ companies, renderBadge, renderExtra }) {
-      return (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(130px, 1fr))', gap:7 }}>
-          {companies.map((c,i) => c ? (
-            <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
-              badge={renderBadge(c,i)}
-              extra={renderExtra ? renderExtra(c,i) : null}
-            />
-          ) : (
-            <div key={i} style={{ height:80, background:'linear-gradient(90deg,var(--bg-tertiary) 25%,var(--bg-secondary) 50%,var(--bg-tertiary) 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.5s infinite', borderRadius:10 }}>
-              <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}`}</style>
-            </div>
-          ))}
-        </div>
-      )
-    }
+    const top  = loading ? empty : (topCos.length>0  ? topCos  : empty)
+    const near = loading ? empty : (nearCos.length>0 ? nearCos : empty)
+    const novo = loading ? empty : (newCos.length>0  ? newCos  : empty)
 
     return (
       <div style={{ flex:1, minWidth:0, padding:'10px 14px', background:'var(--bg-secondary)', overflowX:'hidden' }}>
-
         <ServicesRow />
         <TrustWave score={trustScore} />
 
-        {/* ROW 1: Top Rated | Near Me */}
+        {/* ROW 1 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
-
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-star" title="Top Rated Companies" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
-            <CardGrid
-              companies={top}
-              renderBadge={(c) => (
+            <CardGrid companies={top}
+              renderBadge={(c)=>(
                 <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                   <span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>
                   <PlanTag plan={c.plan} />
                 </div>
               )}
-              renderExtra={(c) => <><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
+              renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
             />
           </div>
-
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-map-pin" title="Near Me" subtitle="· Dubai" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
-            <CardGrid
-              companies={near}
-              renderBadge={(c,i) => (
+            <CardGrid companies={near}
+              renderBadge={(c,i)=>(
                 <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                   <span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>
                   <span style={{ fontSize:7.5, color:'#0099cc', fontWeight:600 }}>{((i+1)*0.7).toFixed(1)}km</span>
                 </div>
               )}
-              renderExtra={(c) => <><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
+              renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
             />
           </div>
-
         </div>
 
-        {/* ROW 2: Recently Added | City Network */}
+        {/* ROW 2 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
-
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-clock" title="Recently Added" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
-            <CardGrid
-              companies={novo}
-              renderBadge={() => (
+            <CardGrid companies={novo}
+              renderBadge={()=>(
                 <span style={{ fontSize:7, background:'#e0f9ff', color:'#0077aa', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>New</span>
               )}
-              renderExtra={(c) => <><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
+              renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
             />
           </div>
-
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-map-2" title="City Network" />
             <CityMap height={120} />
@@ -691,17 +632,15 @@ export default function Home({ navigate }) {
               ))}
             </div>
           </div>
-
         </div>
 
-        {/* Review Graph — full width */}
+        {/* Review Graph */}
         <ReviewGraph data={reviewData} />
-
       </div>
     )
   }
 
-  // ── Bottom Nav — MOBILE ONLY ───────────────────────
+  // MOBILE BOTTOM NAV — sirf mobile ke liye
   function BottomNav() {
     return (
       <div style={{ position:'fixed', bottom:0, left:0, right:0, maxWidth:480, margin:'0 auto', background:'var(--bg-card)', borderTop:'0.5px solid var(--border-default)', padding:'8px 0 10px', display:'flex', justifyContent:'space-around', zIndex:100 }}>
@@ -722,11 +661,7 @@ export default function Home({ navigate }) {
     )
   }
 
-  // ══════════════════════════════════════════════════
-  // RENDER
-  // ══════════════════════════════════════════════════
-
-  // MOBILE
+  // ══ MOBILE ══
   if (isMobile) {
     return (
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', paddingBottom:72, overflowX:'hidden' }}>
@@ -750,7 +685,6 @@ export default function Home({ navigate }) {
             )}
           </div>
         </div>
-        {/* Mobile Hero */}
         <div style={{ background:'var(--bg-card)', padding:'16px 14px 14px', borderBottom:'0.5px solid var(--border-default)', textAlign:'center' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:99, padding:'3px 10px', marginBottom:8 }}>
             <i className="ti ti-shield-check" style={{ fontSize:10, color:'#0099cc' }} />
@@ -770,7 +704,6 @@ export default function Home({ navigate }) {
             ))}
           </div>
         </div>
-        {/* Mobile Categories */}
         <div style={{ padding:'10px 14px 6px' }}>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:7 }}>
             {CATEGORIES.slice(0,8).map(c=>(
@@ -785,7 +718,6 @@ export default function Home({ navigate }) {
             ))}
           </div>
         </div>
-        {/* Mobile companies */}
         <div style={{ padding:'6px 14px' }}>
           <TrustWave score={trustScore} />
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
@@ -808,7 +740,7 @@ export default function Home({ navigate }) {
     )
   }
 
-  // TABLET
+  // ══ TABLET — NO BOTTOM NAV ══
   if (isTablet) {
     return (
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
@@ -848,7 +780,7 @@ export default function Home({ navigate }) {
     )
   }
 
-  // DESKTOP — NO BOTTOM NAV
+  // ══ DESKTOP — NO BOTTOM NAV ══
   return (
     <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
       <Topbar />
