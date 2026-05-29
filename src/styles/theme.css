@@ -1,54 +1,41 @@
 :root,
 [data-theme="light"] {
-  --bg-primary:       #ffffff;
-  --bg-secondary:     #f8fafc;
-  --bg-tertiary:      #f1f5f9;
-  --bg-card:          #ffffff;
-  --bg-elevated:      #ffffff;
-  --text-primary:     #0f172a;
-  --text-secondary:   #475569;
-  --text-muted:       #94a3b8;
-  --border-default:   #e2e8f0;
-  --border-subtle:    #f1f5f9;
-  --verified-bg:      #e0f9ff;
-  --verified-text:    #0369a1;
-  --verified-border:  #7dd3fc;
-  --accent:           #03C1F5;
-  --accent-text:      #ffffff;
-  --hero-bg:          linear-gradient(135deg, #03C1F5 0%, #0299c4 100%);
-  --hero-text:        #ffffff;
-  --card-hover:       #f8fafc;
+  --bg-primary:      #f0f6fc;
+  --bg-secondary:    #f5fafd;
+  --bg-tertiary:     #e8f4fd;
+  --bg-card:         #ffffff;
+  --text-primary:    #1a2744;
+  --text-secondary:  #4a6580;
+  --text-muted:      #7a9ab5;
+  --border-default:  #dce8f0;
+  --border-subtle:   #e8f4fd;
+  --verified-bg:     #d1fae5;
+  --verified-text:   #065f46;
+  --verified-border: #6ee7b7;
+  --accent:          #0099cc;
+  --accent-text:     #ffffff;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --bg-primary:       #0a0f1e;
-  --bg-secondary:     #0f1629;
-  --bg-tertiary:      #151d35;
-  --bg-card:          #111827;
-  --bg-elevated:      #1a2235;
-  --text-primary:     #f1f5f9;
-  --text-secondary:   #94a3b8;
-  --text-muted:       #475569;
-  --border-default:   rgba(255,255,255,0.08);
-  --border-subtle:    rgba(255,255,255,0.04);
-  --verified-bg:      rgba(3,193,245,0.15);
-  --verified-text:    #03C1F5;
-  --verified-border:  rgba(3,193,245,0.3);
-  --accent:           #03C1F5;
-  --accent-text:      #ffffff;
-  --hero-bg:          linear-gradient(135deg, #0a0f1e 0%, #0f1629 100%);
-  --hero-text:        #f1f5f9;
-  --card-hover:       #1a2235;
+  --bg-primary:      #060c1a;
+  --bg-secondary:    #0a1020;
+  --bg-tertiary:     #0f1828;
+  --bg-card:         #111c2e;
+  --text-primary:    #e8f0f8;
+  --text-secondary:  #7a9ab5;
+  --text-muted:      #3a5570;
+  --border-default:  rgba(255,255,255,0.07);
+  --border-subtle:   rgba(255,255,255,0.04);
+  --verified-bg:     rgba(0,153,204,0.15);
+  --verified-text:   #0099cc;
+  --verified-border: rgba(0,153,204,0.3);
+  --accent:          #0099cc;
+  --accent-text:     #ffffff;
   color-scheme: dark;
 }
 
-*,
-*::before,
-*::after {
-  transition:
-    background-color 0.3s ease,
-    border-color     0.3s ease,
-    color            0.2s ease;
+*, *::before, *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
 }
-img, svg, canvas, video, .td-spinner { transition: none; }
+img, svg, canvas, video { transition: none; }
