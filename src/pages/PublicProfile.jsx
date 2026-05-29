@@ -87,6 +87,42 @@ function analyzeReview(review) {
   return { authenticity, bias, tone, trust }
 }
 
+function calcCredibility(company, reviews) {
+  let score = 0
+  if (company.is_verified)                                        score += 25
+  if ((company.avg_rating || 0) >= 4)                            score += 20
+  else if ((company.avg_rating || 0) >= 3)                       score += 10
+  if (reviews.length >= 10)                                      score += 20
+  else if (reviews.length >= 5)                                  score += 15
+  else if (reviews.length >= 1)                                  score += 8
+  if (company.logo_url)                                          score += 10
+  if (company.description)                                       score += 10
+  if (company.phone)                                             score += 5
+  if (company.instagram || company.facebook || company.linkedin) score += 10
+  return Math.min(score, 100)
+}
+
+function buildSocialLinks(company) {
+  const links = []
+  if (company.instagram) links.push({
+    icon: '📸', label: 'Instagram',
+    url: company.instagram.startsWith('http') ? company.instagram : 'https://instagram.com/' + company.instagram.replace('@', '')
+  })
+  if (company.facebook) links.push({
+    icon: '👍', label: 'Facebook',
+    url: company.facebook.startsWith('http') ? company.facebook : 'https://facebook.com/' + company.facebook
+  })
+  if (company.linkedin) links.push({
+    icon: '💼', label: 'LinkedIn',
+    url: company.linkedin.startsWith('http') ? company.linkedin : 'https://linkedin.com/company/' + company.linkedin
+  })
+  if (company.website) links.push({
+    icon: '🌐', label: 'Website',
+    url: company.website.startsWith('http') ? company.website : 'https://' + company.website
+  })
+  return links
+}
+
 export default function PublicProfile() {
   const { slug } = useParams()
   const [company, setCompany] = useState(null)
@@ -108,6 +144,9 @@ export default function PublicProfile() {
   const [submittingReview, setSubmittingReview] = useState(false)
   const [reviewSubmitted, setReviewSubmitted] = useState(false)
   const [lightboxImg, setLightboxImg] = useState(null)
+  const [editingReviewId, setEditingReviewId] = useState(null)
+  const [editingText, setEditingText] = useState('')
+  const [editingRating, setEditingRating] = useState(5)
 
   useEffect(() => {
     fetchCompany()
@@ -133,9 +172,7 @@ export default function PublicProfile() {
     try {
       await supabase.rpc('increment_profile_views', { p_company_id: companyId })
       await supabase.from('profile_views_log').insert({
-        company_id: companyId,
-        visited_at: new Date().toISOString(),
-        user_agent: navigator.userAgent,
+        company_id: companyId, visited_at: new Date().toISOString(), user_agent: navigator.userAgent,
       })
     } catch (e) {}
   }
@@ -149,15 +186,14 @@ export default function PublicProfile() {
 
     const [reviewRes, formRes, portfolioRes] = await Promise.all([
       supabase.from('reviews')
-        .select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at')
+        .select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id')
         .eq('company_id', data.id).eq('is_approved', true)
         .order('created_at', { ascending: false }).limit(20),
       supabase.from('lead_forms').select('*')
         .eq('company_id', data.id).eq('is_active', true).limit(1).maybeSingle(),
       supabase.from('portfolio_items')
         .select('id, image_url, title, description, created_at')
-        .eq('company_id', data.id)
-        .order('created_at', { ascending: false })
+        .eq('company_id', data.id).order('created_at', { ascending: false })
     ])
 
     const reviewData = reviewRes.data || []
@@ -180,6 +216,14 @@ export default function PublicProfile() {
     setJsonLD(data, reviewData)
     trackProfileView(data.id)
     setLoading(false)
+  }
+
+  async function refreshReviews() {
+    const { data } = await supabase.from('reviews')
+      .select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id')
+      .eq('company_id', company.id).eq('is_approved', true)
+      .order('created_at', { ascending: false }).limit(20)
+    if (data) setReviews(data)
   }
 
   function requireLogin(forWhat) {
@@ -253,11 +297,23 @@ export default function PublicProfile() {
     setSubmittingReview(false)
     setReviewSubmitted(true)
     setShowReviewForm(false)
-    const { data } = await supabase.from('reviews')
-      .select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at')
-      .eq('company_id', company.id).eq('is_approved', true)
-      .order('created_at', { ascending: false }).limit(20)
-    if (data) setReviews(data)
+    await refreshReviews()
+  }
+
+  async function deleteReview(reviewId) {
+    if (!confirm('Delete your review?')) return
+    await supabase.from('reviews').delete().eq('id', reviewId)
+    await refreshReviews()
+  }
+
+  async function saveEditReview(reviewId) {
+    if (!editingText.trim()) return
+    await supabase.from('reviews').update({
+      rating: editingRating,
+      review_text: editingText,
+    }).eq('id', reviewId)
+    setEditingReviewId(null)
+    await refreshReviews()
   }
 
   if (loading) return (
@@ -290,6 +346,11 @@ export default function PublicProfile() {
   const companyCategories = Array.isArray(company.categories) && company.categories.length > 0
     ? company.categories : company.category ? [company.category] : []
 
+  const credScore = calcCredibility(company, reviews)
+  const credColor = credScore >= 75 ? '#10b981' : credScore >= 50 ? '#f59e0b' : '#6b7280'
+  const credLabel = credScore >= 75 ? 'High Trust' : credScore >= 50 ? 'Medium Trust' : 'Building Trust'
+  const socialLinks = buildSocialLinks(company)
+
   return (
     <div style={{ background: T.bg, minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
 
@@ -319,9 +380,7 @@ export default function PublicProfile() {
               <span style={{ fontSize: 12, color: plan === 'platinum' ? '#a78bfa' : 'rgba(255,255,255,0.9)' }}>
                 {customer.full_name || customer.email.split('@')[0]}
               </span>
-              <button onClick={() => { signOut(); setCustomer(null) }} style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}>
-                Sign out
-              </button>
+              <button onClick={() => { signOut(); setCustomer(null) }} style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}>Sign out</button>
             </div>
           ) : (
             <button onClick={() => signInWithGoogle()} style={{ display: 'flex', alignItems: 'center', gap: 6, background: plan === 'platinum' ? 'rgba(255,255,255,0.1)' : '#fff', color: plan === 'platinum' ? '#a78bfa' : '#374151', border: plan === 'platinum' ? '1px solid rgba(167,139,250,0.4)' : 'none', borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
@@ -392,7 +451,7 @@ export default function PublicProfile() {
           </div>
 
           {/* Rating bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', background: plan === 'platinum' ? 'rgba(139,92,246,0.1)' : plan === 'gold' ? '#fffbf0' : '#f9fafb', borderRadius: 12, border: '1px solid ' + T.border, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', background: plan === 'platinum' ? 'rgba(139,92,246,0.1)' : plan === 'gold' ? '#fffbf0' : '#f9fafb', borderRadius: 12, border: '1px solid ' + T.border, marginBottom: 16 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 32, fontWeight: 700, color: T.text, lineHeight: 1 }}>{company.avg_rating || '0.0'}</div>
               <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>
@@ -414,6 +473,31 @@ export default function PublicProfile() {
               </>
             )}
           </div>
+
+          {/* Credibility Score */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', background: plan === 'platinum' ? 'rgba(139,92,246,0.08)' : plan === 'gold' ? '#fffbf0' : '#f9fafb', borderRadius: 12, border: '1px solid ' + T.border, marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: T.textSub, whiteSpace: 'nowrap' }}>🛡️ Trust Score</div>
+            <div style={{ flex: 1, height: 6, background: plan === 'platinum' ? 'rgba(255,255,255,0.1)' : '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ width: credScore + '%', height: '100%', background: credColor, borderRadius: 99, transition: 'width 0.8s ease' }} />
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: credColor, minWidth: 30 }}>{credScore}</div>
+            <div style={{ fontSize: 12, color: credColor, fontWeight: 600, whiteSpace: 'nowrap' }}>{credLabel}</div>
+          </div>
+
+          {/* Social Media Links — sirf jo filled hain */}
+          {socialLinks.length > 0 && (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+              {socialLinks.map(s => (
+                <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', background: plan === 'platinum' ? 'rgba(139,92,246,0.1)' : plan === 'gold' ? '#fef3c7' : '#f3f4f6', color: plan === 'platinum' ? '#a78bfa' : plan === 'gold' ? '#92400e' : '#374151', borderRadius: 20, fontSize: 13, fontWeight: 500, textDecoration: 'none', border: '1px solid ' + T.border, transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.8' }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1' }}
+                >
+                  {s.icon} {s.label}
+                </a>
+              ))}
+            </div>
+          )}
 
           {plan === 'free' && company.description && (
             <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.7, margin: 0 }}>{company.description}</p>
@@ -459,7 +543,7 @@ export default function PublicProfile() {
           </div>
         )}
 
-        {/* Portfolio — no titles, clean grid */}
+        {/* Portfolio */}
         {portfolio.length > 0 && (
           <div style={{ marginBottom: 28 }}>
             <h2 style={{ fontSize: 16, fontWeight: 600, color: T.text, margin: '0 0 14px 0' }}>🖼️ Portfolio</h2>
@@ -467,12 +551,7 @@ export default function PublicProfile() {
               {portfolio.map(item => (
                 <div key={item.id} onClick={() => setLightboxImg(item)}
                   style={{ cursor: 'pointer', borderRadius: 10, overflow: 'hidden', border: '1px solid ' + T.border, aspectRatio: '1', background: T.cardBg }}>
-                  <img
-                    src={item.image_url}
-                    alt=""
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                    onError={e => { e.target.style.display = 'none' }}
-                  />
+                  <img src={item.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.display = 'none' }} />
                 </div>
               ))}
             </div>
@@ -511,9 +590,7 @@ export default function PublicProfile() {
                 {submittingReview ? 'Submitting...' : 'Submit Review'}
               </button>
               <button onClick={() => setShowReviewForm(false)}
-                style={{ flex: 1, padding: '10px', background: '#f3f4f6', color: T.textSub, border: 'none', borderRadius: 20, fontSize: 14, cursor: 'pointer' }}>
-                Cancel
-              </button>
+                style={{ flex: 1, padding: '10px', background: '#f3f4f6', color: T.textSub, border: 'none', borderRadius: 20, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
         )}
@@ -535,49 +612,88 @@ export default function PublicProfile() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
             {reviews.map(r => {
               const analysis = analyzeReview(r)
+              const isMyReview = customer && r.customer_id === customer.id
+              const isEditing = editingReviewId === r.id
               return (
-                <div key={r.id} style={{ background: T.cardBg, borderRadius: 12, border: '1px solid ' + T.border, padding: '16px 20px' }}>
+                <div key={r.id} style={{ background: T.cardBg, borderRadius: 12, border: '1px solid ' + (isMyReview ? T.accent : T.border), padding: '16px 20px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: '#374151' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: isMyReview ? T.accent + '22' : '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: isMyReview ? T.accent : '#374151' }}>
                         {(r.reviewer_name || 'A')[0].toUpperCase()}
                       </div>
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 500, color: T.text }}>{r.reviewer_name || 'Anonymous'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <div style={{ fontSize: 14, fontWeight: 500, color: T.text }}>{r.reviewer_name || 'Anonymous'}</div>
+                          {isMyReview && <span style={{ fontSize: 10, background: T.accent + '22', color: T.accent, padding: '1px 6px', borderRadius: 99, fontWeight: 600 }}>Your Review</span>}
+                        </div>
                         <div style={{ fontSize: 11, color: T.textSub }}>{new Date(r.created_at).toLocaleDateString('en-AE', { month: 'short', year: 'numeric', day: 'numeric' })}</div>
                       </div>
                     </div>
-                    <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                      {/* Edit/Delete buttons — only for own review */}
+                      {isMyReview && !isEditing && (
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button onClick={() => { setEditingReviewId(r.id); setEditingText(r.review_text); setEditingRating(r.rating) }}
+                            style={{ padding: '3px 10px', background: 'transparent', border: '1px solid ' + T.border, borderRadius: 6, fontSize: 11, color: T.textSub, cursor: 'pointer' }}>
+                            ✏️ Edit
+                          </button>
+                          <button onClick={() => deleteReview(r.id)}
+                            style={{ padding: '3px 10px', background: 'transparent', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 11, color: '#ef4444', cursor: 'pointer' }}>
+                            🗑️
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {r.review_text && <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>}
-
-                  {/* Review Analysis — shows for any review with 5+ chars */}
-                  {r.review_text && r.review_text.length > 5 && (
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '8px 10px', background: plan === 'platinum' ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, border: '1px solid ' + T.border, marginBottom: r.owner_reply ? 10 : 0 }}>
-                      <div style={{ fontSize: 10, color: T.textSub, width: '100%', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>AI ANALYSIS</div>
-                      {[
-                        { label: 'Authenticity', value: analysis.authenticity + '%', color: analysis.authenticity >= 70 ? '#1e8e3e' : analysis.authenticity >= 45 ? '#e8b84b' : '#d93025' },
-                        { label: 'Bias Level', value: analysis.bias, color: analysis.bias === 'Low' ? '#1e8e3e' : analysis.bias === 'Medium' ? '#e8b84b' : '#d93025' },
-                        { label: 'Tone', value: analysis.tone, color: analysis.tone === 'Positive' ? '#1e8e3e' : analysis.tone === 'Negative' ? '#d93025' : '#6b7280' },
-                        { label: 'Trust', value: analysis.trust, color: analysis.trust === 'High' ? '#1e8e3e' : analysis.trust === 'Medium' ? '#e8b84b' : '#d93025' },
-                      ].map(item => (
-                        <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 4, background: T.cardBg, padding: '3px 8px', borderRadius: 99, border: '1px solid ' + T.border }}>
-                          <span style={{ fontSize: 10, color: T.textSub }}>{item.label}:</span>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: item.color }}>{item.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {r.owner_reply && (
-                    <div style={{ background: plan === 'platinum' ? 'rgba(139,92,246,0.1)' : '#f0fdf4', border: '1px solid ' + (plan === 'platinum' ? 'rgba(139,92,246,0.3)' : '#a7f3d0'), borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: plan === 'platinum' ? '#a78bfa' : '#065f46', marginBottom: 6 }}>
-                        💬 Owner Reply
-                        {(r.owner_reply_at || r.replied_at) && <span style={{ fontWeight: 400, color: T.textSub }}> · {new Date(r.owner_reply_at || r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                  {/* Edit Mode */}
+                  {isEditing ? (
+                    <div>
+                      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                        {[1,2,3,4,5].map(s => (
+                          <button key={s} onClick={() => setEditingRating(s)} type="button"
+                            style={{ fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', color: s <= editingRating ? '#f9a825' : '#d1d5db' }}>★</button>
+                        ))}
                       </div>
-                      <p style={{ fontSize: 13, color: T.textSub, margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
+                      <textarea value={editingText} onChange={e => setEditingText(e.target.value)}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid ' + T.border, borderRadius: 8, fontSize: 14, minHeight: 80, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box', resize: 'vertical', background: plan === 'platinum' ? '#1a1a2e' : '#fff', color: T.text }} />
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => saveEditReview(r.id)} style={{ flex: 1, padding: '8px', background: T.accent, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Save Changes</button>
+                        <button onClick={() => setEditingReviewId(null)} style={{ flex: 1, padding: '8px', background: '#f3f4f6', color: T.textSub, border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      {r.review_text && <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>}
+
+                      {r.review_text && r.review_text.length > 5 && (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '8px 10px', background: plan === 'platinum' ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, border: '1px solid ' + T.border, marginBottom: r.owner_reply ? 10 : 0 }}>
+                          <div style={{ fontSize: 10, color: T.textSub, width: '100%', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>AI ANALYSIS</div>
+                          {[
+                            { label: 'Authenticity', value: analysis.authenticity + '%', color: analysis.authenticity >= 70 ? '#1e8e3e' : analysis.authenticity >= 45 ? '#e8b84b' : '#d93025' },
+                            { label: 'Bias Level', value: analysis.bias, color: analysis.bias === 'Low' ? '#1e8e3e' : analysis.bias === 'Medium' ? '#e8b84b' : '#d93025' },
+                            { label: 'Tone', value: analysis.tone, color: analysis.tone === 'Positive' ? '#1e8e3e' : analysis.tone === 'Negative' ? '#d93025' : '#6b7280' },
+                            { label: 'Trust', value: analysis.trust, color: analysis.trust === 'High' ? '#1e8e3e' : analysis.trust === 'Medium' ? '#e8b84b' : '#d93025' },
+                          ].map(item => (
+                            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 4, background: T.cardBg, padding: '3px 8px', borderRadius: 99, border: '1px solid ' + T.border }}>
+                              <span style={{ fontSize: 10, color: T.textSub }}>{item.label}:</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: item.color }}>{item.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {r.owner_reply && (
+                        <div style={{ background: plan === 'platinum' ? 'rgba(139,92,246,0.1)' : '#f0fdf4', border: '1px solid ' + (plan === 'platinum' ? 'rgba(139,92,246,0.3)' : '#a7f3d0'), borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: plan === 'platinum' ? '#a78bfa' : '#065f46', marginBottom: 6 }}>
+                            💬 Owner Reply
+                            {(r.owner_reply_at || r.replied_at) && <span style={{ fontWeight: 400, color: T.textSub }}> · {new Date(r.owner_reply_at || r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
+                          </div>
+                          <p style={{ fontSize: 13, color: T.textSub, margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )
