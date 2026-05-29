@@ -6,21 +6,15 @@
   --primary:       #0099cc;
   --primary-light: #e8f4fd;
   --primary-dark:  #0077aa;
-  --text:          var(--text-primary);
-  --text2:         var(--text-secondary);
-  --text3:         var(--text-muted);
-  --border:        var(--border-default);
-  --bg:            var(--bg-secondary);
-  --green:         #065f46;
-  --green-light:   #d1fae5;
   --amber:         #f5a623;
   --red:           #dc2626;
+  --green:         #065f46;
+  --green-light:   #d1fae5;
   --radius:        8px;
   --radius-lg:     12px;
   --radius-xl:     20px;
   --shadow-sm:     0 1px 4px rgba(0,0,0,0.06);
   --shadow-md:     0 4px 16px rgba(0,0,0,0.08);
-  --shadow-glow:   0 0 16px rgba(0,153,204,0.15);
 }
 
 html { scroll-behavior: smooth; overflow-x: hidden; }
@@ -32,37 +26,28 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (max-width: 480px) {
+  body { max-width: 480px; margin: 0 auto; }
+}
+@media (min-width: 481px) {
+  body { max-width: 100% !important; margin: 0 !important; }
 }
 
 input, select, textarea, button { font-family: 'DM Sans', sans-serif; }
 
-/* Mobile default */
-@media (max-width: 480px) {
-  body { max-width: 480px; margin: 0 auto; }
-}
-
-/* Animations */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse-ring {
-  0%,100% { transform: scale(1); opacity: 0.5; }
-  50%      { transform: scale(1.6); opacity: 0; }
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
-.td-animate { animation: fadeUp 0.4s ease both; }
-
-.td-spinner {
-  width: 28px; height: 28px;
-  border: 2.5px solid rgba(0,153,204,0.2);
-  border-top-color: #0099cc;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
