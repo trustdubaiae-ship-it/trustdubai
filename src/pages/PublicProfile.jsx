@@ -57,7 +57,7 @@ export default function PublicProfile() {
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [customer, setCustomer] = useState(null)
+  const [customer, setCustomer] = useState(undefined) // undefined = loading, null = not logged in
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [loginFor, setLoginFor] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
@@ -83,7 +83,7 @@ export default function PublicProfile() {
 
   async function checkCustomer() {
     const cust = await getCustomer()
-    setCustomer(cust)
+    setCustomer(cust || null)
   }
 
   async function fetchCompany() {
@@ -139,7 +139,11 @@ export default function PublicProfile() {
   }
 
   function requireLogin(forWhat) {
-    if (customer) return true
+    // Abhi bhi load ho raha hai — wait karo
+    if (customer === undefined) return false
+    // Logged in hai
+    if (customer !== null) return true
+    // Logged in nahi — prompt dikhao
     setLoginFor(forWhat)
     setShowLoginPrompt(true)
     return false
@@ -220,6 +224,7 @@ export default function PublicProfile() {
   return (
     <div style={{ background: '#f9fafb', minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
 
+      {/* Header */}
       <div style={{ background: '#03C1F5', padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
           <svg width="24" height="24" viewBox="0 0 32 32">
@@ -230,13 +235,15 @@ export default function PublicProfile() {
           <span style={{ color: '#fff', fontWeight: 600, fontSize: 16 }}>TrustDubai</span>
         </button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          {customer ? (
+          {customer === undefined ? (
+            <div style={{ width: 60, height: 28, background: 'rgba(255,255,255,0.2)', borderRadius: 20 }} />
+          ) : customer ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: '#fff' }}>
                 {(customer.full_name || customer.email)[0].toUpperCase()}
               </div>
-              <span style={{ fontSize: 13, color: '#fff', opacity: 0.9 }}>{customer.full_name || customer.email}</span>
-              <button onClick={signOut} style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}>Sign out</button>
+              <span style={{ fontSize: 13, color: '#fff', opacity: 0.9 }}>{customer.full_name || customer.email.split('@')[0]}</span>
+              <button onClick={() => { signOut(); setCustomer(null) }} style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', background: 'none', border: 'none', cursor: 'pointer' }}>Sign out</button>
             </div>
           ) : (
             <button onClick={() => signInWithGoogle()} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', color: '#374151', border: 'none', borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
@@ -246,12 +253,13 @@ export default function PublicProfile() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              Sign in with Google
+              Sign in
             </button>
           )}
         </div>
       </div>
 
+      {/* Hero */}
       <div style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '32px 24px' }}>
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
@@ -303,6 +311,7 @@ export default function PublicProfile() {
 
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 24px 0' }}>
 
+        {/* Lead Form */}
         {leadForm && (
           <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: '24px', marginBottom: 24 }}>
             {submitted ? (
@@ -340,16 +349,19 @@ export default function PublicProfile() {
           </div>
         )}
 
+        {/* Reviews Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Customer Reviews</h2>
           {!reviewSubmitted && (
-            <button onClick={() => { if (requireLogin('review')) setShowReviewForm(true) }}
-              style={{ padding: '7px 16px', background: '#03C1F5', color: '#fff', border: 'none', borderRadius: 20, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-              + Write a Review
+            <button
+              onClick={() => { if (requireLogin('review')) setShowReviewForm(true) }}
+              style={{ padding: '7px 16px', background: customer ? '#03C1F5' : '#f3f4f6', color: customer ? '#fff' : '#374151', border: customer ? 'none' : '1px solid #e5e7eb', borderRadius: 20, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              {customer ? '+ Write a Review' : '🔐 Sign in to Review'}
             </button>
           )}
         </div>
 
+        {/* Review Form */}
         {showReviewForm && customer && (
           <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '20px', marginBottom: 20 }}>
             <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, color: '#111827' }}>Write a Review</h3>
@@ -362,7 +374,8 @@ export default function PublicProfile() {
                 ))}
               </div>
             </div>
-            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Share your experience..."
+            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)}
+              placeholder="Share your experience..."
               style={{ width: '100%', padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, minHeight: 100, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', resize: 'vertical' }} />
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={submitReview} disabled={submittingReview}
@@ -384,6 +397,7 @@ export default function PublicProfile() {
           </div>
         )}
 
+        {/* Reviews List */}
         {reviews.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px', background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', marginBottom: 24 }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>⭐</div>
@@ -405,18 +419,12 @@ export default function PublicProfile() {
                   </div>
                   <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
                 </div>
-                {r.review_text && (
-                  <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>
-                )}
+                {r.review_text && <p style={{ fontSize: 14, color: '#374151', lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>}
                 {r.owner_reply && (
                   <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
                     <div style={{ fontSize: 11, fontWeight: 600, color: '#065f46', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                       💬 Owner Reply
-                      {r.replied_at && (
-                        <span style={{ fontWeight: 400, color: '#6b7280' }}>
-                          · {new Date(r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      )}
+                      {r.replied_at && <span style={{ fontWeight: 400, color: '#6b7280' }}>· {new Date(r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
                     </div>
                     <p style={{ fontSize: 13, color: '#374151', margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
                   </div>
@@ -427,6 +435,7 @@ export default function PublicProfile() {
         )}
       </div>
 
+      {/* Login Prompt Modal */}
       {showLoginPrompt && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
           <div style={{ background: '#fff', borderRadius: 20, padding: 32, width: 380, textAlign: 'center' }}>
