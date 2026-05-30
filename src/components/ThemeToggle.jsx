@@ -1,14 +1,12 @@
 import { useTheme } from '../context/ThemeContext'
 
 const OPTIONS = [
-  { value: 'auto',  label: 'Auto',  icon: '◐' },
   { value: 'light', label: 'Light', icon: '☀' },
   { value: 'dark',  label: 'Dark',  icon: '☽' },
 ]
 
 export function ThemeToggle() {
   const { mode, setMode } = useTheme()
-
   return (
     <div style={{
       display: 'inline-flex',
