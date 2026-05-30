@@ -11,6 +11,7 @@ import AddEmpReview from './pages/AddEmpReview'
 import RegisterCompany from './pages/RegisterCompany'
 import RegisterEmployee from './pages/RegisterEmployee'
 import PublicProfile from './pages/PublicProfile'
+import CustomerProfile from './pages/CustomerProfile'
 import BottomNav from './components/BottomNav'
 
 function useIsMobile() {
@@ -41,19 +42,20 @@ export default function App() {
   const screenProps = { navigate, params }
 
   return (
-    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+    <div style={{ background:'var(--bg-primary)', minHeight:'100vh' }}>
       <Routes>
         <Route path="/:slug" element={<PublicProfile />} />
         <Route path="/" element={
           <div style={{ paddingBottom: isMobile ? 64 : 0 }}>
-            {screen === 'home'             && <Home {...screenProps} />}
-            {screen === 'search'           && <SearchResults {...screenProps} />}
-            {screen === 'company'          && <CompanyProfile {...screenProps} />}
-            {screen === 'employee'         && <EmployeeProfile {...screenProps} />}
-            {screen === 'add-review'       && <AddReview {...screenProps} />}
-            {screen === 'add-emp-review'   && <AddEmpReview {...screenProps} />}
-            {screen === 'register-company' && <RegisterCompany {...screenProps} />}
-            {screen === 'register-employee'&& <RegisterEmployee {...screenProps} />}
+            {screen === 'home'              && <Home {...screenProps} />}
+            {screen === 'search'            && <SearchResults {...screenProps} />}
+            {screen === 'company'           && <CompanyProfile {...screenProps} />}
+            {screen === 'employee'          && <EmployeeProfile {...screenProps} />}
+            {screen === 'add-review'        && <AddReview {...screenProps} />}
+            {screen === 'add-emp-review'    && <AddEmpReview {...screenProps} />}
+            {screen === 'register-company'  && <RegisterCompany {...screenProps} />}
+            {screen === 'register-employee' && <RegisterEmployee {...screenProps} />}
+            {screen === 'customer-profile'  && <CustomerProfile {...screenProps} />}
             {isMobile && <BottomNav screen={screen} navigate={navigate} />}
           </div>
         } />
