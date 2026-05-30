@@ -1,61 +1,13 @@
-import { supabase } from './supabase'
+import { createClient } from '@supabase/supabase-js'
 
-export async function signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'https://trustdubai.ae',
-      queryParams: {
-        access_type: 'offline',
-        prompt: 'consent',
-      }
-    }
-  })
-  if (error) console.error('Google login error:', error)
-}
+const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_LvszMk_GssDM_x64UNuoMg_WR2oy7ve'
 
-export async function signOut() {
-  await supabase.auth.signOut()
-}
-
-export async function getCustomer() {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-
-  const { data } = await supabase
-    .from('customers')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (data) return data
-
-  const { data: newData } = await supabase
-    .from('customers')
-    .upsert({
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || user.email.split('@')[0],
-      avatar_url: user.user_metadata?.avatar_url || null,
-      last_login: new Date().toISOString()
-    }, { onConflict: 'id' })
-    .select()
-    .single()
-
-  return newData || null
-}
-
-export async function upsertCustomer(user) {
-  const { data } = await supabase
-    .from('customers')
-    .upsert({
-      id: user.id,
-      email: user.email,
-      full_name: user.user_metadata?.full_name || user.email.split('@')[0],
-      avatar_url: user.user_metadata?.avatar_url || null,
-      last_login: new Date().toISOString()
-    }, { onConflict: 'id' })
-    .select()
-    .single()
-  return data
-}
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storageKey: 'trustdubai-auth',
+  }
+})
