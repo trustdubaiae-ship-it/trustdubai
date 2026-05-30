@@ -592,12 +592,20 @@ export default function Home({ navigate }) {
                 </span>
               </button>
               {showUserMenu && (
-                <div style={{ position:'absolute', right:0, top:36, background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:8, minWidth:160, boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:200 }}>
-                  <div style={{ fontSize:10, color:'var(--text-muted)', padding:'4px 8px', borderBottom:'0.5px solid var(--border-default)', marginBottom:4 }}>{customer.email}</div>
-                  <button onClick={()=>{signOut();setCustomer(null);setShowUserMenu(false)}}
-                    style={{ width:'100%', padding:'7px 8px', background:'#fff0f0', color:'#dc2626', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left' }}>Sign Out</button>
-                </div>
-              )}
+  <div style={{ position:'absolute', right:0, top:36, background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:8, minWidth:160, boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:200 }}>
+    <div style={{ fontSize:10, color:'var(--text-muted)', padding:'4px 8px', borderBottom:'0.5px solid var(--border-default)', marginBottom:4 }}>{customer.email}</div>
+    <button onClick={()=>{navigate('customer-profile');setShowUserMenu(false)}}
+      style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
+      <i className="ti ti-user" style={{ fontSize:12 }}/> My Profile
+    </button>
+    <button onClick={()=>{navigate('add-review',{});setShowUserMenu(false)}}
+      style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
+      <i className="ti ti-star" style={{ fontSize:12 }}/> Write a Review
+    </button>
+    <button onClick={()=>{signOut();setCustomer(null);setShowUserMenu(false)}}
+      style={{ width:'100%', padding:'7px 8px', background:'#fff0f0', color:'#dc2626', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left' }}>Sign Out</button>
+  </div>
+)}
             </div>
           ) : (
             <button onClick={()=>signInWithGoogle()}
