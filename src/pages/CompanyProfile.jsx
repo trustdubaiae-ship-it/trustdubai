@@ -35,7 +35,11 @@ export default function CompanyProfile({ navigate, params }) {
   const TABS = ['overview', 'reviews', 'portfolio', 'team']
 
   function goToPublicProfile() {
-    window.location.href = '/' + company.slug
+    if (company.slug) {
+      window.location.href = '/' + company.slug
+    } else {
+      navigate('add-review', { company })
+    }
   }
 
   return (
@@ -50,7 +54,7 @@ export default function CompanyProfile({ navigate, params }) {
           <i className="ti ti-arrow-left" />
         </button>
         <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{company.name}</span>
-        <button onClick={goToPublicProfile} style={{
+        <button onClick={() => navigate('add-review', { company })} style={{
           fontSize: 12, padding: '5px 12px', borderRadius: 16,
           border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer'
         }}>+ Review</button>
@@ -111,7 +115,7 @@ export default function CompanyProfile({ navigate, params }) {
                   WhatsApp
                 </button>
               )}
-              <button onClick={goToPublicProfile}
+              <button onClick={() => navigate('add-review', { company })}
                 style={{ flex: 1, padding: 9, borderRadius: 20, background: 'var(--bg-card)', color: 'var(--primary)', border: '1.5px solid var(--primary)', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
                 Write Review
               </button>
@@ -150,14 +154,14 @@ export default function CompanyProfile({ navigate, params }) {
             : reviews.length === 0
               ? <div style={{ padding: 40, textAlign: 'center' }}>
                   <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 12 }}>No reviews yet.</p>
-                  <button onClick={goToPublicProfile} style={{
+                  <button onClick={() => navigate('add-review', { company })} style={{
                     background: 'var(--primary)', color: '#fff', border: 'none',
                     borderRadius: 20, padding: '8px 20px', fontSize: 13, cursor: 'pointer'
                   }}>Be the first to review</button>
                 </div>
               : reviews.map(r => <ReviewItem key={r.id} review={r} />)}
           <div style={{ padding: '12px 16px' }}>
-            <button onClick={goToPublicProfile} style={{
+            <button onClick={() => navigate('add-review', { company })} style={{
               width: '100%', padding: 10, border: '1px solid var(--primary)',
               borderRadius: 20, background: 'var(--bg-card)', color: 'var(--primary)',
               fontSize: 13, cursor: 'pointer'
