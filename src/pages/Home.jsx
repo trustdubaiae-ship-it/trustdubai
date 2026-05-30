@@ -687,7 +687,7 @@ export default function Home({ navigate }) {
 
   function CardGrid({ companies, renderBadge, renderExtra }) {
     return (
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(130px, 1fr))', gap:7 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:7 }}>
         {companies.map((c,i) => c ? (
           <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
             badge={renderBadge(c,i)}
@@ -844,7 +844,7 @@ export default function Home({ navigate }) {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
               <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
                 <SecHeader icon="ti-star" title="Top Rated" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(120px,1fr))', gap:7 }}>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:7 }}>
                   {topCos.slice(0,4).map((c,i)=>(
                     <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
                       badge={<span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>}
