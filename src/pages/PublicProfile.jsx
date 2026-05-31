@@ -147,10 +147,12 @@ export default function PublicProfile() {
   const [editingReviewId, setEditingReviewId] = useState(null)
   const [editingText, setEditingText] = useState('')
   const [editingRating, setEditingRating] = useState(5)
+  const [aiAnalysisOn, setAiAnalysisOn] = useState(false)  // global toggle (app_settings)
 
   useEffect(() => {
     fetchCompany()
     checkCustomer()
+    fetchAiSetting()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const cust = await upsertCustomer(session.user)
@@ -166,6 +168,12 @@ export default function PublicProfile() {
   async function checkCustomer() {
     const cust = await getCustomer()
     setCustomer(cust || null)
+  }
+
+  async function fetchAiSetting() {
+    const { data } = await supabase
+      .from('app_settings').select('value').eq('key', 'feature.ai_analysis').maybeSingle()
+    setAiAnalysisOn(data?.value?.enabled === true)
   }
 
   async function trackProfileView(companyId) {
@@ -667,7 +675,7 @@ export default function PublicProfile() {
                     <>
                       {r.review_text && <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>}
 
-                      {r.review_text && r.review_text.length > 5 && (
+                      {aiAnalysisOn && r.review_text && r.review_text.length > 5 && (
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '8px 10px', background: plan === 'platinum' ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, border: '1px solid ' + T.border, marginBottom: r.owner_reply ? 10 : 0 }}>
                           <div style={{ fontSize: 10, color: T.textSub, width: '100%', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>AI ANALYSIS</div>
                           {[
