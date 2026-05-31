@@ -331,12 +331,12 @@ export default function PublicProfile() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }} className="td-ov-row1">
                 <div style={{ gridColumn: '1 / 4' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: TH.t3, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Featured Work</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gridTemplateRows: '1fr 1fr', gap: 8 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 8 }} className="td-ov-feat">
                     {Array.from({ length: 6 }).map((_, i) => {
                       const p = portfolio[i]
                       return p
                         ? <img key={i} src={p.image_url} alt="" onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 9, cursor: 'pointer' }} onError={e => { e.target.style.display = 'none' }} />
-                        : <div key={i} style={{ width: '100%', aspectRatio: '1', borderRadius: 9, background: TH.soft, border: `1px dashed ${TH.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TH.t3, fontSize: 18 }}>🖼️</div>
+                        : <div key={i} style={{ width: '100%', aspectRatio: '1', borderRadius: 9, background: TH.soft, border: `1px dashed ${TH.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TH.t3, fontSize: 16 }}>🖼️</div>
                     })}
                   </div>
                 </div>
@@ -691,6 +691,7 @@ export default function PublicProfile() {
           .td-ov-row1{ grid-template-columns: 1fr !important; }
           .td-ov-row1 > div:first-child{ grid-column: 1 / -1 !important; }
           .td-ov-row1 > div:last-child{ grid-column: 1 / -1 !important; }
+          .td-ov-feat{ grid-template-columns: repeat(4,1fr) !important; }
           .td-ov-row3{ grid-template-columns: 1fr !important; }
           .td-ov-row3 > div{ grid-column: 1 / -1 !important; }
         }
