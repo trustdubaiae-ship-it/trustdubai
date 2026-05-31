@@ -239,14 +239,14 @@ export default function PublicProfile() {
   const TABS = [['overview', 'Overview'], ['reviews', 'Review Section'], ['achievement', 'Achievement & Badge']]
 
   /* empty placeholder cell */
-  const EmptyCell = ({ h = 120, label }) => <div style={{ border: `1px dashed ${TH.line}`, borderRadius: 12, minHeight: h, display: 'flex', alignItems: 'center', justifyContent: 'center', color: TH.t3, fontSize: 11, background: TH.soft }}>{label || ''}</div>
+  const EmptyCell = ({ h = 120, label }) => <div style={{ border: `1px dashed ${TH.line}`, borderRadius: 12, minHeight: h, height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: TH.t3, fontSize: 11, background: TH.soft }}>{label || ''}</div>
 
   /* ---- review card ---- */
   const ReviewCard = ({ r }) => {
     if (!r) return <EmptyCell h={150} label="" />
     const a = analyzeReview(r); const mine = customer && r.customer_id === customer.id; const ed = editingReviewId === r.id
     return (
-      <div style={{ border: `1px solid ${mine ? TH.accent : TH.line}`, borderRadius: 12, padding: 14, background: TH.soft, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ border: `1px solid ${mine ? TH.accent : TH.line}`, borderRadius: 12, padding: 14, background: TH.soft, display: 'flex', flexDirection: 'column', height: '100%', boxSizing: 'border-box' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 8 }}>
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: TH.accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{(r.reviewer_name || 'A')[0].toUpperCase()}</div>
           <div style={{ minWidth: 0, flex: 1 }}>
@@ -473,7 +473,7 @@ export default function PublicProfile() {
               )}
               {reviewSubmitted && <div style={{ marginBottom: 14, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 10, padding: 12, textAlign: 'center', fontSize: 13, color: TH.green, fontWeight: 600 }}>✅ Review submitted successfully!</div>}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 12 }} className="td-revgrid">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gridAutoRows: '1fr', gap: 12 }} className="td-revgrid">
                 {Array.from({ length: fixedReviewSlots }).map((_, i) => <ReviewCard key={reviewSlots[i]?.id || 'empty' + i} r={reviewSlots[i]} />)}
               </div>
               {reviewTab !== 'all' && tabReviews.length > 6 && !showAllReviews && (
@@ -704,8 +704,8 @@ export default function PublicProfile() {
         /* ============ LARGE PHONE (≤ 768px) ============ */
         @media (max-width: 768px){
           .td-container{ padding: 12px 10px 36px !important; }
-          .td-navtabs{ flex-wrap: nowrap !important; gap: 2px !important; width: 100% !important; justify-content: space-between !important; }
-          .td-navtab{ padding: 7px 4px !important; font-size: 10.5px !important; letter-spacing: 0 !important; }
+          .td-navtabs{ flex-wrap: nowrap !important; gap: 2px !important; width: 100% !important; }
+          .td-navtab{ flex: 1 1 0 !important; text-align: center !important; padding: 7px 2px !important; font-size: 10px !important; letter-spacing: 0 !important; }
           .td-card{ padding: 13px !important; border-radius: 13px !important; margin-bottom: 12px !important; }
           .td-bizname{ font-size: 24px !important; }
           /* every grid fills the line — no half-empty rows */
