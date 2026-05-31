@@ -144,21 +144,21 @@ function MiniGauge({ TH, label, score, color }) {
 }
 /* big hero trust ring */
 function TrustRing({ TH, score }) {
-  const r = 58, c = 2 * Math.PI * r
+  const r = 50, c = 2 * Math.PI * r
   const [fill, setFill] = useState(0)
   useEffect(() => { const t = setTimeout(() => setFill((score / 100) * c), 200); return () => clearTimeout(t) }, [score])
   const tier = score >= 80 ? { l: 'Elite', col: TH.gold } : score >= 60 ? { l: 'Trusted', col: TH.green } : score >= 40 ? { l: 'Verified', col: TH.accent } : { l: 'Building', col: TH.t2 }
   return (
-    <div style={{ position: 'relative', display: 'inline-grid', placeItems: 'center' }}>
-      <svg width="148" height="148" viewBox="0 0 148 148">
+    <div className="td-trustring" style={{ position: 'relative', display: 'inline-grid', placeItems: 'center' }}>
+      <svg width="128" height="128" viewBox="0 0 128 128">
         <defs><linearGradient id="trustgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={tier.col} /><stop offset="100%" stopColor={TH.violet} /></linearGradient></defs>
-        <circle cx="74" cy="74" r={r} fill="none" stroke={TH.line} strokeWidth="10" />
-        <circle cx="74" cy="74" r={r} fill="none" stroke="url(#trustgrad)" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 74 74)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 8px ${tier.col}66)` }} />
+        <circle cx="64" cy="64" r={r} fill="none" stroke={TH.line} strokeWidth="9" />
+        <circle cx="64" cy="64" r={r} fill="none" stroke="url(#trustgrad)" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 64 64)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 8px ${tier.col}66)` }} />
       </svg>
       <div style={{ position: 'absolute', textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 34, color: TH.t1, lineHeight: 1 }}><Counter to={score} /></div>
-        <div style={{ fontSize: 9.5, color: TH.t3, fontWeight: 600, marginTop: 2 }}>TRUST SCORE</div>
-        <div style={{ fontSize: 10, fontWeight: 800, color: tier.col, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tier.l}</div>
+        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 30, color: TH.t1, lineHeight: 1 }}><Counter to={score} /></div>
+        <div style={{ fontSize: 9, color: TH.t3, fontWeight: 600, marginTop: 2 }}>TRUST SCORE</div>
+        <div style={{ fontSize: 9.5, fontWeight: 800, color: tier.col, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tier.l}</div>
       </div>
     </div>
   )
@@ -304,12 +304,11 @@ export default function PublicProfile() {
   const chip = (t, k) => <span key={k} style={{ fontSize: 10.5, padding: '4px 11px', borderRadius: 7, background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, fontWeight: 600 }}>{t}</span>
   const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
 
-  /* Instagram-style portfolio card */
-  const PortCard = ({ p, big }) => {
+  const PortCard = ({ p }) => {
     const liked = likedSet.has(p.id)
     return (
       <div className="td-port" style={{ borderRadius: 12, overflow: 'hidden', position: 'relative', border: `1px solid ${TH.line}`, background: TH.soft, cursor: 'pointer' }}>
-        <img src={p.image_url} alt={p.title || ''} onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: big ? '4/3' : '1', objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.opacity = 0.2 }} />
+        <img src={p.image_url} alt={p.title || ''} onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.opacity = 0.2 }} />
         <div className="td-port-ov" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top,rgba(0,0,0,0.78) 0%,rgba(0,0,0,0.1) 45%,transparent 70%)', opacity: 0, transition: 'opacity .3s', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 10 }} onClick={() => setLightboxImg(p)}>
           {p.title && <div style={{ color: '#fff', fontSize: 12, fontWeight: 700, fontFamily: "'Sora',sans-serif", marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title}</div>}
           {p.description && <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 10, lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{p.description}</div>}
@@ -393,7 +392,7 @@ export default function PublicProfile() {
 
       <div style={{ maxWidth: 1300, margin: '0 auto', padding: '18px 16px 50px' }} className="td-container">
 
-        {/* ===== HERO ===== */}
+        {/* HERO */}
         <Card TH={TH} id="overview" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ background: TH.dark ? 'linear-gradient(120deg,rgba(79,159,224,0.16),rgba(167,139,250,0.12))' : 'linear-gradient(120deg,rgba(29,111,184,0.08),rgba(139,92,246,0.07))', padding: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, flexWrap: 'wrap' }} className="td-hero">
             <div style={{ flex: 1, minWidth: 240 }}>
@@ -417,11 +416,11 @@ export default function PublicProfile() {
                 {can('socialLinks', plan) && socialLinks.map(s => <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 13px', background: TH.soft, color: TH.t1, borderRadius: 9, fontSize: 12, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.line}` }}>{s.icon} {s.label}</a>)}
               </div>
             </div>
-            <div style={{ animation: 'tdfloat 5s ease-in-out infinite' }}><TrustRing TH={TH} score={cred} /></div>
+            <div className="td-hero-ring" style={{ animation: 'tdfloat 5s ease-in-out infinite' }}><TrustRing TH={TH} score={cred} /></div>
           </div>
         </Card>
 
-        {/* ===== 3-COLUMN ===== */}
+        {/* 3-COLUMN */}
         <div className="td-cols" style={{ display: 'grid', gridTemplateColumns: '1fr 1.28fr 0.86fr', gap: 14, alignItems: 'start' }}>
 
           {/* LEFT */}
@@ -479,9 +478,8 @@ export default function PublicProfile() {
 
           {/* CENTER */}
           <div id="reviews">
-            {/* Instagram Portfolio */}
             <Card TH={TH} id="portfolio">
-              <H2 TH={TH} right={portfolio.length > shownPortfolio.length || portfolio.length > 6 ? <button onClick={() => setShowAllGallery(true)} style={{ fontSize: 11, fontWeight: 700, color: TH.accent, background: 'none', border: 'none', cursor: 'pointer' }}>View All ({portfolio.length}) →</button> : null}>🖼️ Portfolio</H2>
+              <H2 TH={TH} right={portfolio.length > 6 ? <button onClick={() => setShowAllGallery(true)} style={{ fontSize: 11, fontWeight: 700, color: TH.accent, background: 'none', border: 'none', cursor: 'pointer' }}>View All ({portfolio.length}) →</button> : null}>🖼️ Portfolio</H2>
               {can('portfolio', plan) ? (
                 shownPortfolio.length ? (
                   <div className="td-mgal" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 9 }}>
@@ -491,7 +489,6 @@ export default function PublicProfile() {
               ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Silver plan and above</div>}
             </Card>
 
-            {/* Reviews */}
             <Card TH={TH}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
                 <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
@@ -518,7 +515,6 @@ export default function PublicProfile() {
               )}
             </Card>
 
-            {/* Google Reviews */}
             {googleOn && (
               <Card TH={TH}>
                 <H2 TH={TH} right={<span style={{ fontSize: 9, fontWeight: 700, color: TH.t3, background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 8, padding: '3px 9px' }}>Coming soon</span>}>
@@ -535,7 +531,6 @@ export default function PublicProfile() {
               </Card>
             )}
 
-            {/* Sentiment */}
             <Card TH={TH}>
               <H2 TH={TH}>📈 Customer Sentiment</H2>
               {can('sentiment', plan) ? (() => {
@@ -565,7 +560,6 @@ export default function PublicProfile() {
               })() : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
             </Card>
 
-            {/* Lead form */}
             {leadForm && (
               <Card TH={TH}>
                 {submitted ? (
@@ -675,7 +669,7 @@ export default function PublicProfile() {
         </div>
       </div>
 
-      {/* full gallery modal — Instagram grid */}
+      {/* full gallery modal */}
       {showAllGallery && (
         <div onClick={() => setShowAllGallery(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 280, overflowY: 'auto', padding: 24 }}>
           <div onClick={e => e.stopPropagation()} style={{ maxWidth: 1000, margin: '0 auto' }}>
@@ -683,26 +677,29 @@ export default function PublicProfile() {
               <h3 style={{ color: '#fff', fontFamily: "'Sora',sans-serif", fontSize: 18 }}>🖼️ {company.name} — Portfolio ({portfolio.length})</h3>
               <button onClick={() => setShowAllGallery(false)} style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 13 }}>✕ Close</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(180px,1fr))', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(170px,1fr))', gap: 12 }}>
               {portfolio.map(p => <PortCard key={p.id} p={p} />)}
             </div>
           </div>
         </div>
       )}
 
-      {/* lightbox — Instagram post view */}
+      {/* lightbox — Instagram post view (fixed: size + close) */}
       {lightboxImg && (
-        <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 20 }}>
-          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 820, width: '100%', background: TH.cardSolid, borderRadius: 16, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'minmax(0,1.4fr) minmax(0,1fr)' }} className="td-lightbox">
-            <img src={lightboxImg.image_url} alt="" style={{ width: '100%', height: '100%', maxHeight: '78vh', objectFit: 'cover', background: '#000' }} />
-            <div style={{ padding: 20, display: 'flex', flexDirection: 'column' }}>
-              {lightboxImg.title && <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 18, fontWeight: 800, color: TH.t1, marginBottom: 8 }}>{lightboxImg.title}</div>}
-              <p style={{ fontSize: 13, color: TH.t2, lineHeight: 1.6, flex: 1 }}>{lightboxImg.description || 'No description.'}</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${TH.line}` }}>
+        <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} className="td-lightbox" style={{ maxWidth: 760, width: '100%', maxHeight: '90vh', background: TH.cardSolid, borderRadius: 16, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr)', position: 'relative' }}>
+            <button onClick={() => setLightboxImg(null)} style={{ position: 'absolute', top: 10, right: 10, zIndex: 5, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', cursor: 'pointer', fontSize: 17, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            <div className="td-lightbox-imgwrap" style={{ background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', maxHeight: '90vh', overflow: 'hidden' }}>
+              <img src={lightboxImg.image_url} alt="" style={{ width: '100%', height: 'auto', maxHeight: '90vh', objectFit: 'contain' }} />
+            </div>
+            <div className="td-lightbox-info" style={{ padding: 18, display: 'flex', flexDirection: 'column', overflowY: 'auto', maxHeight: '90vh' }}>
+              {lightboxImg.title && <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 17, fontWeight: 800, color: TH.t1, marginBottom: 8, paddingRight: 34 }}>{lightboxImg.title}</div>}
+              <p style={{ fontSize: 13, color: TH.t2, lineHeight: 1.6, flex: 1, margin: 0 }}>{lightboxImg.description || 'No description.'}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${TH.line}` }}>
                 <button onClick={() => likePortfolio(lightboxImg.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: likedSet.has(lightboxImg.id) ? TH.red + '22' : TH.soft, border: `1px solid ${TH.line}`, borderRadius: 20, padding: '8px 16px', cursor: 'pointer', fontWeight: 700, color: TH.t1, fontSize: 13 }}>
                   <span style={{ fontSize: 15 }}>{likedSet.has(lightboxImg.id) ? '❤️' : '🤍'}</span> {portLikes[lightboxImg.id] || 0} Likes
                 </button>
-                <button onClick={() => setLightboxImg(null)} style={{ marginLeft: 'auto', padding: '8px 18px', background: TH.soft, color: TH.t2, border: `1px solid ${TH.line}`, borderRadius: 20, cursor: 'pointer', fontSize: 13 }}>Close</button>
+                <button onClick={() => setLightboxImg(null)} style={{ marginLeft: 'auto', padding: '8px 18px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>Close</button>
               </div>
             </div>
           </div>
@@ -734,14 +731,18 @@ export default function PublicProfile() {
           .td-container{ padding: 12px 10px 36px !important; }
           .td-navtabs{ display: none !important; }
           .td-card{ padding: 13px !important; }
-          .td-bizname{ font-size: 24px !important; }
+          .td-bizname{ font-size: 23px !important; }
           .td-revgrid{ grid-template-columns: 1fr !important; }
           .td-mgal{ grid-template-columns: repeat(3,1fr) !important; }
           .td-t4{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-lightbox{ grid-template-columns: 1fr !important; max-height: 90vh; overflow-y: auto; }
+          .td-hero-ring svg{ width: 104px !important; height: 104px !important; }
+          .td-lightbox{ grid-template-columns: 1fr !important; max-height: 92vh !important; overflow-y: auto !important; }
+          .td-lightbox-imgwrap{ max-height: 46vh !important; }
+          .td-lightbox-imgwrap img{ max-height: 46vh !important; }
         }
         @media (max-width: 480px){
           .td-mgal{ grid-template-columns: repeat(2,1fr) !important; }
+          .td-hero-ring svg{ width: 96px !important; height: 96px !important; }
         }
       `}</style>
     </div>
