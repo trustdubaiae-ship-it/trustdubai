@@ -164,9 +164,12 @@ export default function PublicProfile() {
   const [reviewTab, setReviewTab] = useState('latest')
   const [openFaq, setOpenFaq] = useState(0)
   const [helpful, setHelpful] = useState({})
+  const [showAllGallery, setShowAllGallery] = useState(false)
+  const [showAllReviews, setShowAllReviews] = useState(false)
+  const [social, setSocial] = useState(null)
 
   useEffect(() => {
-    fetchCompany(); checkCustomer(); fetchAiSetting()
+    fetchCompany(); checkCustomer(); fetchAiSetting(); fetchSocial()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (e, s) => {
       if (e === 'SIGNED_IN' && s?.user) { setCustomer(await upsertCustomer(s.user)); setShowLoginPrompt(false) }
       else if (e === 'SIGNED_OUT') setCustomer(null)
@@ -176,6 +179,7 @@ export default function PublicProfile() {
 
   async function checkCustomer() { setCustomer((await getCustomer()) || null) }
   async function fetchAiSetting() { const { data } = await supabase.from('app_settings').select('value').eq('key', 'feature.ai_analysis').maybeSingle(); setAiAnalysisOn(data?.value?.enabled === true) }
+  async function fetchSocial() { const { data } = await supabase.from('app_settings').select('value').eq('key', 'trustdubai.social').maybeSingle(); setSocial(data?.value || null) }
   async function trackProfileView(id) { try { await supabase.rpc('increment_profile_views', { p_company_id: id }); await supabase.from('profile_views_log').insert({ company_id: id, visited_at: new Date().toISOString(), user_agent: navigator.userAgent }) } catch (e) {} }
 
   async function fetchCompany() {
@@ -194,7 +198,7 @@ export default function PublicProfile() {
     setBadges(badgeRes.data || []); setFaqs(faqRes.data || [])
     const hl = {}; (reviewRes.data || []).forEach(r => { hl[r.id] = r.helpful_count || 0 }); setHelpful(hl)
     if (formRes.data) { setLeadForm(formRes.data); const { data: q } = await supabase.from('lead_form_questions').select('*').eq('form_id', formRes.data.id).order('order_num'); setQuestions(q || []) }
-    if (data.category) { const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(3); setRelated(rel || []) }
+    if (data.category) { const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(6); setRelated(rel || []) }
     const reviewData = reviewRes.data || []
     const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
     setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | TrustDubai', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://trustdubai.ae/og-image.png', url: 'https://trustdubai.ae/' + slug })
@@ -229,7 +233,7 @@ export default function PublicProfile() {
   const cred = calcCredibility(company, reviews)
   const sub = calcSubScores(company, reviews)
   const ai = buildAISummary(reviews)
-  const social = buildSocialLinks(company)
+  const socialLinks = buildSocialLinks(company)
   const portLimit = featureVal('portfolioLimit', plan)
   const shownPort = portfolio.slice(0, portLimit)
   const respRate = 99
@@ -237,6 +241,7 @@ export default function PublicProfile() {
 
   const sortedReviews = [...reviews].sort((a, b) => reviewTab === 'highest' ? b.rating - a.rating : 0)
   const tabReviews = reviewTab === 'verified' ? sortedReviews.filter(r => r.customer_id) : sortedReviews
+  const visibleReviews = (showAllReviews || reviewTab === 'all') ? tabReviews : tabReviews.slice(0, 6)
 
   const chip = (t, k) => <span key={k} style={{ fontSize: 11, padding: '4px 12px', borderRadius: 8, background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, fontWeight: 600 }}>{t}</span>
 
@@ -261,6 +266,24 @@ export default function PublicProfile() {
       </div>
     </Card>
   ) : null
+
+  const LocationBlock = () => (
+    <Card TH={TH}>
+      <H2 TH={TH}>📍 Location Section</H2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }} className="td-loc">
+        <div style={{ height: 160, borderRadius: 12, overflow: 'hidden', position: 'relative', background: TH.dark ? 'linear-gradient(135deg,#0d1a30,#0a1424)' : 'linear-gradient(135deg,#d6e6f5,#c2d8ee)' }}>
+          <div style={{ position: 'absolute', inset: 0, opacity: 0.2, backgroundImage: `linear-gradient(${TH.accent} 1px,transparent 1px),linear-gradient(90deg,${TH.accent} 1px,transparent 1px)`, backgroundSize: '22px 22px' }} />
+          <div style={{ position: 'absolute', top: '40%', left: '38%', width: 14, height: 14, borderRadius: '50% 50% 50% 0', background: '#dc3545', transform: 'rotate(-45deg)' }} />
+          <div style={{ position: 'absolute', top: '48%', left: '42%', background: '#1e2a3a', color: '#fff', fontSize: 9, padding: '4px 8px', borderRadius: 6, fontWeight: 600 }}>📍 {company.name}</div>
+        </div>
+        <div style={{ fontSize: 12, color: TH.t2, lineHeight: 2 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}><span>📍</span><div><b style={{ color: TH.t1 }}>{company.name}</b><br />{company.location || 'Dubai, UAE'}</div></div>
+          {company.phone && <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}><span>📞</span><div><b style={{ color: TH.t1 }}>Contact:</b> {company.phone}</div></div>}
+          <div style={{ display: 'flex', gap: 8 }}><span>🕐</span><div><b style={{ color: TH.t1 }}>Hours:</b> 8 AM – 8 PM</div></div>
+        </div>
+      </div>
+    </Card>
+  )
 
   return (
     <div style={{ background: TH.bg, minHeight: '100vh', fontFamily: F, color: TH.t1, fontSize: 13 }}>
@@ -323,17 +346,20 @@ export default function PublicProfile() {
                 </div>
               </div>
               {portfolio.length > 0 && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, margin: '18px 0 14px' }}>
-                  {portfolio.slice(0, 3).map(p => <img key={p.id} src={p.image_url} alt="" onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: '16/10', objectFit: 'cover', borderRadius: 10, cursor: 'pointer' }} onError={e => { e.target.style.display = 'none' }} />)}
+                <div style={{ margin: '18px 0 14px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: TH.t3, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Featured Work</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))', gap: 10 }}>
+                    {portfolio.slice(0, 5).map(p => <img key={p.id} src={p.image_url} alt="" onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 10, cursor: 'pointer' }} onError={e => { e.target.style.display = 'none' }} />)}
+                  </div>
                 </div>
               )}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>{cats.map(c => chip(c, c))}{company.location && chip('📍 ' + company.location, 'loc')}</div>
                 {company.whatsapp && <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#25D366', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>💬 Write a message</button>}
               </div>
-              {can('socialLinks', plan) && social.length > 0 && (
+              {can('socialLinks', plan) && socialLinks.length > 0 && (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                  {social.map(s => <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 14px', background: TH.soft, color: TH.t1, borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.line}` }}>{s.icon} {s.label}</a>)}
+                  {socialLinks.map(s => <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 14px', background: TH.soft, color: TH.t1, borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.line}` }}>{s.icon} {s.label}</a>)}
                 </div>
               )}
             </Card>
@@ -367,6 +393,9 @@ export default function PublicProfile() {
                 </div>
               </Card>
             )}
+
+            {/* LOCATION (moved here from Achievement tab) */}
+            <LocationBlock />
 
             {/* ABOUT COMPANY */}
             {company.description && (
@@ -421,9 +450,9 @@ export default function PublicProfile() {
             {/* REVIEWS */}
             <Card TH={TH}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {[['latest', 'Latest'], ['highest', 'Highest Rated'], ['verified', 'Verified']].map(([k, l]) => (
-                    <span key={k} onClick={() => setReviewTab(k)} style={{ fontSize: 12, padding: '6px 16px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, background: reviewTab === k ? TH.t1 : TH.soft, color: reviewTab === k ? TH.card : TH.t2 }}>{l}</span>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {[['latest', 'Latest'], ['highest', 'Highest Rated'], ['verified', 'Verified'], ['all', 'All']].map(([k, l]) => (
+                    <span key={k} onClick={() => { setReviewTab(k); setShowAllReviews(false) }} style={{ fontSize: 12, padding: '6px 16px', borderRadius: 8, cursor: 'pointer', fontWeight: 700, background: reviewTab === k ? TH.t1 : TH.soft, color: reviewTab === k ? TH.card : TH.t2 }}>{l}</span>
                   ))}
                 </div>
                 {!reviewSubmitted && <button onClick={() => { if (requireLogin('review')) setShowReviewForm(true) }} style={{ fontSize: 12, padding: '7px 16px', background: customer ? TH.accent : TH.soft, color: customer ? '#fff' : TH.t2, border: customer ? 'none' : `1px solid ${TH.line}`, borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>{customer ? '+ Write a Review' : '🔐 Sign in to Review'}</button>}
@@ -444,8 +473,9 @@ export default function PublicProfile() {
               {tabReviews.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 40, color: TH.t2, fontSize: 14 }}>⭐ No reviews yet. Be the first!</div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 12 }}>
-                  {tabReviews.map(r => {
+                <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: 12 }} className="td-revgrid">
+                  {visibleReviews.map(r => {
                     const a = analyzeReview(r); const mine = customer && r.customer_id === customer.id; const ed = editingReviewId === r.id
                     return (
                       <div key={r.id} style={{ border: `1px solid ${mine ? TH.accent : TH.line}`, borderRadius: 12, padding: 14, background: TH.soft }}>
@@ -483,6 +513,12 @@ export default function PublicProfile() {
                     )
                   })}
                 </div>
+                {reviewTab !== 'all' && tabReviews.length > 6 && !showAllReviews && (
+                  <div style={{ textAlign: 'center', marginTop: 14 }}>
+                    <button onClick={() => setShowAllReviews(true)} style={{ padding: '8px 22px', background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 20, fontSize: 12, fontWeight: 700, color: TH.accent, cursor: 'pointer' }}>View all {tabReviews.length} reviews →</button>
+                  </div>
+                )}
+                </>
               )}
             </Card>
 
@@ -502,16 +538,23 @@ export default function PublicProfile() {
                         <div><div style={{ fontSize: 12, color: TH.t2, fontWeight: 700 }}>● Neutral</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 800 }}>{Math.round(neu / tot * 100)}%</div></div>
                         <div><div style={{ fontSize: 12, color: TH.red, fontWeight: 700 }}>● Negative</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 800, color: TH.red }}>{Math.round(neg / tot * 100)}%</div></div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, height: 150, borderBottom: `1px solid ${TH.line}`, padding: '0 10px' }}>
-                        {[5,4,3,2,1].map((star, i) => (
-                          <div key={star} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
-                            <div style={{ fontSize: 9, color: TH.t3 }}>{dist[i]}</div>
-                            <div style={{ width: '60%', maxWidth: 26, height: `${Math.max(4, dist[i] / maxD * 100)}%`, background: star >= 4 ? TH.green : star === 3 ? TH.gold : TH.red, borderRadius: '5px 5px 0 0' }} />
-                            <div style={{ fontSize: 9, color: TH.t3 }}>{star}★</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: 8, color: TH.t3, textAlign: 'right', height: 150, paddingBottom: 22, width: 20 }}>
+                          <span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, height: 150, borderBottom: `1px solid ${TH.line}`, borderLeft: `1px solid ${TH.line}`, padding: '0 10px' }}>
+                            {[5,4,3,2,1].map((star, i) => (
+                              <div key={star} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
+                                <div style={{ fontSize: 9, color: TH.t3 }}>{dist[i]}</div>
+                                <div style={{ width: '60%', maxWidth: 26, height: `${Math.max(4, dist[i] / maxD * 100)}%`, background: star >= 4 ? TH.green : star === 3 ? TH.gold : TH.red, borderRadius: '5px 5px 0 0' }} />
+                                <div style={{ fontSize: 9, color: TH.t3 }}>{star}★</div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 10, fontSize: 10, color: TH.t2 }}><span>● Positive (4-5★)</span><span style={{ color: TH.gold }}>● Neutral (3★)</span><span style={{ color: TH.red }}>● Negative (1-2★)</span></div>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 10, fontSize: 10, color: TH.t2 }}><span>● Positive (4-5★)</span><span style={{ color: TH.gold }}>● Neutral (3★)</span><span style={{ color: TH.red }}>● Negative (1-2★)</span></div>
                     </div>
                     <div>
                       <div style={{ border: `1px solid ${TH.line}`, borderRadius: 10, padding: 12, marginBottom: 12, background: TH.soft }}>
@@ -530,18 +573,15 @@ export default function PublicProfile() {
               )
             })()}
 
-            {/* MEDIA GALLERY */}
+            {/* MEDIA GALLERY — 6 per row, 2 rows, View All */}
             {can('portfolio', plan) && portfolio.length > 0 && (
               <Card TH={TH}>
-                <H2 TH={TH} right={portfolio.length > portLimit ? <span style={{ fontSize: 11, color: TH.t2 }}>{portLimit} of {portfolio.length}</span> : null}>🖼️ Media Gallery</H2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 10 }}>
-                  {shownPort.map(p => <img key={p.id} src={p.image_url} alt={p.title || ''} onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 10, cursor: 'pointer' }} onError={e => { e.target.style.display = 'none' }} />)}
+                <H2 TH={TH} right={portfolio.length > 12 ? <button onClick={() => setShowAllGallery(true)} style={{ fontSize: 12, fontWeight: 700, color: TH.accent, background: 'none', border: 'none', cursor: 'pointer' }}>View All ({portfolio.length}) →</button> : null}>🖼️ Media Gallery</H2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10 }} className="td-mgal">
+                  {portfolio.slice(0, 12).map(p => <img key={p.id} src={p.image_url} alt={p.title || ''} onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 10, cursor: 'pointer' }} onError={e => { e.target.style.display = 'none' }} />)}
                 </div>
               </Card>
             )}
-
-            {/* ACHIEVEMENTS (big at bottom of review section, like Image 1) */}
-            <AchievementsBlock big />
           </div>
         )}
 
@@ -569,23 +609,6 @@ export default function PublicProfile() {
                 </div>
               </Card>
             )}
-
-            {/* LOCATION */}
-            <Card TH={TH}>
-              <H2 TH={TH}>📍 Location Section</H2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16 }} className="td-loc">
-                <div style={{ height: 160, borderRadius: 12, overflow: 'hidden', position: 'relative', background: TH.dark ? 'linear-gradient(135deg,#0d1a30,#0a1424)' : 'linear-gradient(135deg,#d6e6f5,#c2d8ee)' }}>
-                  <div style={{ position: 'absolute', inset: 0, opacity: 0.2, backgroundImage: `linear-gradient(${TH.accent} 1px,transparent 1px),linear-gradient(90deg,${TH.accent} 1px,transparent 1px)`, backgroundSize: '22px 22px' }} />
-                  <div style={{ position: 'absolute', top: '40%', left: '38%', width: 14, height: 14, borderRadius: '50% 50% 50% 0', background: '#dc3545', transform: 'rotate(-45deg)' }} />
-                  <div style={{ position: 'absolute', top: '48%', left: '42%', background: '#1e2a3a', color: '#fff', fontSize: 9, padding: '4px 8px', borderRadius: 6, fontWeight: 600 }}>📍 {company.name}</div>
-                </div>
-                <div style={{ fontSize: 12, color: TH.t2, lineHeight: 2 }}>
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}><span>📍</span><div><b style={{ color: TH.t1 }}>{company.name}</b><br />{company.location || 'Dubai, UAE'}</div></div>
-                  {company.phone && <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}><span>📞</span><div><b style={{ color: TH.t1 }}>Contact:</b> {company.phone}</div></div>}
-                  <div style={{ display: 'flex', gap: 8 }}><span>🕐</span><div><b style={{ color: TH.t1 }}>Hours:</b> 8 AM – 8 PM</div></div>
-                </div>
-              </div>
-            </Card>
 
             {/* FAQ */}
             {can('faq', plan) && faqs.length > 0 && (
@@ -616,14 +639,48 @@ export default function PublicProfile() {
               </Card>
             )}
 
-            {/* Footer inside achievement tab (like Image 2) */}
+            {/* Footer (like Image 2) */}
             <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, padding: '20px 4px 0', borderTop: `1px solid ${TH.line}`, marginTop: 4 }}>
-              <div><span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16 }}>Trust<span style={{ color: TH.accent }}>Dubai</span></span><div style={{ fontSize: 11, color: TH.t2, marginTop: 6 }}>Verify Business · Social Icons</div></div>
-              <div style={{ textAlign: 'right', fontSize: 11, color: TH.t2 }}>{company.email && <div>📧 {company.email}</div>}<div>© Copyright 2026</div></div>
+              <div><span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16 }}>Trust<span style={{ color: TH.accent }}>Dubai</span></span><div style={{ fontSize: 11, color: TH.t2, marginTop: 6 }}>Verify Business</div></div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 11, color: TH.t3, marginBottom: 8, fontWeight: 600 }}>Follow Us</div>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                  {[
+                    { k: 'instagram', icon: '📸', base: 'https://instagram.com/' },
+                    { k: 'facebook', icon: '👍', base: 'https://facebook.com/' },
+                    { k: 'linkedin', icon: '💼', base: 'https://linkedin.com/company/' },
+                    { k: 'twitter', icon: '🐦', base: 'https://twitter.com/' },
+                    { k: 'youtube', icon: '▶️', base: 'https://youtube.com/' },
+                  ].map(s => {
+                    const val = social?.[s.k]
+                    const href = val ? (val.startsWith('http') ? val : s.base + val.replace('@', '')) : null
+                    return (
+                      <a key={s.k} href={href || '#'} target={href ? '_blank' : undefined} rel="noopener noreferrer" onClick={e => { if (!href) e.preventDefault() }}
+                        style={{ width: 34, height: 34, borderRadius: '50%', background: TH.soft, border: `1px solid ${TH.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, textDecoration: 'none', opacity: href ? 1 : 0.35, cursor: href ? 'pointer' : 'default' }}>{s.icon}</a>
+                    )
+                  })}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', fontSize: 11, color: TH.t2 }}>{company.email && <div>📧 {company.email}</div>}<div style={{ marginTop: 4 }}>© Copyright 2026</div></div>
             </div>
           </div>
         )}
       </div>
+
+      {/* full gallery modal */}
+      {showAllGallery && (
+        <div onClick={() => setShowAllGallery(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 280, overflowY: 'auto', padding: 24 }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 1000, margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ color: '#fff', fontFamily: "'Sora',sans-serif", fontSize: 18 }}>🖼️ {company.name} — Gallery ({portfolio.length})</h3>
+              <button onClick={() => setShowAllGallery(false)} style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 13 }}>✕ Close</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 12 }}>
+              {portfolio.map(p => <img key={p.id} src={p.image_url} alt={p.title || ''} onClick={() => setLightboxImg(p)} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 10, cursor: 'pointer' }} onError={e => { e.target.style.display = 'none' }} />)}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* lightbox */}
       {lightboxImg && (
@@ -653,7 +710,9 @@ export default function PublicProfile() {
       )}
 
       <style>{`
+        @media (max-width: 820px){ .td-revgrid{ grid-template-columns: repeat(2,1fr) !important; } .td-mgal{ grid-template-columns: repeat(4,1fr) !important; } }
         @media (max-width: 720px){ .td-sent, .td-loc { grid-template-columns: 1fr !important; } }
+        @media (max-width: 520px){ .td-revgrid{ grid-template-columns: 1fr !important; } .td-mgal{ grid-template-columns: repeat(3,1fr) !important; } }
       `}</style>
     </div>
   )
