@@ -111,13 +111,13 @@ function BigGauge({ TH, label, score, color, area }) {
   const isText = typeof score === 'string'
   const r = 46, c = 2 * Math.PI * r, filled = (isText ? 0.5 : score / 100) * c
   return (
-    <div style={{ background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 14, padding: '18px 14px', textAlign: 'center' }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: TH.t1, marginBottom: 14 }}>{label}</div>
+    <div className="td-gauge" style={{ background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 14, padding: '18px 14px', textAlign: 'center' }}>
+      <div className="td-gauge-label" style={{ fontSize: 13, fontWeight: 700, color: TH.t1, marginBottom: 14 }}>{label}</div>
       <div style={{ position: 'relative', display: 'inline-grid', placeItems: 'center', marginBottom: 14 }}>
         <svg className="td-gauge-svg" width="112" height="112"><circle cx="56" cy="56" r={r} fill="none" stroke={TH.line} strokeWidth="8" /><circle cx="56" cy="56" r={r} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${filled} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 56 56)" /></svg>
-        <div style={{ position: 'absolute', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: isText ? 18 : 26, color }}>{isText ? score : score + '%'}</div>
+        <div className="td-gauge-num" style={{ position: 'absolute', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: isText ? 18 : 26, color }}>{isText ? score : score + '%'}</div>
       </div>
-      <svg width="100%" height="50" viewBox="0 0 150 50" preserveAspectRatio="none">
+      <svg className="td-gauge-area" width="100%" height="50" viewBox="0 0 150 50" preserveAspectRatio="none">
         <polyline points={area} fill="none" stroke={color} strokeWidth="2" />
       </svg>
     </div>
@@ -706,27 +706,33 @@ export default function PublicProfile() {
           .td-container{ padding: 12px 10px 36px !important; }
           .td-card{ padding: 13px !important; border-radius: 13px !important; margin-bottom: 12px !important; }
           .td-bizname{ font-size: 24px !important; }
-          /* small cards: 3-4 per row, NOT full width */
-          .td-ov-t4{ grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
-          .td-revgrid{ grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
-          .td-ins, .td-ach, .td-rel{ grid-template-columns: repeat(3,1fr) !important; gap: 8px !important; }
-          .td-mgal{ grid-template-columns: repeat(4,1fr) !important; gap: 6px !important; }
-          .td-ov-feat{ grid-template-columns: repeat(4,1fr) !important; gap: 6px !important; }
+          /* every grid fills the line — no half-empty rows */
+          .td-ov-feat{ grid-template-columns: repeat(6,1fr) !important; gap: 5px !important; }
+          .td-ov-t4{ grid-template-columns: repeat(4,1fr) !important; gap: 6px !important; }
+          .td-revgrid{ grid-template-columns: repeat(3,1fr) !important; gap: 7px !important; }
+          .td-ins, .td-ach, .td-rel{ grid-template-columns: repeat(3,1fr) !important; gap: 7px !important; }
+          .td-mgal{ grid-template-columns: repeat(6,1fr) !important; gap: 5px !important; }
           /* wide content stays single col (readability) */
           .td-loc, .td-about, .td-ai2, .td-sent{ grid-template-columns: 1fr !important; }
-          /* shrink gauges so 2 fit nicely */
-          .td-gauge-svg{ width: 84px !important; height: 84px !important; }
+          /* compact gauges so 4 fit in one line */
+          .td-gauge{ padding: 9px 5px !important; }
+          .td-gauge-label{ font-size: 8.5px !important; margin-bottom: 6px !important; line-height: 1.2 !important; }
+          .td-gauge-svg{ width: 56px !important; height: 56px !important; }
+          .td-gauge-num{ font-size: 14px !important; }
+          .td-gauge-area{ height: 24px !important; }
         }
         /* ============ MOBILE (≤ 480px) ============ */
         @media (max-width: 480px){
           .td-container{ padding: 10px 8px 32px !important; }
           .td-card{ padding: 11px !important; margin-bottom: 10px !important; }
           .td-bizname{ font-size: 21px !important; }
-          .td-ov-t4{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-revgrid{ grid-template-columns: 1fr !important; }
-          .td-ins, .td-ach, .td-rel{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-mgal{ grid-template-columns: repeat(4,1fr) !important; }
-          .td-ov-feat{ grid-template-columns: repeat(4,1fr) !important; }
+          .td-ov-feat{ grid-template-columns: repeat(6,1fr) !important; }
+          .td-ov-t4{ grid-template-columns: repeat(4,1fr) !important; }
+          .td-revgrid{ grid-template-columns: repeat(3,1fr) !important; }
+          .td-ins, .td-ach, .td-rel{ grid-template-columns: repeat(3,1fr) !important; }
+          .td-mgal{ grid-template-columns: repeat(6,1fr) !important; }
+          .td-gauge-svg{ width: 48px !important; height: 48px !important; }
+          .td-gauge-num{ font-size: 12px !important; }
         }
       `}</style>
     </div>
