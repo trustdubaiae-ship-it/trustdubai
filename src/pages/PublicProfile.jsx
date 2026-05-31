@@ -102,7 +102,7 @@ function buildSocialLinks(c) {
 
 /* ---- atoms ---- */
 function Card({ TH, children, style }) {
-  return <div style={{ background: TH.card, border: `1px solid ${TH.line}`, borderRadius: 16, padding: 22, boxShadow: TH.shadow, marginBottom: 18, ...style }}>{children}</div>
+  return <div className="td-card" style={{ background: TH.card, border: `1px solid ${TH.line}`, borderRadius: 16, padding: 22, boxShadow: TH.shadow, marginBottom: 18, ...style }}>{children}</div>
 }
 function H2({ TH, children, right, small }) {
   return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}><h2 style={{ fontFamily: "'Sora',sans-serif", fontSize: small ? 16 : 19, fontWeight: 800, color: TH.t1, margin: 0, textTransform: 'uppercase', letterSpacing: '0.01em' }}>{children}</h2>{right}</div>
@@ -309,14 +309,14 @@ export default function PublicProfile() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '22px 20px 50px' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '22px 20px 50px' }} className="td-container">
 
         {/* ============================ OVERVIEW (4 col) ============================ */}
         {tab === 'overview' && (
           <div className="td-tabpane">
             {/* HEADER + ROW 1 */}
             <Card TH={TH}>
-              <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 34, fontWeight: 800, letterSpacing: '-0.02em' }}>{company.name}</div>
+              <div className="td-bizname" style={{ fontFamily: "'Sora',sans-serif", fontSize: 34, fontWeight: 800, letterSpacing: '-0.02em' }}>{company.name}</div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: TH.green, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '6px 0 16px' }}>{company.is_verified && '✓ Verified Business'}{plan !== 'free' && ' · ' + plan.charAt(0).toUpperCase() + plan.slice(1)}</div>
               <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', marginBottom: 18 }}>
                 {[['Average Rating', (company.avg_rating || '0.0'), '★'], ['Verified Reviews', company.total_reviews || reviews.length], ['Response Rate', respRate + '%'], ['Community Trust', community]].map(([k, v, st], i) => (
@@ -378,7 +378,7 @@ export default function PublicProfile() {
               <Card TH={TH} style={{ gridColumn: '1 / 3', marginBottom: 0 }}>
                 <H2 TH={TH} small>🤖 AI Business Summary</H2>
                 {can('aiSummary', plan) ? (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }} className="td-ai2">
                     <div style={{ background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 12, padding: 16 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12 }}>What Customers Love</div>
                       {(ai.loves.length ? ai.loves : ['Building reputation']).map((l, i) => <div key={i} style={{ fontSize: 12.5, color: TH.t2, marginBottom: 9, display: 'flex', gap: 8, alignItems: 'center', fontWeight: 600 }}><span style={{ width: 17, height: 17, borderRadius: '50%', background: TH.green, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>✓</span>{l}</div>)}
@@ -687,25 +687,40 @@ export default function PublicProfile() {
       )}
 
       <style>{`
-        @media (max-width: 920px){
+        /* ============ TABLET (≤ 1024px) ============ */
+        @media (max-width: 1024px){
+          .td-container{ padding: 18px 16px 44px !important; }
           .td-ov-row1{ grid-template-columns: 1fr !important; }
           .td-ov-row1 > div:first-child{ grid-column: 1 / -1 !important; }
           .td-ov-row1 > div:last-child{ grid-column: 1 / -1 !important; }
-          .td-ov-feat{ grid-template-columns: repeat(4,1fr) !important; }
           .td-ov-row3{ grid-template-columns: 1fr !important; }
           .td-ov-row3 > div{ grid-column: 1 / -1 !important; }
-        }
-        @media (max-width: 820px){
           .td-ov-t4{ grid-template-columns: repeat(2,1fr) !important; }
           .td-revgrid{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-mgal{ grid-template-columns: repeat(4,1fr) !important; }
-          .td-ins, .td-ach, .td-rel{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-sent, .td-loc, .td-about{ grid-template-columns: 1fr !important; }
+          .td-mgal{ grid-template-columns: repeat(4,1fr) !important; grid-template-rows: auto !important; }
+          .td-ov-feat{ grid-template-columns: repeat(6,1fr) !important; }
+          .td-sent{ grid-template-columns: 1fr !important; }
         }
+        /* ============ SMALL TABLET / LARGE PHONE (≤ 768px) ============ */
+        @media (max-width: 768px){
+          .td-container{ padding: 14px 12px 40px !important; }
+          .td-card{ padding: 16px !important; border-radius: 13px !important; }
+          .td-bizname{ font-size: 26px !important; }
+          .td-ins, .td-ach, .td-rel{ grid-template-columns: repeat(2,1fr) !important; }
+          .td-loc, .td-about, .td-ai2{ grid-template-columns: 1fr !important; }
+          .td-mgal{ grid-template-columns: repeat(4,1fr) !important; }
+          .td-ov-feat{ grid-template-columns: repeat(5,1fr) !important; }
+        }
+        /* ============ MOBILE (≤ 520px) ============ */
         @media (max-width: 520px){
+          .td-container{ padding: 12px 10px 36px !important; }
+          .td-card{ padding: 14px !important; }
+          .td-bizname{ font-size: 22px !important; }
+          .td-ov-t4{ grid-template-columns: 1fr !important; }
           .td-revgrid{ grid-template-columns: 1fr !important; }
           .td-mgal{ grid-template-columns: repeat(3,1fr) !important; }
-          .td-ov-t4, .td-ins, .td-ach, .td-rel{ grid-template-columns: 1fr !important; }
+          .td-ov-feat{ grid-template-columns: repeat(4,1fr) !important; }
+          .td-ins, .td-ach, .td-rel{ grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>
