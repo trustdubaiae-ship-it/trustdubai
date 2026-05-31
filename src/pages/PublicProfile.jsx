@@ -114,7 +114,7 @@ function BigGauge({ TH, label, score, color, area }) {
     <div className="td-gauge" style={{ background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 14, padding: '18px 14px', textAlign: 'center' }}>
       <div className="td-gauge-label" style={{ fontSize: 13, fontWeight: 700, color: TH.t1, marginBottom: 14 }}>{label}</div>
       <div style={{ position: 'relative', display: 'inline-grid', placeItems: 'center', marginBottom: 14 }}>
-        <svg className="td-gauge-svg" width="112" height="112"><circle cx="56" cy="56" r={r} fill="none" stroke={TH.line} strokeWidth="8" /><circle cx="56" cy="56" r={r} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${filled} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 56 56)" /></svg>
+        <svg className="td-gauge-svg" width="112" height="112" viewBox="0 0 112 112"><circle cx="56" cy="56" r={r} fill="none" stroke={TH.line} strokeWidth="8" /><circle cx="56" cy="56" r={r} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${filled} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 56 56)" /></svg>
         <div className="td-gauge-num" style={{ position: 'absolute', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: isText ? 18 : 26, color }}>{isText ? score : score + '%'}</div>
       </div>
       <svg className="td-gauge-area" width="100%" height="50" viewBox="0 0 150 50" preserveAspectRatio="none">
@@ -289,8 +289,8 @@ export default function PublicProfile() {
       <div style={{ background: TH.dark ? 'rgba(8,12,23,0.9)' : TH.card, borderBottom: `1px solid ${TH.line}`, position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(10px)' }}>
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 17, color: TH.t1 }}>🛡️ Trust<span style={{ color: TH.accent }}>Dubai</span></button>
-          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            {TABS.map(([k, l]) => <button key={k} onClick={() => { setTab(k); window.scrollTo(0, 0) }} style={{ padding: '8px 16px', fontSize: 13, fontWeight: 700, background: 'none', border: 'none', borderBottom: `2px solid ${tab === k ? TH.accent : 'transparent'}`, color: tab === k ? TH.accent : TH.t2, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.02em' }}>{l}</button>)}
+          <div className="td-navtabs" style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {TABS.map(([k, l]) => <button key={k} onClick={() => { setTab(k); window.scrollTo(0, 0) }} className="td-navtab" style={{ padding: '8px 16px', fontSize: 13, fontWeight: 700, background: 'none', border: 'none', borderBottom: `2px solid ${tab === k ? TH.accent : 'transparent'}`, color: tab === k ? TH.accent : TH.t2, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>{l}</button>)}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
             <button onClick={() => setDark(d => !d)} style={{ width: 32, height: 32, borderRadius: 9, border: `1px solid ${TH.line}`, background: TH.card, color: TH.t2, cursor: 'pointer', fontSize: 14 }}>{dark ? '☀️' : '🌙'}</button>
@@ -704,6 +704,8 @@ export default function PublicProfile() {
         /* ============ LARGE PHONE (≤ 768px) ============ */
         @media (max-width: 768px){
           .td-container{ padding: 12px 10px 36px !important; }
+          .td-navtabs{ flex-wrap: nowrap !important; gap: 2px !important; width: 100% !important; justify-content: space-between !important; }
+          .td-navtab{ padding: 7px 4px !important; font-size: 10.5px !important; letter-spacing: 0 !important; }
           .td-card{ padding: 13px !important; border-radius: 13px !important; margin-bottom: 12px !important; }
           .td-bizname{ font-size: 24px !important; }
           /* every grid fills the line — no half-empty rows */
@@ -724,6 +726,7 @@ export default function PublicProfile() {
         /* ============ MOBILE (≤ 480px) ============ */
         @media (max-width: 480px){
           .td-container{ padding: 10px 8px 32px !important; }
+          .td-navtab{ font-size: 9.5px !important; padding: 7px 3px !important; }
           .td-card{ padding: 11px !important; margin-bottom: 10px !important; }
           .td-bizname{ font-size: 21px !important; }
           .td-ov-feat{ grid-template-columns: repeat(6,1fr) !important; }
