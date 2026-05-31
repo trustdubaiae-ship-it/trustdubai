@@ -4,17 +4,15 @@ import { supabase } from '../supabase'
 import { signInWithGoogle, signOut, getCustomer, upsertCustomer } from '../customerAuth'
 
 /* ============================================================
-   PLAN FEATURE MATRIX  (Free 10% → Silver 25% → Gold 60% → Platinum 100%)
-   true = unlocked for that plan. Edit here to re-balance unlocks.
+   PLAN FEATURE MATRIX (Free 10% → Silver 25% → Gold 60% → Platinum 100%)
+   Design is the SAME premium neon for every plan; only FEATURES gate.
+   Edit here to re-balance unlocks.
    ============================================================ */
-const PLAN_RANK = { free: 0, silver: 1, gold: 2, platinum: 3 }
-
 const FEATURES = {
   description:      { free: false, silver: true,  gold: true,  platinum: true  },
   socialLinks:      { free: false, silver: true,  gold: true,  platinum: true  },
-  portfolio:        { free: false, silver: true,  gold: true,  platinum: true  }, // free => upgrade prompt
+  portfolio:        { free: false, silver: true,  gold: true,  platinum: true  },
   portfolioLimit:   { free: 0,     silver: 3,     gold: 999,   platinum: 999   },
-  portfolioVideo:   { free: false, silver: false, gold: false, platinum: true  },
   trustGauges:      { free: false, silver: false, gold: true,  platinum: true  },
   aiSummary:        { free: false, silver: false, gold: true,  platinum: true  },
   businessInsights: { free: false, silver: false, gold: true,  platinum: true  },
@@ -22,44 +20,49 @@ const FEATURES = {
   teamSection:      { free: false, silver: true,  gold: true,  platinum: true  },
   achievements:     { free: false, silver: false, gold: true,  platinum: true  },
   faqSection:       { free: false, silver: false, gold: true,  platinum: true  },
-  aiReviewAnalysis: { free: false, silver: false, gold: true,  platinum: true  }, // also gated by global toggle
+  aiReviewAnalysis: { free: false, silver: false, gold: true,  platinum: true  },
+}
+const can = (f, plan) => !!(FEATURES[f] && FEATURES[f][plan])
+const featureVal = (f, plan) => (FEATURES[f] ? (FEATURES[f][plan] ?? FEATURES[f].free) : 0)
+
+/* Plan accent (neon glow color) */
+const PLAN_ACCENT = {
+  free:     { c: '#03C1F5', glow: 'rgba(3,193,245,0.45)',  label: null,           ribbon: null },
+  silver:   { c: '#94a3b8', glow: 'rgba(148,163,184,0.40)', label: '🥈 Silver',   ribbon: 'SILVER VERIFIED' },
+  gold:     { c: '#f0b429', glow: 'rgba(240,180,41,0.45)',  label: '🥇 Gold',     ribbon: '🏆 GOLD VERIFIED BUSINESS' },
+  platinum: { c: '#a78bfa', glow: 'rgba(167,139,250,0.5)',  label: '💎 Platinum', ribbon: '✦ PLATINUM VERIFIED BUSINESS ✦' },
 }
 
-function can(feature, plan) {
-  const f = FEATURES[feature]
-  if (!f) return false
-  return !!f[plan]
-}
-function featureVal(feature, plan) {
-  const f = FEATURES[feature]
-  if (!f) return 0
-  return f[plan] ?? f.free
-}
-
-const PLAN_THEMES = {
-  free: {
-    bg: '#f9fafb', headerBg: '#03C1F5', cardBg: '#fff', border: '#e5e7eb',
-    accent: '#03C1F5', text: '#111827', textSub: '#6b7280', badge: null, heroBg: '#fff',
-    sectionTitle: '#111827', upgradeBg: '#f0faff', upgradeBorder: '#b3d9f0', upgradeText: '#0077aa',
-  },
-  silver: {
-    bg: '#f1f5f9', headerBg: '#1e293b', cardBg: '#fff', border: '#cbd5e1',
-    accent: '#64748b', text: '#0f172a', textSub: '#475569',
-    badge: { bg: '#f1f5f9', color: '#64748b', label: '🥈 Silver' }, heroBg: '#fff',
-    sectionTitle: '#0f172a', upgradeBg: '#f8fafc', upgradeBorder: '#cbd5e1', upgradeText: '#475569',
-  },
-  gold: {
-    bg: '#fffbf0', headerBg: '#92400e', cardBg: '#fff', border: '#fcd34d',
-    accent: '#d97706', text: '#111827', textSub: '#78350f',
-    badge: { bg: '#fffbf0', color: '#d97706', label: '🥇 Gold' }, heroBg: '#fffdf7',
-    sectionTitle: '#111827', upgradeBg: '#fffbf0', upgradeBorder: '#fcd34d', upgradeText: '#92400e',
-  },
-  platinum: {
-    bg: '#0a0a14', headerBg: '#0f0f1a', cardBg: '#15152a', border: '#2d2d4e',
-    accent: '#8b5cf6', text: '#f1f5f9', textSub: '#a0aec0',
-    badge: { bg: '#1a1a2e', color: '#a78bfa', label: '💎 Platinum' }, heroBg: '#12122244',
-    sectionTitle: '#f1f5f9', upgradeBg: 'rgba(139,92,246,0.1)', upgradeBorder: 'rgba(139,92,246,0.3)', upgradeText: '#a78bfa',
-  },
+/* Dark + Light palettes — design same, just theme swap */
+function makeTheme(dark, accentC, glow) {
+  if (dark) return {
+    dark: true, accent: accentC, glow,
+    bg: '#070b16',
+    bgGrad: `radial-gradient(1100px 560px at 8% -6%, ${glow}, transparent 60%), radial-gradient(900px 600px at 100% 0%, rgba(124,58,237,0.14), transparent 55%), #070b16`,
+    panel: 'rgba(255,255,255,0.035)',
+    panelSolid: '#0e1424',
+    panel2: 'rgba(255,255,255,0.05)',
+    border: 'rgba(255,255,255,0.09)',
+    borderGlow: `${accentC}55`,
+    text: '#eaf1fb', text2: '#9fb1c9', text3: '#64758c',
+    text3b: '#64758c',
+    input: '#0c1322',
+    chip: 'rgba(255,255,255,0.06)',
+  }
+  return {
+    dark: false, accent: accentC, glow,
+    bg: '#eef2f8',
+    bgGrad: `radial-gradient(1000px 520px at 8% -6%, ${glow.replace(/0\.\d+/, '0.18')}, transparent 60%), radial-gradient(820px 560px at 100% 0%, rgba(124,58,237,0.08), transparent 55%), #eef2f8`,
+    panel: '#ffffff',
+    panelSolid: '#ffffff',
+    panel2: '#f5f8fc',
+    border: '#e3e9f2',
+    borderGlow: `${accentC}66`,
+    text: '#0d1726', text2: '#54657c', text3: '#8a9bb0',
+    text3b: '#8a9bb0',
+    input: '#f5f8fc',
+    chip: '#f0f4fa',
+  }
 }
 
 const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co'
@@ -73,36 +76,22 @@ function setSEO({ title, description, image, url }) {
     el.setAttribute('content', content)
   }
   setMeta('description', description)
-  setMeta('og:title', title, true)
-  setMeta('og:description', description, true)
-  setMeta('og:url', url, true)
-  setMeta('og:type', 'business.business', true)
-  setMeta('og:image', image, true)
-  setMeta('og:site_name', 'TrustDubai', true)
-  setMeta('twitter:card', 'summary')
-  setMeta('twitter:title', title)
-  setMeta('twitter:description', description)
-  const old = document.getElementById('jsonld-business')
-  if (old) old.remove()
+  setMeta('og:title', title, true); setMeta('og:description', description, true)
+  setMeta('og:url', url, true); setMeta('og:type', 'business.business', true)
+  setMeta('og:image', image, true); setMeta('og:site_name', 'TrustDubai', true)
+  setMeta('twitter:card', 'summary'); setMeta('twitter:title', title); setMeta('twitter:description', description)
+  const old = document.getElementById('jsonld-business'); if (old) old.remove()
 }
 
 function setJsonLD(company, reviews) {
   const script = document.createElement('script')
-  script.id = 'jsonld-business'
-  script.type = 'application/ld+json'
+  script.id = 'jsonld-business'; script.type = 'application/ld+json'
   script.text = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    'name': company.name,
-    'description': company.description || '',
-    'url': 'https://trustdubai.ae/' + company.slug,
+    '@context': 'https://schema.org', '@type': 'LocalBusiness', 'name': company.name,
+    'description': company.description || '', 'url': 'https://trustdubai.ae/' + company.slug,
     'telephone': company.phone || '',
     'address': { '@type': 'PostalAddress', 'addressLocality': company.location || 'Dubai', 'addressCountry': 'AE' },
-    'aggregateRating': reviews.length > 0 ? {
-      '@type': 'AggregateRating',
-      'ratingValue': (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1),
-      'reviewCount': reviews.length, 'bestRating': 5, 'worstRating': 1
-    } : undefined,
+    'aggregateRating': reviews.length > 0 ? { '@type': 'AggregateRating', 'ratingValue': (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1), 'reviewCount': reviews.length, 'bestRating': 5, 'worstRating': 1 } : undefined,
   })
   document.head.appendChild(script)
 }
@@ -110,10 +99,10 @@ function setJsonLD(company, reviews) {
 function analyzeReview(review) {
   const text = (review.review_text || '').toLowerCase()
   const rating = review.rating || 3
-  const positiveWords = ['excellent', 'great', 'amazing', 'good', 'best', 'perfect', 'wonderful', 'fantastic', 'outstanding', 'professional', 'recommended', 'happy', 'satisfied', 'love', 'awesome', 'superb', 'brilliant', 'helpful', 'fast', 'quality', 'clean', 'honest', 'reliable', 'trusted', 'efficient']
-  const negativeWords = ['bad', 'poor', 'terrible', 'worst', 'horrible', 'awful', 'disappointing', 'slow', 'expensive', 'rude', 'unprofessional', 'late', 'damage', 'broken', 'wrong', 'issue', 'problem', 'complaint', 'refund', 'waste', 'dirty', 'fake', 'fraud', 'cheat', 'scam']
-  const posCount = positiveWords.filter(w => text.includes(w)).length
-  const negCount = negativeWords.filter(w => text.includes(w)).length
+  const pos = ['excellent','great','amazing','good','best','perfect','wonderful','fantastic','outstanding','professional','recommended','happy','satisfied','love','awesome','superb','brilliant','helpful','fast','quality','clean','honest','reliable','trusted','efficient']
+  const neg = ['bad','poor','terrible','worst','horrible','awful','disappointing','slow','expensive','rude','unprofessional','late','damage','broken','wrong','issue','problem','complaint','refund','waste','dirty','fake','fraud','cheat','scam']
+  const posCount = pos.filter(w => text.includes(w)).length
+  const negCount = neg.filter(w => text.includes(w)).length
   const lengthScore = Math.min(text.length / 200, 1) * 40
   const ratingScore = rating === 5 || rating === 1 ? 20 : rating === 4 || rating === 2 ? 35 : 45
   const wordScore = Math.min((posCount + negCount) * 5, 15)
@@ -125,106 +114,117 @@ function analyzeReview(review) {
 }
 
 function calcCredibility(company, reviews) {
-  let score = 0
-  if (company.is_verified)                                        score += 25
-  if ((company.avg_rating || 0) >= 4)                            score += 20
-  else if ((company.avg_rating || 0) >= 3)                       score += 10
-  if (reviews.length >= 10)                                      score += 20
-  else if (reviews.length >= 5)                                  score += 15
-  else if (reviews.length >= 1)                                  score += 8
-  if (company.logo_url)                                          score += 10
-  if (company.description)                                       score += 10
-  if (company.phone)                                             score += 5
-  if (company.instagram || company.facebook || company.linkedin) score += 10
-  return Math.min(score, 100)
+  let s = 0
+  if (company.is_verified) s += 25
+  if ((company.avg_rating || 0) >= 4) s += 20; else if ((company.avg_rating || 0) >= 3) s += 10
+  if (reviews.length >= 10) s += 20; else if (reviews.length >= 5) s += 15; else if (reviews.length >= 1) s += 8
+  if (company.logo_url) s += 10
+  if (company.description) s += 10
+  if (company.phone) s += 5
+  if (company.instagram || company.facebook || company.linkedin) s += 10
+  return Math.min(s, 100)
 }
 
-/* derived sub-scores for gauges (real data) */
 function calcSubScores(company, reviews) {
   const avg = parseFloat(company.avg_rating) || 0
   const satisfaction = avg > 0 ? Math.round((avg / 5) * 100) : 0
-  // service quality proxy: blend of rating + review volume
   const volFactor = Math.min(reviews.length / 20, 1)
   const serviceQuality = Math.round((avg / 5) * 80 + volFactor * 20)
-  // verification level
   const verification = company.is_verified ? 100 : 30
-  // community confidence: rating + verified + reviews
   const community = Math.round((avg / 5) * 50 + (company.is_verified ? 30 : 0) + volFactor * 20)
   return { satisfaction, serviceQuality, verification, community }
 }
 
-/* AI Business Summary from real reviews */
 function buildAISummary(reviews) {
   if (reviews.length === 0) return null
   const allText = reviews.map(r => (r.review_text || '').toLowerCase()).join(' ')
   const themes = [
-    { key: 'quality',         words: ['quality', 'professional', 'excellent', 'great work', 'best'],       love: 'Quality of work & professionalism' },
-    { key: 'timeliness',      words: ['fast', 'quick', 'on time', 'timely', 'prompt'],                     love: 'Timely delivery & quick response' },
-    { key: 'service',         words: ['service', 'helpful', 'friendly', 'polite', 'support'],               love: 'Friendly & helpful service' },
-    { key: 'value',           words: ['price', 'value', 'affordable', 'reasonable', 'worth'],               love: 'Fair pricing & value for money' },
+    { words: ['quality','professional','excellent','great','best'], love: 'Quality of work & professionalism' },
+    { words: ['fast','quick','on time','timely','prompt'],          love: 'Timely delivery & quick response' },
+    { words: ['service','helpful','friendly','polite','support'],    love: 'Friendly & helpful service' },
+    { words: ['price','value','affordable','reasonable','worth'],    love: 'Fair pricing & value for money' },
   ]
   const loves = themes.filter(t => t.words.some(w => allText.includes(w))).map(t => t.love)
   const concerns = []
   if (allText.match(/slow|late|delay|wait/)) concerns.push('Response time on busy days')
   if (allText.match(/expensive|costly|pricey/)) concerns.push('Pricing for some services')
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-  const recentTrend = avg >= 4.5 ? 'Strong positive reputation' : avg >= 3.5 ? 'Steadily improving reputation' : 'Building reputation'
-  return {
-    loves: loves.length ? loves : ['Verified business on TrustDubai'],
-    concerns: concerns.length ? concerns : ['No major concerns reported'],
-    trend: recentTrend,
-  }
+  const trend = avg >= 4.5 ? 'Strong positive reputation' : avg >= 3.5 ? 'Steadily improving reputation' : 'Building reputation'
+  return { loves: loves.length ? loves : ['Verified business on TrustDubai'], concerns: concerns.length ? concerns : ['No major concerns reported'], trend }
 }
 
-function buildSocialLinks(company) {
-  const links = []
-  if (company.instagram) links.push({ icon: '📸', label: 'Instagram', url: company.instagram.startsWith('http') ? company.instagram : 'https://instagram.com/' + company.instagram.replace('@', '') })
-  if (company.facebook) links.push({ icon: '👍', label: 'Facebook', url: company.facebook.startsWith('http') ? company.facebook : 'https://facebook.com/' + company.facebook })
-  if (company.linkedin) links.push({ icon: '💼', label: 'LinkedIn', url: company.linkedin.startsWith('http') ? company.linkedin : 'https://linkedin.com/company/' + company.linkedin })
-  if (company.website) links.push({ icon: '🌐', label: 'Website', url: company.website.startsWith('http') ? company.website : 'https://' + company.website })
-  return links
+function buildSocialLinks(c) {
+  const l = []
+  if (c.instagram) l.push({ icon: '📸', label: 'Instagram', url: c.instagram.startsWith('http') ? c.instagram : 'https://instagram.com/' + c.instagram.replace('@', '') })
+  if (c.facebook)  l.push({ icon: '👍', label: 'Facebook',  url: c.facebook.startsWith('http') ? c.facebook : 'https://facebook.com/' + c.facebook })
+  if (c.linkedin)  l.push({ icon: '💼', label: 'LinkedIn',  url: c.linkedin.startsWith('http') ? c.linkedin : 'https://linkedin.com/company/' + c.linkedin })
+  if (c.website)   l.push({ icon: '🌐', label: 'Website',   url: c.website.startsWith('http') ? c.website : 'https://' + c.website })
+  return l
 }
 
-/* ---------- small UI helpers ---------- */
-function SectionTitle({ T, icon, children, right }) {
+/* ---------- UI atoms ---------- */
+function Panel({ TH, children, style, glowBorder }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '0 0 14px 0' }}>
-      <h2 style={{ fontSize: 16, fontWeight: 700, color: T.sectionTitle, margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-        {icon && <span>{icon}</span>}{children}
+    <div style={{
+      background: TH.panel,
+      border: `1px solid ${glowBorder ? TH.borderGlow : TH.border}`,
+      borderRadius: 18, padding: 20, marginBottom: 18,
+      backdropFilter: TH.dark ? 'blur(8px)' : 'none',
+      boxShadow: TH.dark ? (glowBorder ? `0 0 26px ${TH.glow}, inset 0 1px 0 rgba(255,255,255,0.04)` : 'inset 0 1px 0 rgba(255,255,255,0.03)') : '0 2px 14px rgba(15,30,60,0.05)',
+      ...style,
+    }}>{children}</div>
+  )
+}
+
+function SecTitle({ TH, icon, children, right }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <h2 style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 700, color: TH.text, margin: 0, display: 'flex', alignItems: 'center', gap: 8, letterSpacing: '0.01em', textTransform: 'uppercase' }}>
+        {icon && <span style={{ filter: TH.dark ? `drop-shadow(0 0 6px ${TH.glow})` : 'none' }}>{icon}</span>}{children}
       </h2>
       {right}
     </div>
   )
 }
 
-function UpgradeLock({ T, title, sub }) {
+function UpgradeLock({ TH, title, sub }) {
   return (
-    <div style={{ background: T.upgradeBg, border: '1px dashed ' + T.upgradeBorder, borderRadius: 14, padding: '24px 20px', textAlign: 'center', marginBottom: 24 }}>
-      <div style={{ fontSize: 28, marginBottom: 8 }}>🔒</div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: T.upgradeText, marginBottom: 4 }}>{title}</div>
-      <div style={{ fontSize: 12, color: T.textSub, lineHeight: 1.5 }}>{sub}</div>
+    <div style={{ background: TH.panel2, border: `1px dashed ${TH.border}`, borderRadius: 14, padding: '26px 20px', textAlign: 'center' }}>
+      <div style={{ fontSize: 26, marginBottom: 8 }}>🔒</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: TH.accent, marginBottom: 4 }}>{title}</div>
+      <div style={{ fontSize: 12, color: TH.text2, lineHeight: 1.5 }}>{sub}</div>
     </div>
   )
 }
 
-function Gauge({ score, label, color, isDark }) {
-  const r = 30, c = 2 * Math.PI * r
+function RingGauge({ score, label, color, TH, big }) {
+  const size = big ? 132 : 78
+  const sw = big ? 9 : 6
+  const r = (size - sw) / 2 - 1
+  const c = 2 * Math.PI * r
   const filled = (score / 100) * c
+  const cx = size / 2
   return (
     <div style={{ textAlign: 'center' }}>
-      <svg width="74" height="74" viewBox="0 0 74 74">
-        <circle cx="37" cy="37" r={r} fill="none" stroke={isDark ? 'rgba(255,255,255,0.08)' : '#eef2f7'} strokeWidth="6" />
-        <circle cx="37" cy="37" r={r} fill="none" stroke={color} strokeWidth="6" strokeLinecap="round"
-          strokeDasharray={`${filled} ${c - filled}`} strokeDashoffset={c * 0.25} transform="rotate(-90 37 37)" />
-        <text x="37" y="41" textAnchor="middle" fontSize="16" fontWeight="700" fill={color}>{score}</text>
-      </svg>
-      <div style={{ fontSize: 10, color: isDark ? '#a0aec0' : '#64748b', marginTop: 2, fontWeight: 600 }}>{label}</div>
+      <div style={{ position: 'relative', width: size, height: size, margin: '0 auto' }}>
+        <svg width={size} height={size} style={{ filter: TH.dark ? `drop-shadow(0 0 8px ${color}88)` : 'none' }}>
+          <circle cx={cx} cy={cx} r={r} fill="none" stroke={TH.dark ? 'rgba(255,255,255,0.07)' : '#eef2f7'} strokeWidth={sw} />
+          <circle cx={cx} cy={cx} r={r} fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round"
+            strokeDasharray={`${filled} ${c - filled}`} strokeDashoffset={c * 0.25} transform={`rotate(-90 ${cx} ${cx})`} />
+        </svg>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ fontFamily: "'Sora',sans-serif", fontSize: big ? 34 : 17, fontWeight: 800, color }}>{score}</span>
+          {big && <span style={{ fontSize: 9, color: TH.text2, letterSpacing: '0.12em' }}>/ 100</span>}
+        </div>
+      </div>
+      {label && <div style={{ fontSize: 10, color: TH.text2, marginTop: 4, fontWeight: 600 }}>{label}</div>}
     </div>
   )
 }
 
 export default function PublicProfile() {
   const { slug } = useParams()
+  const [dark, setDark] = useState(true)  // default dark neon
   const [company, setCompany] = useState(null)
   const [reviews, setReviews] = useState([])
   const [portfolio, setPortfolio] = useState([])
@@ -251,36 +251,21 @@ export default function PublicProfile() {
   const [aiAnalysisOn, setAiAnalysisOn] = useState(false)
 
   useEffect(() => {
-    fetchCompany()
-    checkCustomer()
-    fetchAiSetting()
+    fetchCompany(); checkCustomer(); fetchAiSetting()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const cust = await upsertCustomer(session.user)
-        setCustomer(cust)
-        setShowLoginPrompt(false)
-      } else if (event === 'SIGNED_OUT') {
-        setCustomer(null)
-      }
+      if (event === 'SIGNED_IN' && session?.user) { setCustomer(await upsertCustomer(session.user)); setShowLoginPrompt(false) }
+      else if (event === 'SIGNED_OUT') setCustomer(null)
     })
     return () => subscription.unsubscribe()
   }, [slug])
 
-  async function checkCustomer() {
-    const cust = await getCustomer()
-    setCustomer(cust || null)
-  }
-
+  async function checkCustomer() { setCustomer((await getCustomer()) || null) }
   async function fetchAiSetting() {
     const { data } = await supabase.from('app_settings').select('value').eq('key', 'feature.ai_analysis').maybeSingle()
     setAiAnalysisOn(data?.value?.enabled === true)
   }
-
-  async function trackProfileView(companyId) {
-    try {
-      await supabase.rpc('increment_profile_views', { p_company_id: companyId })
-      await supabase.from('profile_views_log').insert({ company_id: companyId, visited_at: new Date().toISOString(), user_agent: navigator.userAgent })
-    } catch (e) {}
+  async function trackProfileView(id) {
+    try { await supabase.rpc('increment_profile_views', { p_company_id: id }); await supabase.from('profile_views_log').insert({ company_id: id, visited_at: new Date().toISOString(), user_agent: navigator.userAgent }) } catch (e) {}
   }
 
   async function fetchCompany() {
@@ -288,70 +273,42 @@ export default function PublicProfile() {
     const { data, error } = await supabase.from('companies').select('*').eq('slug', slug).eq('status', 'approved').single()
     if (error || !data) { setNotFound(true); setLoading(false); return }
     setCompany(data)
-
     const [reviewRes, formRes, portfolioRes] = await Promise.all([
-      supabase.from('reviews')
-        .select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id')
-        .eq('company_id', data.id).eq('is_approved', true)
-        .order('created_at', { ascending: false }).limit(20),
+      supabase.from('reviews').select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id').eq('company_id', data.id).eq('is_approved', true).order('created_at', { ascending: false }).limit(20),
       supabase.from('lead_forms').select('*').eq('company_id', data.id).eq('is_active', true).limit(1).maybeSingle(),
       supabase.from('portfolio_items').select('id, image_url, title, description, created_at').eq('company_id', data.id).order('created_at', { ascending: false }),
     ])
-
     const reviewData = reviewRes.data || []
-    setReviews(reviewData)
-    setPortfolio(portfolioRes.data || [])
-
+    setReviews(reviewData); setPortfolio(portfolioRes.data || [])
     if (formRes.data) {
       setLeadForm(formRes.data)
       const { data: qData } = await supabase.from('lead_form_questions').select('*').eq('form_id', formRes.data.id).order('order_num')
       setQuestions(qData || [])
     }
-
-    // Related businesses — same category, real
     if (data.category) {
-      const { data: rel } = await supabase.from('companies')
-        .select('id, name, category, avg_rating, plan, slug, logo_url, is_verified')
-        .eq('status', 'approved').eq('category', data.category).neq('id', data.id)
-        .order('avg_rating', { ascending: false }).limit(4)
+      const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(4)
       setRelated(rel || [])
     }
-
     const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
     const seoTitle = data.name + ' — ' + (data.category || 'Business') + ' Dubai | TrustDubai'
-    const seoDesc = (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.')
-      + (avgRating ? ' Rated ' + avgRating + '/5.' : '') + ' Contact on TrustDubai.'
+    const seoDesc = (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : '') + ' Contact on TrustDubai.'
     setSEO({ title: seoTitle, description: seoDesc, image: 'https://trustdubai.ae/og-image.png', url: 'https://trustdubai.ae/' + slug })
-    setJsonLD(data, reviewData)
-    trackProfileView(data.id)
-    setLoading(false)
+    setJsonLD(data, reviewData); trackProfileView(data.id); setLoading(false)
   }
 
   async function refreshReviews() {
-    const { data } = await supabase.from('reviews')
-      .select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id')
-      .eq('company_id', company.id).eq('is_approved', true)
-      .order('created_at', { ascending: false }).limit(20)
+    const { data } = await supabase.from('reviews').select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id').eq('company_id', company.id).eq('is_approved', true).order('created_at', { ascending: false }).limit(20)
     if (data) setReviews(data)
   }
-
-  function requireLogin(forWhat) {
-    if (customer === undefined) return false
-    if (customer !== null) return true
-    setLoginFor(forWhat); setShowLoginPrompt(true); return false
-  }
+  function requireLogin(forWhat) { if (customer === undefined) return false; if (customer !== null) return true; setLoginFor(forWhat); setShowLoginPrompt(true); return false }
 
   async function sendLeadEmail(name, phone, email) {
     try {
       const companyEmail = company.email || company.business_email || company.owner_email
       if (!companyEmail) return
-      await fetch(`${SUPABASE_URL}/functions/v1/send-lead-email`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_name: company.name, company_email: companyEmail, company_whatsapp: company.whatsapp || '', lead_name: name, lead_phone: phone, lead_email: email, answers, slug }),
-      })
+      await fetch(`${SUPABASE_URL}/functions/v1/send-lead-email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ company_name: company.name, company_email: companyEmail, company_whatsapp: company.whatsapp || '', lead_name: name, lead_phone: phone, lead_email: email, answers, slug }) })
     } catch (e) {}
   }
-
   async function submitLead(e) {
     e.preventDefault()
     if (!requireLogin('lead')) return
@@ -368,500 +325,458 @@ export default function PublicProfile() {
     }
     setSubmitting(false); setSubmitted(true)
   }
-
   async function submitReview(e) {
     e.preventDefault()
     if (!requireLogin('review')) return
     if (!reviewText.trim()) return
     setSubmittingReview(true)
     await supabase.from('reviews').insert({ company_id: company.id, reviewer_name: customer.full_name || customer.email, reviewer_email: customer.email, customer_id: customer.id, rating: reviewRating, review_text: reviewText, is_approved: true })
-    setSubmittingReview(false); setReviewSubmitted(true); setShowReviewForm(false)
-    await refreshReviews()
+    setSubmittingReview(false); setReviewSubmitted(true); setShowReviewForm(false); await refreshReviews()
   }
+  async function deleteReview(id) { if (!confirm('Delete your review?')) return; await supabase.from('reviews').delete().eq('id', id); await refreshReviews() }
+  async function saveEditReview(id) { if (!editingText.trim()) return; await supabase.from('reviews').update({ rating: editingRating, review_text: editingText }).eq('id', id); setEditingReviewId(null); await refreshReviews() }
 
-  async function deleteReview(reviewId) {
-    if (!confirm('Delete your review?')) return
-    await supabase.from('reviews').delete().eq('id', reviewId)
-    await refreshReviews()
-  }
-
-  async function saveEditReview(reviewId) {
-    if (!editingText.trim()) return
-    await supabase.from('reviews').update({ rating: editingRating, review_text: editingText }).eq('id', reviewId)
-    setEditingReviewId(null)
-    await refreshReviews()
-  }
+  /* fonts + keyframes (global) */
+  const GlobalStyle = () => (
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
+      @keyframes tdspin { to { transform: rotate(360deg) } }
+      @keyframes tdfade { from { opacity:0; transform: translateY(8px) } to { opacity:1; transform:none } }
+      .td-anim { animation: tdfade .5s ease both }
+      .td-root *::-webkit-scrollbar { height:6px; width:6px }
+      .td-root *::-webkit-scrollbar-thumb { background: rgba(120,140,170,0.4); border-radius:9px }
+    `}</style>
+  )
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#070b16' }}>
+      <GlobalStyle />
       <div style={{ textAlign: 'center' }}>
-        <div style={{ width: 36, height: 36, border: '3px solid #03C1F5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
-        <div style={{ fontSize: 14, color: '#6b7280' }}>Loading...</div>
+        <div style={{ width: 38, height: 38, border: '3px solid #03C1F5', borderTopColor: 'transparent', borderRadius: '50%', animation: 'tdspin 0.8s linear infinite', margin: '0 auto 12px' }} />
+        <div style={{ fontSize: 14, color: '#9fb1c9', fontFamily: "'Manrope',sans-serif" }}>Loading...</div>
       </div>
     </div>
   )
 
   if (notFound) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#070b16' }}>
       <div style={{ textAlign: 'center', padding: 40 }}>
         <div style={{ fontSize: 52, marginBottom: 16 }}>🔍</div>
-        <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, color: '#111827' }}>Company not found</h2>
-        <button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#03C1F5', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 500 }}>Go to TrustDubai</button>
+        <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, color: '#eaf1fb', fontFamily: "'Sora',sans-serif" }}>Company not found</h2>
+        <button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#03C1F5', color: '#031018', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 700 }}>Go to TrustDubai</button>
       </div>
     </div>
   )
 
   const plan = company.plan || 'free'
-  const T = PLAN_THEMES[plan] || PLAN_THEMES.free
-  const isDark = plan === 'platinum'
+  const PA = PLAN_ACCENT[plan] || PLAN_ACCENT.free
+  const TH = makeTheme(dark, PA.c, PA.glow)
   const initials = company.name?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
-  const avatarColors = ['#1a73e8', '#1e8e3e', '#d93025', '#f9a825', '#9c27b0', '#00897b']
-  const avatarColor = avatarColors[company.name?.charCodeAt(0) % avatarColors.length]
   const companyCategories = Array.isArray(company.categories) && company.categories.length > 0 ? company.categories : company.category ? [company.category] : []
-
   const credScore = calcCredibility(company, reviews)
-  const credColor = credScore >= 75 ? '#10b981' : credScore >= 50 ? '#f59e0b' : '#6b7280'
+  const credColor = credScore >= 75 ? '#22c55e' : credScore >= 50 ? '#f0b429' : PA.c
   const credLabel = credScore >= 75 ? 'High Trust' : credScore >= 50 ? 'Medium Trust' : 'Building Trust'
   const socialLinks = buildSocialLinks(company)
   const sub = calcSubScores(company, reviews)
   const aiSummary = buildAISummary(reviews)
-
   const portLimit = featureVal('portfolioLimit', plan)
   const shownPortfolio = portfolio.slice(0, portLimit)
+  const F = "'Manrope',sans-serif"
 
-  const cardBase = { background: T.cardBg, borderRadius: 16, border: '1px solid ' + T.border, padding: 20, marginBottom: 24 }
+  const chip = (txt, key) => (
+    <span key={key} style={{ background: TH.chip, color: TH.text2, fontSize: 12, padding: '3px 11px', borderRadius: 99, border: `1px solid ${TH.border}` }}>{txt}</span>
+  )
 
   return (
-    <div style={{ background: T.bg, minHeight: '100vh', fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif' }}>
+    <div className="td-root" style={{ background: TH.bgGrad, minHeight: '100vh', fontFamily: F, color: TH.text }}>
+      <GlobalStyle />
 
-      {/* Header */}
-      <div style={{ background: T.headerBg, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Top bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 22px', borderBottom: `1px solid ${TH.border}`, position: 'sticky', top: 0, zIndex: 100, background: TH.dark ? 'rgba(7,11,22,0.82)' : 'rgba(238,242,248,0.9)', backdropFilter: 'blur(10px)' }}>
         <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer' }}>
           <svg width="24" height="24" viewBox="0 0 32 32">
-            <rect width="32" height="32" rx="6" fill="#fff" opacity={isDark ? '0.1' : '1'} />
-            <path d="M16 4L26 8L26 17C26 22.5 21.5 27 16 28C10.5 27 6 22.5 6 17L6 8Z" fill="#03C1F5" opacity="0.3" />
-            <polyline points="11.5,16 14.5,19.5 20.5,13" fill="none" stroke="#03C1F5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <rect width="32" height="32" rx="7" fill={PA.c} opacity="0.18" />
+            <path d="M16 4L26 8L26 17C26 22.5 21.5 27 16 28C10.5 27 6 22.5 6 17L6 8Z" fill={PA.c} opacity="0.4" />
+            <polyline points="11.5,16 14.5,19.5 20.5,13" fill="none" stroke={PA.c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span style={{ color: isDark ? '#a78bfa' : '#fff', fontWeight: 600, fontSize: 16 }}>TrustDubai</span>
+          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 700, fontSize: 16, color: TH.text }}>Trust<span style={{ color: PA.c }}>Dubai</span></span>
         </button>
-        {T.badge && (
-          <span style={{ background: 'rgba(255,255,255,0.15)', color: isDark ? '#a78bfa' : '#fff', fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 99 }}>{T.badge.label}</span>
-        )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* light/dark toggle */}
+          <button onClick={() => setDark(d => !d)} title="Toggle theme"
+            style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${TH.border}`, background: TH.panel2, color: TH.text2, cursor: 'pointer', fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {dark ? '☀️' : '🌙'}
+          </button>
           {customer === undefined ? (
-            <div style={{ width: 60, height: 28, background: 'rgba(255,255,255,0.2)', borderRadius: 20 }} />
+            <div style={{ width: 60, height: 30, background: TH.panel2, borderRadius: 20 }} />
           ) : customer ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, color: '#fff' }}>{(customer.full_name || customer.email)[0].toUpperCase()}</div>
-              <span style={{ fontSize: 12, color: isDark ? '#a78bfa' : 'rgba(255,255,255,0.9)' }}>{customer.full_name || customer.email.split('@')[0]}</span>
-              <button onClick={() => { signOut(); setCustomer(null) }} style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}>Sign out</button>
+              <div style={{ width: 30, height: 30, borderRadius: '50%', background: PA.c + '33', color: PA.c, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{(customer.full_name || customer.email)[0].toUpperCase()}</div>
+              <span style={{ fontSize: 12, color: TH.text2 }}>{customer.full_name || customer.email.split('@')[0]}</span>
+              <button onClick={() => { signOut(); setCustomer(null) }} style={{ fontSize: 11, color: TH.text3, background: 'none', border: 'none', cursor: 'pointer' }}>Sign out</button>
             </div>
           ) : (
-            <button onClick={() => signInWithGoogle()} style={{ display: 'flex', alignItems: 'center', gap: 6, background: isDark ? 'rgba(255,255,255,0.1)' : '#fff', color: isDark ? '#a78bfa' : '#374151', border: isDark ? '1px solid rgba(167,139,250,0.4)' : 'none', borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
+            <button onClick={() => signInWithGoogle()} style={{ display: 'flex', alignItems: 'center', gap: 6, background: TH.dark ? TH.panel2 : '#fff', color: TH.dark ? TH.text : '#374151', border: `1px solid ${TH.border}`, borderRadius: 20, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
               Sign in
             </button>
           )}
         </div>
       </div>
 
-      {plan === 'platinum' && (
-        <div style={{ background: 'linear-gradient(135deg, #1a1a2e, #2d1b69)', borderBottom: '1px solid rgba(139,92,246,0.3)', padding: '10px 24px', textAlign: 'center', fontSize: 12, color: '#a78bfa', letterSpacing: '0.05em' }}>✦ PLATINUM VERIFIED BUSINESS ✦</div>
-      )}
-      {plan === 'gold' && (
-        <div style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)', borderBottom: '1px solid #fcd34d', padding: '8px 24px', textAlign: 'center', fontSize: 12, color: '#92400e', fontWeight: 500 }}>🏆 Gold Verified Business on TrustDubai</div>
-      )}
-
-      {/* Hero */}
-      <div style={{ background: T.heroBg, borderBottom: '1px solid ' + T.border, padding: '32px 24px' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
-            <div style={{ width: isDark ? 80 : 72, height: isDark ? 80 : 72, borderRadius: isDark ? 20 : 16, flexShrink: 0, background: isDark ? 'linear-gradient(135deg, #4c1d95, #1e1b4b)' : avatarColor + '22', color: isDark ? '#a78bfa' : avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isDark ? 28 : 24, fontWeight: 700, border: isDark ? '2px solid rgba(139,92,246,0.4)' : plan === 'gold' ? '2px solid #fcd34d' : 'none', boxShadow: isDark ? '0 0 20px rgba(139,92,246,0.3)' : plan === 'gold' ? '0 4px 20px rgba(217,119,6,0.2)' : 'none' }}>
-              {company.logo_url ? <img src={company.logo_url} alt={company.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: isDark ? 18 : 14 }} /> : initials}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-                <h1 style={{ fontSize: isDark ? 26 : 22, fontWeight: 700, color: T.text, margin: 0 }}>{company.name}</h1>
-                {company.is_verified && <span style={{ background: '#ecfdf5', color: '#065f46', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 99, border: '1px solid #a7f3d0' }}>✓ Verified</span>}
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
-                {companyCategories.map(cat => (
-                  <span key={cat} style={{ background: isDark ? 'rgba(139,92,246,0.15)' : plan === 'gold' ? '#fef3c7' : '#f3f4f6', color: isDark ? '#a78bfa' : plan === 'gold' ? '#92400e' : '#374151', fontSize: 12, padding: '3px 10px', borderRadius: 99 }}>{cat}</span>
-                ))}
-                {company.location && <span style={{ background: isDark ? 'rgba(139,92,246,0.1)' : '#f3f4f6', color: T.textSub, fontSize: 12, padding: '3px 10px', borderRadius: 99 }}>📍 {company.location}</span>}
-              </div>
-              {company.description && can('description', plan) && <p style={{ fontSize: 13, color: T.textSub, lineHeight: 1.6, marginTop: 10, marginBottom: 0 }}>{company.description}</p>}
-            </div>
-          </div>
-
-          {/* Rating bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', background: isDark ? 'rgba(139,92,246,0.1)' : plan === 'gold' ? '#fffbf0' : '#f9fafb', borderRadius: 12, border: '1px solid ' + T.border, marginBottom: 16 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 32, fontWeight: 700, color: T.text, lineHeight: 1 }}>{company.avg_rating || '0.0'}</div>
-              <div style={{ color: '#f9a825', fontSize: 16, marginTop: 2 }}>{'★'.repeat(Math.round(company.avg_rating || 0))}{'☆'.repeat(5 - Math.round(company.avg_rating || 0))}</div>
-            </div>
-            <div style={{ width: 1, height: 40, background: T.border }} />
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: T.text }}>{company.total_reviews || reviews.length} Reviews</div>
-              <div style={{ fontSize: 13, color: T.textSub }}>From verified customers</div>
-            </div>
-            {company.whatsapp && (
-              <>
-                <div style={{ width: 1, height: 40, background: T.border, marginLeft: 'auto' }} />
-                <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 20px', background: '#25D366', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>💬 WhatsApp</button>
-              </>
-            )}
-          </div>
-
-          {/* Trust Score bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', background: isDark ? 'rgba(139,92,246,0.08)' : plan === 'gold' ? '#fffbf0' : '#f9fafb', borderRadius: 12, border: '1px solid ' + T.border, marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: T.textSub, whiteSpace: 'nowrap' }}>🛡️ Trust Score</div>
-            <div style={{ flex: 1, height: 6, background: isDark ? 'rgba(255,255,255,0.1)' : '#e5e7eb', borderRadius: 99, overflow: 'hidden' }}>
-              <div style={{ width: credScore + '%', height: '100%', background: credColor, borderRadius: 99, transition: 'width 0.8s ease' }} />
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: credColor, minWidth: 30 }}>{credScore}</div>
-            <div style={{ fontSize: 12, color: credColor, fontWeight: 600, whiteSpace: 'nowrap' }}>{credLabel}</div>
-          </div>
-
-          {/* Social Media — gated */}
-          {can('socialLinks', plan) && socialLinks.length > 0 && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-              {socialLinks.map(s => (
-                <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', background: isDark ? 'rgba(139,92,246,0.1)' : plan === 'gold' ? '#fef3c7' : '#f3f4f6', color: isDark ? '#a78bfa' : plan === 'gold' ? '#92400e' : '#374151', borderRadius: 20, fontSize: 13, fontWeight: 500, textDecoration: 'none', border: '1px solid ' + T.border }}>{s.icon} {s.label}</a>
-              ))}
-            </div>
-          )}
-
-          {plan === 'free' && company.description && <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.7, margin: 0 }}>{company.description}</p>}
+      {/* Plan ribbon */}
+      {PA.ribbon && (
+        <div style={{ textAlign: 'center', padding: '9px 24px', fontSize: 11.5, fontWeight: 700, letterSpacing: '0.14em', color: PA.c, background: TH.dark ? `linear-gradient(90deg, transparent, ${PA.c}22, transparent)` : `${PA.c}14`, borderBottom: `1px solid ${TH.border}`, textShadow: TH.dark ? `0 0 14px ${PA.glow}` : 'none' }}>
+          {PA.ribbon}
         </div>
+      )}
+
+      {/* HERO */}
+      <div className="td-anim" style={{ maxWidth: 980, margin: '0 auto', padding: '28px 22px 0' }}>
+        <Panel TH={TH} glowBorder style={{ padding: 24, position: 'relative', overflow: 'hidden' }}>
+          {TH.dark && <div style={{ position: 'absolute', top: -60, right: -40, width: 200, height: 200, background: `radial-gradient(circle, ${PA.glow}, transparent 70%)`, pointerEvents: 'none' }} />}
+          <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', flexWrap: 'wrap', position: 'relative' }}>
+            {/* logo */}
+            <div style={{ width: 88, height: 88, borderRadius: 20, flexShrink: 0, background: PA.c + '1f', color: PA.c, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 800, border: `2px solid ${PA.c}66`, boxShadow: TH.dark ? `0 0 24px ${PA.glow}` : 'none', overflow: 'hidden' }}>
+              {company.logo_url ? <img src={company.logo_url} alt={company.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
+            </div>
+            {/* name + cats */}
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
+                <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: 26, fontWeight: 800, color: TH.text, margin: 0, letterSpacing: '-0.02em' }}>{company.name}</h1>
+                {company.is_verified && <span style={{ background: 'rgba(34,197,94,0.16)', color: '#22c55e', fontSize: 12, fontWeight: 700, padding: '3px 11px', borderRadius: 99, border: '1px solid rgba(34,197,94,0.35)' }}>✓ Verified</span>}
+                {PA.label && <span style={{ background: PA.c + '22', color: PA.c, fontSize: 12, fontWeight: 700, padding: '3px 11px', borderRadius: 99, border: `1px solid ${PA.c}55` }}>{PA.label}</span>}
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {companyCategories.map(c => chip(c, c))}
+                {company.location && chip('📍 ' + company.location, 'loc')}
+              </div>
+              {company.description && can('description', plan) && <p style={{ fontSize: 13.5, color: TH.text2, lineHeight: 1.65, marginTop: 12, marginBottom: 0 }}>{company.description}</p>}
+            </div>
+            {/* big trust ring */}
+            <div style={{ flexShrink: 0, textAlign: 'center' }}>
+              <RingGauge score={credScore} label={null} color={credColor} TH={TH} big />
+              <div style={{ fontSize: 11, fontWeight: 700, color: credColor, marginTop: 2 }}>{credLabel}</div>
+            </div>
+          </div>
+
+          {/* stat strip */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 20 }}>
+            {[
+              { v: company.avg_rating || '0.0', l: 'Avg Rating', s: '★' },
+              { v: company.total_reviews || reviews.length, l: 'Reviews' },
+              { v: company.is_verified ? 'Yes' : 'No', l: 'Verified' },
+              { v: company.profile_views || 0, l: 'Profile Views' },
+            ].map(s => (
+              <div key={s.l} style={{ flex: '1 1 100px', background: TH.panel2, border: `1px solid ${TH.border}`, borderRadius: 12, padding: '10px 14px', textAlign: 'center' }}>
+                <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 19, fontWeight: 800, color: PA.c }}>{s.v}{s.s || ''}</div>
+                <div style={{ fontSize: 10, color: TH.text2, marginTop: 2 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* actions */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+            {company.whatsapp && (
+              <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, ''), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', background: '#25D366', color: '#fff', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>💬 WhatsApp</button>
+            )}
+            {can('socialLinks', plan) && socialLinks.map(s => (
+              <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: TH.panel2, color: TH.text, borderRadius: 12, fontSize: 13, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.border}` }}>{s.icon} {s.label}</a>
+            ))}
+          </div>
+        </Panel>
       </div>
 
-      <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 24px 0' }}>
+      <div style={{ maxWidth: 980, margin: '0 auto', padding: '4px 22px 0' }}>
 
-        {/* ===== TRUST OVERVIEW GAUGES (Gold+) ===== */}
+        {/* TRUST OVERVIEW (Gold+) */}
         {can('trustGauges', plan) && (
-          <div style={cardBase}>
-            <SectionTitle T={T} icon="🛡️">Trust Overview</SectionTitle>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(74px, 1fr))', gap: 14, justifyItems: 'center' }}>
-              <Gauge score={credScore} label="Trust Score" color={credColor} isDark={isDark} />
-              <Gauge score={sub.satisfaction} label="Satisfaction" color="#10b981" isDark={isDark} />
-              <Gauge score={sub.serviceQuality} label="Service" color="#3b82f6" isDark={isDark} />
-              <Gauge score={sub.verification} label="Verification" color={company.is_verified ? '#10b981' : '#f59e0b'} isDark={isDark} />
-              <Gauge score={sub.community} label="Community" color="#8b5cf6" isDark={isDark} />
+          <Panel TH={TH} className="td-anim">
+            <SecTitle TH={TH} icon="🛡️">Trust Overview</SecTitle>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(78px, 1fr))', gap: 14, justifyItems: 'center' }}>
+              <RingGauge score={credScore} label="Trust Score" color={credColor} TH={TH} />
+              <RingGauge score={sub.satisfaction} label="Satisfaction" color="#22c55e" TH={TH} />
+              <RingGauge score={sub.serviceQuality} label="Service" color="#3b82f6" TH={TH} />
+              <RingGauge score={sub.verification} label="Verification" color={company.is_verified ? '#22c55e' : '#f0b429'} TH={TH} />
+              <RingGauge score={sub.community} label="Community" color="#a78bfa" TH={TH} />
             </div>
-          </div>
+          </Panel>
         )}
 
-        {/* ===== AI BUSINESS SUMMARY (Gold+) ===== */}
+        {/* AI BUSINESS SUMMARY (Gold+) */}
         {can('aiSummary', plan) && aiSummary && (
-          <div style={{ ...cardBase, background: isDark ? 'rgba(139,92,246,0.08)' : T.cardBg }}>
-            <SectionTitle T={T} icon="🤖">AI Business Summary</SectionTitle>
+          <Panel TH={TH}>
+            <SecTitle TH={TH} icon="🤖">AI Business Summary</SecTitle>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', marginBottom: 6 }}>What Customers Love</div>
-                {aiSummary.loves.map((l, i) => <div key={i} style={{ fontSize: 12, color: T.textSub, marginBottom: 4, lineHeight: 1.5 }}>✓ {l}</div>)}
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#22c55e', marginBottom: 8 }}>What Customers Love</div>
+                {aiSummary.loves.map((l, i) => <div key={i} style={{ fontSize: 12.5, color: TH.text2, marginBottom: 5, lineHeight: 1.5 }}>✓ {l}</div>)}
               </div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginBottom: 6 }}>Areas to Watch</div>
-                {aiSummary.concerns.map((c, i) => <div key={i} style={{ fontSize: 12, color: T.textSub, marginBottom: 4, lineHeight: 1.5 }}>• {c}</div>)}
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#f0b429', marginBottom: 8 }}>Areas to Watch</div>
+                {aiSummary.concerns.map((c, i) => <div key={i} style={{ fontSize: 12.5, color: TH.text2, marginBottom: 5, lineHeight: 1.5 }}>• {c}</div>)}
               </div>
             </div>
-            <div style={{ marginTop: 12, padding: '8px 12px', background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, fontSize: 12, color: T.textSub }}>
-              <span style={{ fontWeight: 700, color: T.text }}>Reputation:</span> {aiSummary.trend}
+            <div style={{ marginTop: 14, padding: '10px 14px', background: TH.panel2, borderRadius: 10, fontSize: 12.5, color: TH.text2 }}>
+              <span style={{ fontWeight: 700, color: TH.text }}>Reputation:</span> {aiSummary.trend}
             </div>
-          </div>
+          </Panel>
         )}
 
-        {/* ===== BUSINESS INSIGHTS (Gold+) ===== */}
+        {/* BUSINESS INSIGHTS (Gold+) */}
         {can('businessInsights', plan) && (
-          <div style={cardBase}>
-            <SectionTitle T={T} icon="📊">Business Insights</SectionTitle>
+          <Panel TH={TH}>
+            <SecTitle TH={TH} icon="📊">Business Insights</SecTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
               {[
-                { label: 'Profile Views', value: company.profile_views || 0, icon: '👁️' },
-                { label: 'Total Reviews', value: company.total_reviews || reviews.length, icon: '⭐' },
-                { label: 'Avg Rating', value: (company.avg_rating || '0.0') + '★', icon: '📈' },
+                { l: 'Profile Views', v: company.profile_views || 0, i: '👁️' },
+                { l: 'Total Reviews', v: company.total_reviews || reviews.length, i: '⭐' },
+                { l: 'Avg Rating', v: (company.avg_rating || '0.0') + '★', i: '📈' },
               ].map(m => (
-                <div key={m.label} style={{ textAlign: 'center', padding: '14px 8px', background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 10, border: '1px solid ' + T.border }}>
-                  <div style={{ fontSize: 18, marginBottom: 4 }}>{m.icon}</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: T.text }}>{m.value}</div>
-                  <div style={{ fontSize: 10, color: T.textSub, marginTop: 2 }}>{m.label}</div>
+                <div key={m.l} style={{ textAlign: 'center', padding: '16px 8px', background: TH.panel2, borderRadius: 12, border: `1px solid ${TH.border}` }}>
+                  <div style={{ fontSize: 18, marginBottom: 5 }}>{m.i}</div>
+                  <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 20, fontWeight: 800, color: TH.text }}>{m.v}</div>
+                  <div style={{ fontSize: 10, color: TH.text2, marginTop: 2 }}>{m.l}</div>
                 </div>
               ))}
             </div>
-          </div>
+          </Panel>
         )}
 
-        {/* Lead Form */}
+        {/* LEAD FORM */}
         {leadForm && (
-          <div style={cardBase}>
+          <Panel TH={TH} glowBorder>
             {submitted ? (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-                <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: T.text }}>Request Submitted!</h3>
-                <p style={{ fontSize: 14, color: T.textSub }}>{company.name} will contact you shortly.</p>
+                <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 8, color: TH.text }}>Request Submitted!</h3>
+                <p style={{ fontSize: 14, color: TH.text2 }}>{company.name} will contact you shortly.</p>
               </div>
             ) : (
               <form onSubmit={submitLead}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4, color: T.text }}>{leadForm.title}</h3>
-                <p style={{ fontSize: 13, color: T.textSub, marginBottom: 20 }}>Fill this form — {company.name} will respond shortly</p>
-                {customer && <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 8, padding: '8px 12px', marginBottom: 16, fontSize: 13, color: '#065f46' }}>✓ Logged in as <strong>{customer.full_name || customer.email}</strong></div>}
-                {questions.map(q => (
-                  <div key={q.id} style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 13, fontWeight: 500, color: T.text, display: 'block', marginBottom: 6 }}>{q.question}{q.required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}</label>
-                    {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} placeholder="Your answer..." style={{ width: '100%', padding: '10px 12px', border: '1px solid ' + T.border, borderRadius: 8, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: isDark ? '#1a1a2e' : '#fff', color: T.text }} />}
-                    {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(prev => ({ ...prev, [q.question]: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid ' + T.border, borderRadius: 8, fontSize: 14, background: isDark ? '#1a1a2e' : '#fff', color: T.text }}><option value="">Select an option</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
-                    {q.type === 'radio' && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{(q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: T.textSub, cursor: 'pointer' }}><input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(prev => ({ ...prev, [q.question]: o }))} />{o}</label>)}</div>}
-                  </div>
-                ))}
-                <button type="submit" disabled={submitting} style={{ width: '100%', padding: '12px', background: submitting ? '#9ca3af' : T.accent, color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer' }}>{submitting ? 'Submitting...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}</button>
+                <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: 16, fontWeight: 700, marginBottom: 4, color: TH.text }}>{leadForm.title}</h3>
+                <p style={{ fontSize: 13, color: TH.text2, marginBottom: 18 }}>Fill this form — {company.name} will respond shortly</p>
+                {customer && <div style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '8px 12px', marginBottom: 16, fontSize: 13, color: '#22c55e' }}>✓ Logged in as <strong>{customer.full_name || customer.email}</strong></div>}
+                {questions.map(q => {
+                  const inputStyle = { width: '100%', padding: '11px 13px', border: `1px solid ${TH.border}`, borderRadius: 10, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.input, color: TH.text, outline: 'none' }
+                  return (
+                    <div key={q.id} style={{ marginBottom: 14 }}>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: TH.text, display: 'block', marginBottom: 6 }}>{q.question}{q.required && <span style={{ color: '#ef4444', marginLeft: 2 }}>*</span>}</label>
+                      {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} placeholder="Your answer..." style={inputStyle} />}
+                      {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inputStyle}><option value="">Select an option</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
+                      {q.type === 'radio' && <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{(q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: TH.text2, cursor: 'pointer' }}><input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(p => ({ ...p, [q.question]: o }))} />{o}</label>)}</div>}
+                    </div>
+                  )
+                })}
+                <button type="submit" disabled={submitting} style={{ width: '100%', padding: '13px', background: submitting ? '#64758c' : PA.c, color: TH.dark ? '#04121c' : '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 800, cursor: submitting ? 'not-allowed' : 'pointer', boxShadow: TH.dark ? `0 0 20px ${PA.glow}` : 'none' }}>{submitting ? 'Submitting...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}</button>
               </form>
             )}
-          </div>
+          </Panel>
         )}
 
-        {/* ===== PORTFOLIO (Silver+, plan-limited; Free => upgrade lock) ===== */}
+        {/* PORTFOLIO */}
         {!can('portfolio', plan) ? (
-          <div style={{ marginBottom: 4 }}>
-            <SectionTitle T={T} icon="🖼️">Portfolio</SectionTitle>
-            <UpgradeLock T={T} title="Portfolio is a premium feature" sub="This business is on the Free plan. Upgrade to Silver or higher to showcase project photos." />
-          </div>
+          <Panel TH={TH}><SecTitle TH={TH} icon="🖼️">Portfolio</SecTitle><UpgradeLock TH={TH} title="Portfolio is a premium feature" sub="This business is on the Free plan. Upgrade to Silver or higher to showcase project photos." /></Panel>
         ) : portfolio.length > 0 ? (
-          <div style={{ marginBottom: 28 }}>
-            <SectionTitle T={T} icon="🖼️"
-              right={portfolio.length > portLimit ? <span style={{ fontSize: 11, color: T.textSub }}>Showing {portLimit} of {portfolio.length}</span> : null}>
-              Portfolio
-            </SectionTitle>
+          <Panel TH={TH}>
+            <SecTitle TH={TH} icon="🖼️" right={portfolio.length > portLimit ? <span style={{ fontSize: 11, color: TH.text2 }}>Showing {portLimit} of {portfolio.length}</span> : null}>Portfolio</SecTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
               {shownPortfolio.map(item => (
-                <div key={item.id} onClick={() => setLightboxImg(item)} style={{ cursor: 'pointer', borderRadius: 12, overflow: 'hidden', border: '1px solid ' + T.border, aspectRatio: '1', background: isDark ? '#1a1a2e' : '#f8fafc', position: 'relative' }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)' }}
+                <div key={item.id} onClick={() => setLightboxImg(item)} style={{ cursor: 'pointer', borderRadius: 12, overflow: 'hidden', border: `1px solid ${TH.border}`, aspectRatio: '1', background: TH.panel2, position: 'relative', transition: 'transform .2s, box-shadow .2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = TH.dark ? `0 8px 24px ${PA.glow}` : '0 8px 20px rgba(0,0,0,0.15)' }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
-                  <img src={item.image_url} alt={item.title || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.2s' }} onError={e => { e.target.style.display = 'none' }} />
-                  {item.title && (
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.7))', padding: '16px 8px 6px', color: '#fff', fontSize: 11, fontWeight: 600 }}>{item.title}</div>
-                  )}
+                  <img src={item.image_url} alt={item.title || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.display = 'none' }} />
+                  {item.title && <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.75))', padding: '18px 8px 7px', color: '#fff', fontSize: 11, fontWeight: 600 }}>{item.title}</div>}
                 </div>
               ))}
             </div>
-            {portfolio.length > portLimit && plan === 'silver' && (
-              <div style={{ marginTop: 10, fontSize: 11, color: T.textSub, textAlign: 'center' }}>Upgrade to Gold to showcase all {portfolio.length} projects</div>
-            )}
-          </div>
+            {portfolio.length > portLimit && plan === 'silver' && <div style={{ marginTop: 10, fontSize: 11, color: TH.text2, textAlign: 'center' }}>Upgrade to Gold to showcase all {portfolio.length} projects</div>}
+          </Panel>
         ) : null}
 
-        {/* ===== VERIFIED TEAM (Silver+) — structure ready, data later ===== */}
+        {/* VERIFIED TEAM placeholder (Silver+) */}
         {can('teamSection', plan) && (
-          <div style={cardBase}>
-            <SectionTitle T={T} icon="👷">Verified Team</SectionTitle>
-            <div style={{ textAlign: 'center', padding: '20px 0', color: T.textSub, fontSize: 13 }}>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>👥</div>
-              Team verification coming soon — this business will display its ID-verified professionals here.
-            </div>
-          </div>
+          <Panel TH={TH}><SecTitle TH={TH} icon="👷">Verified Team</SecTitle>
+            <div style={{ textAlign: 'center', padding: '20px 0', color: TH.text2, fontSize: 13 }}><div style={{ fontSize: 24, marginBottom: 8 }}>👥</div>Team verification coming soon — ID-verified professionals will appear here.</div>
+          </Panel>
         )}
 
-        {/* ===== ACHIEVEMENTS (Gold+) — structure ready ===== */}
+        {/* ACHIEVEMENTS placeholder (Gold+) */}
         {can('achievements', plan) && (
-          <div style={cardBase}>
-            <SectionTitle T={T} icon="🏅">Achievements &amp; Badges</SectionTitle>
-            <div style={{ textAlign: 'center', padding: '20px 0', color: T.textSub, fontSize: 13 }}>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>🏆</div>
-              Awards &amp; certifications will appear here soon.
-            </div>
-          </div>
+          <Panel TH={TH}><SecTitle TH={TH} icon="🏅">Achievements &amp; Badges</SecTitle>
+            <div style={{ textAlign: 'center', padding: '20px 0', color: TH.text2, fontSize: 13 }}><div style={{ fontSize: 24, marginBottom: 8 }}>🏆</div>Awards &amp; certifications will appear here soon.</div>
+          </Panel>
         )}
 
-        {/* Reviews Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: T.sectionTitle, margin: 0 }}>Customer Reviews</h2>
+        {/* REVIEWS */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, marginTop: 4 }}>
+          <h2 style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 700, color: TH.text, margin: 0, textTransform: 'uppercase', letterSpacing: '0.01em' }}>⭐ Customer Reviews</h2>
           {!reviewSubmitted && (
-            <button onClick={() => { if (requireLogin('review')) setShowReviewForm(true) }} style={{ padding: '7px 16px', background: customer ? T.accent : (isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6'), color: customer ? '#fff' : T.textSub, border: customer ? 'none' : '1px solid ' + T.border, borderRadius: 20, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>{customer ? '+ Write a Review' : '🔐 Sign in to Review'}</button>
+            <button onClick={() => { if (requireLogin('review')) setShowReviewForm(true) }} style={{ padding: '8px 16px', background: customer ? PA.c : TH.panel2, color: customer ? (TH.dark ? '#04121c' : '#fff') : TH.text2, border: customer ? 'none' : `1px solid ${TH.border}`, borderRadius: 20, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{customer ? '+ Write a Review' : '🔐 Sign in to Review'}</button>
           )}
         </div>
 
-        {/* Review Form */}
         {showReviewForm && customer && (
-          <div style={{ background: T.cardBg, borderRadius: 12, border: '1px solid ' + T.border, padding: '20px', marginBottom: 20 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, color: T.text }}>Write a Review</h3>
+          <Panel TH={TH}>
+            <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 14, color: TH.text }}>Write a Review</h3>
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 13, fontWeight: 500, color: T.text, marginBottom: 8 }}>Your Rating</div>
-              <div style={{ display: 'flex', gap: 6 }}>{[1,2,3,4,5].map(s => <button key={s} onClick={() => setReviewRating(s)} type="button" style={{ fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', color: s <= reviewRating ? '#f9a825' : '#d1d5db' }}>★</button>)}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: TH.text, marginBottom: 8 }}>Your Rating</div>
+              <div style={{ display: 'flex', gap: 6 }}>{[1,2,3,4,5].map(s => <button key={s} onClick={() => setReviewRating(s)} type="button" style={{ fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', color: s <= reviewRating ? '#f0b429' : (TH.dark ? '#33415a' : '#d1d5db') }}>★</button>)}</div>
             </div>
-            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Share your experience..." style={{ width: '100%', padding: '10px 12px', border: '1px solid ' + T.border, borderRadius: 8, fontSize: 14, minHeight: 100, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', resize: 'vertical', background: isDark ? '#1a1a2e' : '#fff', color: T.text }} />
+            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Share your experience..." style={{ width: '100%', padding: '11px 13px', border: `1px solid ${TH.border}`, borderRadius: 10, fontSize: 14, minHeight: 100, fontFamily: 'inherit', marginBottom: 12, boxSizing: 'border-box', resize: 'vertical', background: TH.input, color: TH.text, outline: 'none' }} />
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={submitReview} disabled={submittingReview || !reviewText.trim()} style={{ flex: 1, padding: '10px', background: (submittingReview || !reviewText.trim()) ? '#9ca3af' : T.accent, color: '#fff', border: 'none', borderRadius: 20, fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>{submittingReview ? 'Submitting...' : 'Submit Review'}</button>
-              <button onClick={() => setShowReviewForm(false)} style={{ flex: 1, padding: '10px', background: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6', color: T.textSub, border: 'none', borderRadius: 20, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={submitReview} disabled={submittingReview || !reviewText.trim()} style={{ flex: 1, padding: '11px', background: (submittingReview || !reviewText.trim()) ? '#64758c' : PA.c, color: TH.dark ? '#04121c' : '#fff', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{submittingReview ? 'Submitting...' : 'Submit Review'}</button>
+              <button onClick={() => setShowReviewForm(false)} style={{ flex: 1, padding: '11px', background: TH.panel2, color: TH.text2, border: `1px solid ${TH.border}`, borderRadius: 12, fontSize: 14, cursor: 'pointer' }}>Cancel</button>
             </div>
-          </div>
+          </Panel>
         )}
 
         {reviewSubmitted && (
-          <div style={{ background: '#f0fdf4', border: '1px solid #a7f3d0', borderRadius: 12, padding: '16px 20px', marginBottom: 20, textAlign: 'center' }}>
+          <div style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 12, padding: '16px 20px', marginBottom: 18, textAlign: 'center' }}>
             <div style={{ fontSize: 24, marginBottom: 8 }}>✅</div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: '#065f46' }}>Review submitted successfully!</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#22c55e' }}>Review submitted successfully!</div>
           </div>
         )}
 
-        {/* Reviews List */}
         {reviews.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px 20px', background: T.cardBg, borderRadius: 12, border: '1px solid ' + T.border, marginBottom: 24 }}>
+          <Panel TH={TH} style={{ textAlign: 'center', padding: '40px 20px' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>⭐</div>
-            <p style={{ fontSize: 14, color: T.textSub }}>No reviews yet. Be the first to review!</p>
-          </div>
+            <p style={{ fontSize: 14, color: TH.text2 }}>No reviews yet. Be the first to review!</p>
+          </Panel>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
             {reviews.map(r => {
-              const analysis = analyzeReview(r)
-              const isMyReview = customer && r.customer_id === customer.id
-              const isEditing = editingReviewId === r.id
+              const a = analyzeReview(r)
+              const mine = customer && r.customer_id === customer.id
+              const editing = editingReviewId === r.id
               return (
-                <div key={r.id} style={{ background: T.cardBg, borderRadius: 12, border: '1px solid ' + (isMyReview ? T.accent : T.border), padding: '16px 20px' }}>
+                <Panel TH={TH} key={r.id} glowBorder={mine} style={{ marginBottom: 0 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: isMyReview ? T.accent + '22' : (isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: isMyReview ? T.accent : (isDark ? '#a0aec0' : '#374151') }}>{(r.reviewer_name || 'A')[0].toUpperCase()}</div>
+                      <div style={{ width: 38, height: 38, borderRadius: '50%', background: mine ? PA.c + '33' : TH.panel2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: mine ? PA.c : TH.text2 }}>{(r.reviewer_name || 'A')[0].toUpperCase()}</div>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <div style={{ fontSize: 14, fontWeight: 500, color: T.text }}>{r.reviewer_name || 'Anonymous'}</div>
-                          {isMyReview && <span style={{ fontSize: 10, background: T.accent + '22', color: T.accent, padding: '1px 6px', borderRadius: 99, fontWeight: 600 }}>Your Review</span>}
+                          <div style={{ fontSize: 14, fontWeight: 600, color: TH.text }}>{r.reviewer_name || 'Anonymous'}</div>
+                          {mine && <span style={{ fontSize: 10, background: PA.c + '22', color: PA.c, padding: '1px 6px', borderRadius: 99, fontWeight: 700 }}>Your Review</span>}
                         </div>
-                        <div style={{ fontSize: 11, color: T.textSub }}>{new Date(r.created_at).toLocaleDateString('en-AE', { month: 'short', year: 'numeric', day: 'numeric' })}</div>
+                        <div style={{ fontSize: 11, color: TH.text2 }}>{new Date(r.created_at).toLocaleDateString('en-AE', { month: 'short', year: 'numeric', day: 'numeric' })}</div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ color: '#f9a825', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
-                      {isMyReview && !isEditing && (
+                      <div style={{ color: '#f0b429', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
+                      {mine && !editing && (
                         <div style={{ display: 'flex', gap: 4 }}>
-                          <button onClick={() => { setEditingReviewId(r.id); setEditingText(r.review_text); setEditingRating(r.rating) }} style={{ padding: '3px 10px', background: 'transparent', border: '1px solid ' + T.border, borderRadius: 6, fontSize: 11, color: T.textSub, cursor: 'pointer' }}>✏️ Edit</button>
-                          <button onClick={() => deleteReview(r.id)} style={{ padding: '3px 10px', background: 'transparent', border: '1px solid #fca5a5', borderRadius: 6, fontSize: 11, color: '#ef4444', cursor: 'pointer' }}>🗑️</button>
+                          <button onClick={() => { setEditingReviewId(r.id); setEditingText(r.review_text); setEditingRating(r.rating) }} style={{ padding: '3px 10px', background: 'transparent', border: `1px solid ${TH.border}`, borderRadius: 6, fontSize: 11, color: TH.text2, cursor: 'pointer' }}>✏️ Edit</button>
+                          <button onClick={() => deleteReview(r.id)} style={{ padding: '3px 10px', background: 'transparent', border: '1px solid rgba(239,68,68,0.5)', borderRadius: 6, fontSize: 11, color: '#ef4444', cursor: 'pointer' }}>🗑️</button>
                         </div>
                       )}
                     </div>
                   </div>
-                  {isEditing ? (
+                  {editing ? (
                     <div>
-                      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>{[1,2,3,4,5].map(s => <button key={s} onClick={() => setEditingRating(s)} type="button" style={{ fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', color: s <= editingRating ? '#f9a825' : '#d1d5db' }}>★</button>)}</div>
-                      <textarea value={editingText} onChange={e => setEditingText(e.target.value)} style={{ width: '100%', padding: '10px 12px', border: '1px solid ' + T.border, borderRadius: 8, fontSize: 14, minHeight: 80, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box', resize: 'vertical', background: isDark ? '#1a1a2e' : '#fff', color: T.text }} />
+                      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>{[1,2,3,4,5].map(s => <button key={s} onClick={() => setEditingRating(s)} type="button" style={{ fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', color: s <= editingRating ? '#f0b429' : (TH.dark ? '#33415a' : '#d1d5db') }}>★</button>)}</div>
+                      <textarea value={editingText} onChange={e => setEditingText(e.target.value)} style={{ width: '100%', padding: '11px 13px', border: `1px solid ${TH.border}`, borderRadius: 10, fontSize: 14, minHeight: 80, fontFamily: 'inherit', marginBottom: 10, boxSizing: 'border-box', resize: 'vertical', background: TH.input, color: TH.text }} />
                       <div style={{ display: 'flex', gap: 8 }}>
-                        <button onClick={() => saveEditReview(r.id)} style={{ flex: 1, padding: '8px', background: T.accent, color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Save Changes</button>
-                        <button onClick={() => setEditingReviewId(null)} style={{ flex: 1, padding: '8px', background: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6', color: T.textSub, border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+                        <button onClick={() => saveEditReview(r.id)} style={{ flex: 1, padding: '9px', background: PA.c, color: TH.dark ? '#04121c' : '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Save Changes</button>
+                        <button onClick={() => setEditingReviewId(null)} style={{ flex: 1, padding: '9px', background: TH.panel2, color: TH.text2, border: `1px solid ${TH.border}`, borderRadius: 10, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
                       </div>
                     </div>
                   ) : (
                     <>
-                      {r.review_text && <p style={{ fontSize: 14, color: T.textSub, lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>}
+                      {r.review_text && <p style={{ fontSize: 14, color: TH.text2, lineHeight: 1.6, margin: '0 0 10px 0' }}>{r.review_text}</p>}
                       {aiAnalysisOn && can('aiReviewAnalysis', plan) && r.review_text && r.review_text.length > 5 && (
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '8px 10px', background: isDark ? 'rgba(255,255,255,0.03)' : '#f8fafc', borderRadius: 8, border: '1px solid ' + T.border, marginBottom: r.owner_reply ? 10 : 0 }}>
-                          <div style={{ fontSize: 10, color: T.textSub, width: '100%', marginBottom: 3, fontWeight: 600, letterSpacing: '0.04em' }}>AI ANALYSIS</div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', padding: '8px 10px', background: TH.panel2, borderRadius: 8, border: `1px solid ${TH.border}`, marginBottom: r.owner_reply ? 10 : 0 }}>
+                          <div style={{ fontSize: 10, color: TH.text2, width: '100%', marginBottom: 3, fontWeight: 700, letterSpacing: '0.06em' }}>🤖 AI ANALYSIS</div>
                           {[
-                            { label: 'Authenticity', value: analysis.authenticity + '%', color: analysis.authenticity >= 70 ? '#1e8e3e' : analysis.authenticity >= 45 ? '#e8b84b' : '#d93025' },
-                            { label: 'Bias Level', value: analysis.bias, color: analysis.bias === 'Low' ? '#1e8e3e' : analysis.bias === 'Medium' ? '#e8b84b' : '#d93025' },
-                            { label: 'Tone', value: analysis.tone, color: analysis.tone === 'Positive' ? '#1e8e3e' : analysis.tone === 'Negative' ? '#d93025' : '#6b7280' },
-                            { label: 'Trust', value: analysis.trust, color: analysis.trust === 'High' ? '#1e8e3e' : analysis.trust === 'Medium' ? '#e8b84b' : '#d93025' },
-                          ].map(item => (
-                            <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 4, background: T.cardBg, padding: '3px 8px', borderRadius: 99, border: '1px solid ' + T.border }}>
-                              <span style={{ fontSize: 10, color: T.textSub }}>{item.label}:</span>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: item.color }}>{item.value}</span>
+                            { label: 'Authenticity', value: a.authenticity + '%', color: a.authenticity >= 70 ? '#22c55e' : a.authenticity >= 45 ? '#f0b429' : '#ef4444' },
+                            { label: 'Bias', value: a.bias, color: a.bias === 'Low' ? '#22c55e' : a.bias === 'Medium' ? '#f0b429' : '#ef4444' },
+                            { label: 'Tone', value: a.tone, color: a.tone === 'Positive' ? '#22c55e' : a.tone === 'Negative' ? '#ef4444' : TH.text2 },
+                            { label: 'Trust', value: a.trust, color: a.trust === 'High' ? '#22c55e' : a.trust === 'Medium' ? '#f0b429' : '#ef4444' },
+                          ].map(it => (
+                            <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: 4, background: TH.panel, padding: '3px 8px', borderRadius: 99, border: `1px solid ${TH.border}` }}>
+                              <span style={{ fontSize: 10, color: TH.text2 }}>{it.label}:</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: it.color }}>{it.value}</span>
                             </div>
                           ))}
                         </div>
                       )}
                       {r.owner_reply && (
-                        <div style={{ background: isDark ? 'rgba(139,92,246,0.1)' : '#f0fdf4', border: '1px solid ' + (isDark ? 'rgba(139,92,246,0.3)' : '#a7f3d0'), borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
-                          <div style={{ fontSize: 11, fontWeight: 600, color: isDark ? '#a78bfa' : '#065f46', marginBottom: 6 }}>💬 Owner Reply{(r.owner_reply_at || r.replied_at) && <span style={{ fontWeight: 400, color: T.textSub }}> · {new Date(r.owner_reply_at || r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}</div>
-                          <p style={{ fontSize: 13, color: T.textSub, margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
+                        <div style={{ background: PA.c + '14', border: `1px solid ${PA.c}44`, borderRadius: 8, padding: '10px 14px', marginTop: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: PA.c, marginBottom: 6 }}>💬 Owner Reply{(r.owner_reply_at || r.replied_at) && <span style={{ fontWeight: 400, color: TH.text2 }}> · {new Date(r.owner_reply_at || r.replied_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}</div>
+                          <p style={{ fontSize: 13, color: TH.text2, margin: 0, lineHeight: 1.6 }}>{r.owner_reply}</p>
                         </div>
                       )}
                     </>
                   )}
-                </div>
+                </Panel>
               )
             })}
           </div>
         )}
 
-        {/* ===== FAQ (Gold+) — structure ready ===== */}
+        {/* FAQ placeholder (Gold+) */}
         {can('faqSection', plan) && (
-          <div style={cardBase}>
-            <SectionTitle T={T} icon="❓">Frequently Asked Questions</SectionTitle>
-            <div style={{ textAlign: 'center', padding: '20px 0', color: T.textSub, fontSize: 13 }}>
-              <div style={{ fontSize: 24, marginBottom: 8 }}>💬</div>
-              FAQs will appear here soon — this business can add common questions from their portal.
-            </div>
-          </div>
+          <Panel TH={TH}><SecTitle TH={TH} icon="❓">Frequently Asked Questions</SecTitle>
+            <div style={{ textAlign: 'center', padding: '20px 0', color: TH.text2, fontSize: 13 }}><div style={{ fontSize: 24, marginBottom: 8 }}>💬</div>FAQs will appear here soon — business can add them from the portal.</div>
+          </Panel>
         )}
 
-        {/* ===== RELATED BUSINESSES (all plans) ===== */}
+        {/* RELATED BUSINESSES */}
         {can('relatedBusiness', plan) && related.length > 0 && (
-          <div style={{ marginBottom: 28 }}>
-            <SectionTitle T={T} icon="🔗">Related Businesses</SectionTitle>
+          <Panel TH={TH}>
+            <SecTitle TH={TH} icon="🔗">Related Businesses</SecTitle>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 10 }}>
               {related.map(rc => {
-                const rInit = rc.name?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+                const ri = rc.name?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
                 return (
-                  <div key={rc.id} onClick={() => { if (rc.slug) window.location.href = '/' + rc.slug }} style={{ cursor: 'pointer', background: T.cardBg, border: '1px solid ' + T.border, borderRadius: 12, padding: 12 }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border }}>
+                  <div key={rc.id} onClick={() => { if (rc.slug) window.location.href = '/' + rc.slug }} style={{ cursor: 'pointer', background: TH.panel2, border: `1px solid ${TH.border}`, borderRadius: 12, padding: 12, transition: 'border-color .15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = PA.c }} onMouseLeave={e => { e.currentTarget.style.borderColor = TH.border }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: T.accent + '22', color: T.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, overflow: 'hidden' }}>
-                        {rc.logo_url ? <img src={rc.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : rInit}
-                      </div>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rc.name}</div>
-                      </div>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: PA.c + '22', color: PA.c, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0, overflow: 'hidden' }}>{rc.logo_url ? <img src={rc.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : ri}</div>
+                      <div style={{ minWidth: 0, flex: 1 }}><div style={{ fontSize: 12, fontWeight: 700, color: TH.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rc.name}</div></div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#f9a825' }}>{rc.avg_rating || '—'}★</span>
-                      {rc.is_verified && <span style={{ fontSize: 9, color: '#10b981', fontWeight: 600 }}>✓ Verified</span>}
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#f0b429' }}>{rc.avg_rating || '—'}★</span>
+                      {rc.is_verified && <span style={{ fontSize: 9, color: '#22c55e', fontWeight: 700 }}>✓ Verified</span>}
                     </div>
                   </div>
                 )
               })}
             </div>
-          </div>
+          </Panel>
         )}
       </div>
 
       {/* Lightbox */}
       {lightboxImg && (
-        <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 24 }}>
-          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 700, width: '100%', textAlign: 'center' }}>
+        <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 24 }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 760, width: '100%', textAlign: 'center' }}>
             <img src={lightboxImg.image_url} alt="" style={{ maxWidth: '100%', maxHeight: '70vh', borderRadius: 12, objectFit: 'contain' }} />
-            {lightboxImg.title && <div style={{ color: '#fff', fontSize: 15, fontWeight: 600, marginTop: 14 }}>{lightboxImg.title}</div>}
+            {lightboxImg.title && <div style={{ color: '#fff', fontSize: 15, fontWeight: 700, marginTop: 14, fontFamily: "'Sora',sans-serif" }}>{lightboxImg.title}</div>}
             {lightboxImg.description && <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 4 }}>{lightboxImg.description}</div>}
             <button onClick={() => setLightboxImg(null)} style={{ marginTop: 16, padding: '8px 24px', background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 13 }}>✕ Close</button>
           </div>
         </div>
       )}
 
-      {/* Login Modal */}
+      {/* Login modal */}
       {showLoginPrompt && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
-          <div style={{ background: '#fff', borderRadius: 20, padding: 32, width: 380, textAlign: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 }}>
+          <div style={{ background: TH.panelSolid, border: `1px solid ${TH.border}`, borderRadius: 20, padding: 32, width: 380, maxWidth: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🔐</div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: '#111827' }}>{loginFor === 'review' ? 'Sign in to Write a Review' : 'Sign in to Submit Inquiry'}</h3>
-            <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>{loginFor === 'review' ? 'Sign in with Google to leave a genuine review.' : 'Sign in to submit your inquiry.'}</p>
-            <button onClick={() => signInWithGoogle()} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '12px 20px', background: '#fff', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 14, fontWeight: 500, cursor: 'pointer', marginBottom: 10, color: '#374151' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
+            <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 8, color: TH.text }}>{loginFor === 'review' ? 'Sign in to Write a Review' : 'Sign in to Submit Inquiry'}</h3>
+            <p style={{ fontSize: 14, color: TH.text2, marginBottom: 24, lineHeight: 1.6 }}>{loginFor === 'review' ? 'Sign in with Google to leave a genuine review.' : 'Sign in to submit your inquiry.'}</p>
+            <button onClick={() => signInWithGoogle()} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '12px 20px', background: TH.dark ? TH.panel2 : '#fff', border: `2px solid ${TH.border}`, borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginBottom: 10, color: TH.text }}>
+              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
               Continue with Google
             </button>
-            <button onClick={() => setShowLoginPrompt(false)} style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: '#6b7280', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+            <button onClick={() => setShowLoginPrompt(false)} style={{ width: '100%', padding: '10px', background: 'none', border: 'none', color: TH.text2, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
           </div>
         </div>
       )}
 
-      <div style={{ textAlign: 'center', padding: '32px 24px', color: T.textSub, fontSize: 12 }}>
-        <button onClick={() => window.location.href = '/'} style={{ color: T.accent, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: 12 }}>TrustDubai</button>
+      <div style={{ textAlign: 'center', padding: '32px 24px', color: TH.text2, fontSize: 12 }}>
+        <button onClick={() => window.location.href = '/'} style={{ color: PA.c, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12 }}>TrustDubai</button>
         {' — Building trust in Dubai\'s business community'}
       </div>
     </div>
