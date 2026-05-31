@@ -47,46 +47,6 @@ function CredibilityScore({ company }) {
   )
 }
 
-function SocialLinks({ company }) {
-  const links = []
-  if (company.instagram) links.push({
-    icon: '📸',
-    url: company.instagram.startsWith('http') ? company.instagram : 'https://instagram.com/' + company.instagram.replace('@', ''),
-    label: 'Instagram'
-  })
-  if (company.facebook) links.push({
-    icon: '👍',
-    url: company.facebook.startsWith('http') ? company.facebook : 'https://facebook.com/' + company.facebook,
-    label: 'Facebook'
-  })
-  if (company.linkedin) links.push({
-    icon: '💼',
-    url: company.linkedin.startsWith('http') ? company.linkedin : 'https://linkedin.com/company/' + company.linkedin,
-    label: 'LinkedIn'
-  })
-  if (company.website) links.push({
-    icon: '🌐',
-    url: company.website.startsWith('http') ? company.website : 'https://' + company.website,
-    label: 'Website'
-  })
-  if (links.length === 0) return null
-  return (
-    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-      {links.map(l => (
-        <a key={l.label} href={l.url} target="_blank" rel="noopener noreferrer"
-          onClick={e => e.stopPropagation()}
-          title={l.label}
-          style={{ fontSize: 13, textDecoration: 'none', opacity: 0.8, transition: 'opacity 0.15s' }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '0.8'}
-        >
-          {l.icon}
-        </a>
-      ))}
-    </div>
-  )
-}
-
 export default function CompanyCard({ company, onClick }) {
   const plan = company.plan || 'free'
 
@@ -97,6 +57,15 @@ export default function CompanyCard({ company, onClick }) {
   // Logo initials fallback
   const initials = (company.name || company.company_name || '?')
     .split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+
+  // WhatsApp contact (predefined message)
+  const waNumber = (company.whatsapp || company.phone || '').replace(/[^0-9]/g, '')
+  const waMsg = encodeURIComponent("Hi, I saw your profile on TrustDubai and I'm interested in your services. Can we discuss?")
+  function openWhatsApp(e) {
+    e.stopPropagation()
+    if (!waNumber) return
+    window.open('https://wa.me/' + waNumber + '?text=' + waMsg, '_blank')
+  }
 
   return (
     <div onClick={onClick} style={{
@@ -150,15 +119,33 @@ export default function CompanyCard({ company, onClick }) {
         </span>
       </div>
 
-      {/* Location — emoji pin (font-independent), never blank */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: plan === 'platinum' ? '#94a3b8' : 'var(--text-secondary)' }}>
+      {/* Location */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: plan === 'platinum' ? '#94a3b8' : 'var(--text-secondary)', marginBottom: 10 }}>
         <span style={{ fontSize: 11 }}>📍</span>
         <span>{locationText}</span>
         {hasEmployees && <span> · {company.employee_count} employees</span>}
       </div>
 
-      {/* Social Links */}
-      <SocialLinks company={company} />
+      {/* Action Row: WhatsApp + View Profile */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        {waNumber && (
+          <button onClick={openWhatsApp} style={{
+            flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            padding: '9px 10px', background: '#25D366', color: '#fff', border: 'none',
+            borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+          }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M17.47 14.38c-.3-.15-1.74-.86-2.01-.96-.27-.1-.46-.15-.66.15-.2.3-.76.96-.93 1.16-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.34.45-.51.15-.17.2-.29.3-.49.1-.2.05-.37-.02-.52-.08-.15-.66-1.6-.91-2.19-.24-.57-.48-.49-.66-.5-.17-.01-.37-.01-.56-.01-.2 0-.51.07-.78.37-.27.3-1.02 1-1.02 2.43 0 1.43 1.04 2.82 1.19 3.01.15.2 2.05 3.13 4.97 4.39.69.3 1.24.48 1.66.61.7.22 1.33.19 1.83.12.56-.08 1.74-.71 1.98-1.4.24-.69.24-1.28.17-1.4-.07-.12-.27-.2-.56-.34z M12 2a10 10 0 0 0-8.6 15.06L2 22l5.07-1.33A10 10 0 1 0 12 2zm0 18.2a8.18 8.18 0 0 1-4.17-1.14l-.3-.18-3.1.81.83-3.02-.2-.31A8.2 8.2 0 1 1 12 20.2z"/></svg>
+            WhatsApp
+          </button>
+        )}
+        <button onClick={onClick} style={{
+          flex: waNumber ? '0 0 auto' : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          padding: '9px 14px', background: 'transparent', color: '#0099cc',
+          border: '1px solid #0099cc', borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
+        }}>
+          View Profile
+        </button>
+      </div>
     </div>
   )
 }
