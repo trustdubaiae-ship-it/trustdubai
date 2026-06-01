@@ -486,6 +486,7 @@ export default function Home({ navigate }) {
   const [loading,       setLoading]       = useState(true)
   const [customer,      setCustomer]      = useState(null)
   const [showUserMenu,  setShowUserMenu]  = useState(false)
+  const [blockedMsg,    setBlockedMsg]    = useState(null)
   const device    = useDevice()
   const isMobile  = device === 'mobile'
   const isTablet  = device === 'tablet'
@@ -497,7 +498,11 @@ export default function Home({ navigate }) {
     fetchAll()
     checkCustomer()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event==='SIGNED_IN' && session?.user) setCustomer(await upsertCustomer(session.user))
+      if (event==='SIGNED_IN' && session?.user) {
+        const cust = await getCustomer()
+        if (cust && cust.blocked) { setCustomer(null); setBlockedMsg(cust.companyName || 'your business') }
+        else setCustomer(cust)
+      }
       else if (event==='SIGNED_OUT') setCustomer(null)
     })
     return () => subscription.unsubscribe()
@@ -542,6 +547,11 @@ export default function Home({ navigate }) {
 
   async function checkCustomer() {
     const cust = await getCustomer()
+    if (cust && cust.blocked) {
+      setCustomer(null)
+      setBlockedMsg(cust.companyName || 'your business')
+      return
+    }
     setCustomer(cust)
   }
 
@@ -556,6 +566,25 @@ export default function Home({ navigate }) {
     if (n>=100) return n+'+'
     return String(n||0)
   }
+
+  // Business email blocked banner (sab layouts ke upar)
+  const BlockedBanner = blockedMsg ? (
+    <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:3000, background:'#fef2f2', borderBottom:'1px solid #fecaca', padding:'12px 18px', display:'flex', alignItems:'center', gap:12 }}>
+      <i className="ti ti-alert-triangle" style={{ fontSize:20, color:'#dc2626', flexShrink:0 }} />
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:'#dc2626' }}>This email is registered as a business</div>
+        <div style={{ fontSize:11.5, color:'#b91c1c', marginTop:1 }}>
+          "{blockedMsg}" uses this email on TrustDubai. Please use the Business Portal to manage it. Customer login needs a different email.
+        </div>
+      </div>
+      <button onClick={()=>window.open(BIZ_URL,'_blank')}
+        style={{ padding:'7px 12px', background:'#0099cc', color:'#fff', border:'none', borderRadius:7, fontSize:11.5, fontWeight:700, cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}>
+        Business Portal
+      </button>
+      <button onClick={()=>setBlockedMsg(null)}
+        style={{ width:28, height:28, borderRadius:7, background:'transparent', border:'none', color:'#dc2626', cursor:'pointer', fontSize:18, flexShrink:0 }}>×</button>
+    </div>
+  ) : null
 
   function Topbar() {
     return (
@@ -795,6 +824,7 @@ export default function Home({ navigate }) {
   if (isMobile) {
     return (
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', paddingBottom:72, overflowX:'hidden' }}>
+        {BlockedBanner}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100 }}>
           <Logo size={14} />
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
@@ -880,6 +910,7 @@ export default function Home({ navigate }) {
   if (isTablet) {
     return (
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
+        {BlockedBanner}
         <Topbar />
         <Hero />
         <div style={{ display:'flex' }}>
@@ -913,6 +944,7 @@ export default function Home({ navigate }) {
 
   return (
     <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
+      {BlockedBanner}
       <Topbar />
       <Hero />
       <div style={{ display:'flex', alignItems:'stretch' }}>
