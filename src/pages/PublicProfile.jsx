@@ -163,6 +163,26 @@ function TrustRing({ TH, score }) {
     </div>
   )
 }
+/* verified team donut */
+function TeamDonut({ TH, total, verified, onClick }) {
+  const r = 50, c = 2 * Math.PI * r
+  const [fill, setFill] = useState(0)
+  const pct = total > 0 ? verified / total : 0
+  useEffect(() => { const t = setTimeout(() => setFill(pct * c), 300); return () => clearTimeout(t) }, [pct])
+  return (
+    <div onClick={onClick} className="td-teamdonut" style={{ position: 'relative', display: 'inline-grid', placeItems: 'center', cursor: 'pointer' }} title="View team">
+      <svg width="128" height="128" viewBox="0 0 128 128">
+        <circle cx="64" cy="64" r={r} fill="none" stroke={TH.gold + '2e'} strokeWidth="9" />
+        <circle cx="64" cy="64" r={r} fill="none" stroke={TH.gold} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 64 64)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 8px ${TH.gold}66)` }} />
+      </svg>
+      <div style={{ position: 'absolute', textAlign: 'center' }}>
+        <div style={{ fontSize: 24, lineHeight: 1 }}>🛡️</div>
+        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 22, color: TH.t1, lineHeight: 1, marginTop: 2 }}><Counter to={verified} /></div>
+        <div style={{ fontSize: 8, color: TH.gold, fontWeight: 800, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verified Team</div>
+      </div>
+    </div>
+  )
+}
 
 export default function PublicProfile() {
   const { slug } = useParams()
@@ -173,6 +193,7 @@ export default function PublicProfile() {
   const [related, setRelated] = useState([])
   const [badges, setBadges] = useState([])
   const [faqs, setFaqs] = useState([])
+  const [team, setTeam] = useState([])
   const [leadForm, setLeadForm] = useState(null)
   const [questions, setQuestions] = useState([])
   const [answers, setAnswers] = useState({})
@@ -202,6 +223,11 @@ export default function PublicProfile() {
   const [social, setSocial] = useState(null)
   const [portLikes, setPortLikes] = useState({})
   const [likedSet, setLikedSet] = useState(() => { try { return new Set(JSON.parse(localStorage.getItem('td_liked') || '[]')) } catch { return new Set() } })
+  const [showTeamModal, setShowTeamModal] = useState(false)
+  const [activeMember, setActiveMember] = useState(null)
+  const [memberRating, setMemberRating] = useState(0)
+  const [memberComment, setMemberComment] = useState('')
+  const [submittingMemberRating, setSubmittingMemberRating] = useState(false)
 
   useEffect(() => {
     fetchCompany(); checkCustomer(); fetchAiSetting(); fetchSocial()
@@ -222,15 +248,19 @@ export default function PublicProfile() {
     const { data, error } = await supabase.from('companies').select('*').eq('slug', slug).eq('status', 'approved').single()
     if (error || !data) { setNotFound(true); setLoading(false); return }
     setCompany(data)
-    const [reviewRes, formRes, portfolioRes, badgeRes, faqRes] = await Promise.all([
+    const today = new Date().toISOString().slice(0, 10)
+    const [reviewRes, formRes, portfolioRes, badgeRes, faqRes, teamRes] = await Promise.all([
       supabase.from('reviews').select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id, helpful_count').eq('company_id', data.id).eq('is_approved', true).order('created_at', { ascending: false }).limit(60),
       supabase.from('lead_forms').select('*').eq('company_id', data.id).eq('is_active', true).limit(1).maybeSingle(),
       supabase.from('portfolio_items').select('id, image_url, title, description, likes_count, created_at').eq('company_id', data.id).order('created_at', { ascending: false }),
       supabase.from('company_badges').select('*').eq('company_id', data.id).eq('is_active', true).order('display_order'),
       supabase.from('company_faqs').select('*').eq('company_id', data.id).eq('is_active', true).order('display_order'),
+      supabase.from('team_members').select('*').eq('company_id', data.id).eq('is_verified', true).eq('is_active', true).order('display_order', { ascending: true }).order('created_at', { ascending: true }),
     ])
     setReviews(reviewRes.data || []); setPortfolio(portfolioRes.data || [])
     setBadges(badgeRes.data || []); setFaqs(faqRes.data || [])
+    const validTeam = (teamRes.data || []).filter(m => !m.eid_expiry || m.eid_expiry >= today)
+    setTeam(validTeam)
     const hl = {}; (reviewRes.data || []).forEach(r => { hl[r.id] = r.helpful_count || 0 }); setHelpful(hl)
     const pl = {}; (portfolioRes.data || []).forEach(p => { pl[p.id] = p.likes_count || 0 }); setPortLikes(pl)
     if (formRes.data) { setLeadForm(formRes.data); const { data: q } = await supabase.from('lead_form_questions').select('*').eq('form_id', formRes.data.id).order('order_num'); setQuestions(q || []) }
@@ -239,6 +269,14 @@ export default function PublicProfile() {
     const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
     setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | TrustDubai', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://trustdubai.ae/og-image.png', url: 'https://trustdubai.ae/' + slug })
     setJsonLD(data, reviewData); trackProfileView(data.id); setLoading(false)
+  }
+  async function refreshTeam() {
+    if (!company) return
+    const today = new Date().toISOString().slice(0, 10)
+    const { data } = await supabase.from('team_members').select('*').eq('company_id', company.id).eq('is_verified', true).eq('is_active', true).order('display_order', { ascending: true }).order('created_at', { ascending: true })
+    const valid = (data || []).filter(m => !m.eid_expiry || m.eid_expiry >= today)
+    setTeam(valid)
+    if (activeMember) { const updated = valid.find(m => m.id === activeMember.id); if (updated) setActiveMember(updated) }
   }
   async function refreshReviews() { const { data } = await supabase.from('reviews').select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id, helpful_count').eq('company_id', company.id).eq('is_approved', true).order('created_at', { ascending: false }).limit(60); if (data) { setReviews(data); const hl = {}; data.forEach(r => { hl[r.id] = r.helpful_count || 0 }); setHelpful(hl) } }
   function requireLogin(f) { if (customer === undefined) return false; if (customer !== null) return true; setLoginFor(f); setShowLoginPrompt(true); return false }
@@ -250,6 +288,19 @@ export default function PublicProfile() {
     const ns = new Set(likedSet); ns.add(id); setLikedSet(ns)
     try { localStorage.setItem('td_liked', JSON.stringify([...ns])) } catch (e) {}
     try { await supabase.rpc('increment_portfolio_likes', { p_item_id: id }) } catch (e) { try { await supabase.from('portfolio_items').update({ likes_count: next }).eq('id', id) } catch (e2) {} }
+  }
+  function openMember(m) {
+    setActiveMember(m); setMemberComment(''); setMemberRating(0)
+  }
+  async function submitMemberRating() {
+    if (!requireLogin('member')) return
+    if (!memberRating) return
+    setSubmittingMemberRating(true)
+    const { error } = await supabase.from('team_ratings').upsert({
+      member_id: activeMember.id, customer_id: customer.id, rating: memberRating, comment: memberComment.trim() || null,
+    }, { onConflict: 'member_id,customer_id' })
+    setSubmittingMemberRating(false)
+    if (!error) { setMemberComment(''); setMemberRating(0); await refreshTeam() }
   }
   async function sendLeadEmail(name, phone, email) { try { const ce = company.email || company.business_email || company.owner_email; if (!ce) return; await fetch(`${SUPABASE_URL}/functions/v1/send-lead-email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ company_name: company.name, company_email: ce, company_whatsapp: company.whatsapp || '', lead_name: name, lead_phone: phone, lead_email: email, answers, slug }) }) } catch (e) {} }
   async function submitLead(e) {
@@ -278,6 +329,10 @@ export default function PublicProfile() {
     .td-port:hover{transform:translateY(-4px)}
     .td-port:hover .td-port-ov{opacity:1}
     .td-heart-pop{animation:tdpop .4s ease both}
+    .td-teamdonut{transition:transform .3s}
+    .td-teamdonut:hover{transform:scale(1.04)}
+    .td-tmcard{transition:transform .25s,border-color .25s}
+    .td-tmcard:hover{transform:translateY(-3px)}
   `}</style>
 
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070b15' }}><Fonts /><div style={{ textAlign: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid #4f9fe0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'tdspin .8s linear infinite', margin: '0 auto 14px' }} /><div style={{ fontSize: 14, color: '#9aa7bd', fontFamily: 'Manrope,sans-serif' }}>Loading profile…</div></div></div>
@@ -300,6 +355,7 @@ export default function PublicProfile() {
   const fixedReviewSlots = Math.max(2, reviewSlots.length)
   const portLimit = limitOf('portfolioLimit', plan)
   const shownPortfolio = portfolio.slice(0, Math.min(portLimit, portfolio.length))
+  const verifiedCount = team.length
 
   const chip = (t, k) => <span key={k} style={{ fontSize: 10.5, padding: '4px 11px', borderRadius: 7, background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, fontWeight: 600 }}>{t}</span>
   const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
@@ -320,6 +376,25 @@ export default function PublicProfile() {
       </div>
     )
   }
+
+  /* small team card (right column + modal grid) */
+  const TeamCard = ({ m }) => (
+    <div className="td-tmcard" onClick={() => openMember(m)} style={{ border: `1px solid ${TH.line}`, borderRadius: 12, padding: 12, textAlign: 'center', background: TH.soft, cursor: 'pointer' }}>
+      <div style={{ position: 'relative', width: 56, height: 56, margin: '0 auto 8px' }}>
+        <div style={{ width: 56, height: 56, borderRadius: '50%', overflow: 'hidden', background: m.photo_url ? 'transparent' : TH.grad, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 20 }}>
+          {m.photo_url ? <img src={m.photo_url} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (m.name?.[0]?.toUpperCase() || '?')}
+        </div>
+        <span style={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: '50%', background: TH.green, border: `2px solid ${TH.cardSolid}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#06281a', fontWeight: 800 }}>✓</span>
+      </div>
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: TH.t1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</div>
+      <div style={{ fontSize: 10.5, color: TH.t2, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.role || '—'}</div>
+      <div style={{ fontSize: 11, color: TH.gold, marginTop: 5 }}>
+        {m.total_ratings > 0
+          ? <>{'★'.repeat(Math.round(m.avg_rating))}{'☆'.repeat(5 - Math.round(m.avg_rating))} <span style={{ color: TH.t3 }}>({m.total_ratings})</span></>
+          : <span style={{ color: TH.t3, fontSize: 10 }}>No ratings yet</span>}
+      </div>
+    </div>
+  )
 
   const ReviewCard = ({ r }) => {
     if (!r) return <div style={{ border: `1px dashed ${TH.line}`, borderRadius: 12, minHeight: 200, background: TH.soft }} />
@@ -416,7 +491,10 @@ export default function PublicProfile() {
                 {can('socialLinks', plan) && socialLinks.map(s => <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 13px', background: TH.soft, color: TH.t1, borderRadius: 9, fontSize: 12, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.line}` }}>{s.icon} {s.label}</a>)}
               </div>
             </div>
-            <div className="td-hero-ring" style={{ animation: 'tdfloat 5s ease-in-out infinite' }}><TrustRing TH={TH} score={cred} /></div>
+            <div className="td-hero-rings" style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <div style={{ animation: 'tdfloat 5s ease-in-out infinite' }}><TrustRing TH={TH} score={cred} /></div>
+              {verifiedCount > 0 && <div style={{ animation: 'tdfloat 5s ease-in-out infinite 0.4s' }}><TeamDonut TH={TH} total={verifiedCount} verified={verifiedCount} onClick={() => setShowTeamModal(true)} /></div>}
+            </div>
           </div>
         </Card>
 
@@ -624,6 +702,16 @@ export default function PublicProfile() {
               ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
             </Card>
 
+            {/* OUR TEAM */}
+            {team.length > 0 && (
+              <Card TH={TH}>
+                <H2 TH={TH} right={team.length > 4 ? <button onClick={() => setShowTeamModal(true)} style={{ fontSize: 11, fontWeight: 700, color: TH.gold, background: 'none', border: 'none', cursor: 'pointer' }}>View all ({team.length}) →</button> : null}>🛡️ Our Team</H2>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
+                  {team.slice(0, 4).map(m => <TeamCard key={m.id} m={m} />)}
+                </div>
+              </Card>
+            )}
+
             <Card TH={TH}>
               <H2 TH={TH}>❓ FAQ</H2>
               {can('faq', plan) ? (
@@ -684,6 +772,62 @@ export default function PublicProfile() {
         </div>
       )}
 
+      {/* TEAM modal — all verified members */}
+      {showTeamModal && (
+        <div onClick={() => setShowTeamModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 280, overflowY: 'auto', padding: 24 }}>
+          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 900, margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <h3 style={{ color: '#fff', fontFamily: "'Sora',sans-serif", fontSize: 18 }}>🛡️ {company.name} — Verified Team ({team.length})</h3>
+              <button onClick={() => setShowTeamModal(false)} style={{ padding: '8px 20px', background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 13 }}>✕ Close</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(150px,1fr))', gap: 12 }}>
+              {team.map(m => <TeamCard key={m.id} m={m} />)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MEMBER detail + rating popup */}
+      {activeMember && (
+        <div onClick={() => setActiveMember(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 320, padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: TH.cardSolid, borderRadius: 18, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', padding: 24, position: 'relative' }}>
+            <button onClick={() => setActiveMember(null)} style={{ position: 'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: '50%', background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, cursor: 'pointer', fontSize: 15 }}>✕</button>
+
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ position: 'relative', width: 84, height: 84, margin: '0 auto 12px' }}>
+                <div style={{ width: 84, height: 84, borderRadius: '50%', overflow: 'hidden', background: activeMember.photo_url ? 'transparent' : TH.grad, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 30 }}>
+                  {activeMember.photo_url ? <img src={activeMember.photo_url} alt={activeMember.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (activeMember.name?.[0]?.toUpperCase() || '?')}
+                </div>
+                <span style={{ position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: '50%', background: TH.green, border: `3px solid ${TH.cardSolid}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#06281a', fontWeight: 800 }}>✓</span>
+              </div>
+              <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 19, fontWeight: 800, color: TH.t1 }}>{activeMember.name}</div>
+              <div style={{ fontSize: 12.5, color: TH.t2, marginTop: 2 }}>{activeMember.role || '—'}{activeMember.experience_years ? ` · ${activeMember.experience_years} yrs exp` : ''}</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 8, fontSize: 10, fontWeight: 800, color: TH.green, background: TH.green + '1f', padding: '3px 10px', borderRadius: 20 }}>✓ EID Verified</div>
+
+              <div style={{ marginTop: 12, fontSize: 15, color: TH.gold }}>
+                {activeMember.total_ratings > 0
+                  ? <>{'★'.repeat(Math.round(activeMember.avg_rating))}{'☆'.repeat(5 - Math.round(activeMember.avg_rating))} <span style={{ fontSize: 12, color: TH.t3 }}>{activeMember.avg_rating} ({activeMember.total_ratings} rating{activeMember.total_ratings !== 1 ? 's' : ''})</span></>
+                  : <span style={{ fontSize: 12, color: TH.t3 }}>No ratings yet</span>}
+              </div>
+
+              {activeMember.bio && <p style={{ fontSize: 12, color: TH.t2, lineHeight: 1.6, marginTop: 12, textAlign: 'left' }}>{activeMember.bio}</p>}
+            </div>
+
+            {/* Rate this member */}
+            <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${TH.line}` }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: TH.t1, marginBottom: 8, textAlign: 'center' }}>Rate this team member</div>
+              <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 10 }}>
+                {[1,2,3,4,5].map(s => <button key={s} type="button" onClick={() => { if (requireLogin('member')) setMemberRating(s) }} style={{ fontSize: 30, background: 'none', border: 'none', cursor: 'pointer', color: s <= memberRating ? TH.gold : TH.line, lineHeight: 1, padding: 0 }}>★</button>)}
+              </div>
+              <textarea value={memberComment} onChange={e => setMemberComment(e.target.value)} placeholder="Add a comment (optional)..." style={{ width: '100%', padding: '9px 12px', border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 12.5, minHeight: 50, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical', background: TH.soft, color: TH.t1, marginBottom: 10 }} />
+              <button onClick={submitMemberRating} disabled={!memberRating || submittingMemberRating} style={{ width: '100%', padding: 11, background: (!memberRating || submittingMemberRating) ? '#94a3b8' : TH.grad, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: (!memberRating || submittingMemberRating) ? 'not-allowed' : 'pointer' }}>
+                {submittingMemberRating ? 'Submitting…' : customer ? 'Submit Rating' : '🔐 Sign in to Rate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* lightbox — Instagram post view */}
       {lightboxImg && (
         <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
@@ -708,10 +852,10 @@ export default function PublicProfile() {
 
       {/* login modal */}
       {showLoginPrompt && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 340, padding: 16 }}>
           <div style={{ background: TH.cardSolid, border: `1px solid ${TH.line}`, borderRadius: 18, padding: 30, width: 360, maxWidth: '100%', textAlign: 'center' }}>
             <div style={{ fontSize: 44 }}>🔐</div>
-            <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: 17, margin: '10px 0 6px', color: TH.t1 }}>{loginFor === 'review' ? 'Sign in to Review' : 'Sign in to Submit'}</h3>
+            <h3 style={{ fontFamily: "'Sora',sans-serif", fontSize: 17, margin: '10px 0 6px', color: TH.t1 }}>{loginFor === 'review' ? 'Sign in to Review' : loginFor === 'member' ? 'Sign in to Rate' : 'Sign in to Submit'}</h3>
             <p style={{ fontSize: 13, color: TH.t2, marginBottom: 18 }}>Sign in with Google to continue.</p>
             <button onClick={() => signInWithGoogle()} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, padding: 12, background: TH.cardSolid, border: `2px solid ${TH.line}`, borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: TH.t1, marginBottom: 8 }}>
               <svg width="17" height="17" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
@@ -736,6 +880,7 @@ export default function PublicProfile() {
           .td-mgal{ grid-template-columns: repeat(3,1fr) !important; }
           .td-t4{ grid-template-columns: repeat(2,1fr) !important; }
           .td-hero-ring svg{ width: 110px !important; height: 110px !important; }
+          .td-hero-rings svg{ width: 110px !important; height: 110px !important; }
           .td-lightbox{ grid-template-columns: 1fr !important; max-height: 92vh !important; overflow-y: auto !important; }
           .td-lightbox-imgwrap{ max-height: 46vh !important; }
           .td-lightbox-imgwrap img{ max-height: 46vh !important; }
@@ -743,6 +888,7 @@ export default function PublicProfile() {
         @media (max-width: 480px){
           .td-mgal{ grid-template-columns: repeat(2,1fr) !important; }
           .td-hero-ring svg{ width: 100px !important; height: 100px !important; }
+          .td-hero-rings svg{ width: 100px !important; height: 100px !important; }
         }
       `}</style>
     </div>
