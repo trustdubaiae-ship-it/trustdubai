@@ -20,16 +20,29 @@ export async function signOut() {
   await supabase.auth.signOut()
 }
 
+// company email se customer login block — ek email = ek role
 export async function getCustomer() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
+
+  // CHECK: kya ye email kisi company ka owner_email hai?
+  const { data: companyMatch } = await supabase
+    .from('companies')
+    .select('id, name')
+    .ilike('owner_email', user.email)
+    .maybeSingle()
+
+  if (companyMatch) {
+    // ye business email hai — customer ke roop mein login block
+    await supabase.auth.signOut()
+    return { blocked: true, reason: 'business_email', companyName: companyMatch.name }
+  }
 
   const { data } = await supabase
     .from('customers')
     .select('*')
     .eq('id', user.id)
     .maybeSingle()
-
   if (data) return data
 
   // Row nahi mili — upsert karo
@@ -44,7 +57,6 @@ export async function getCustomer() {
     }, { onConflict: 'id' })
     .select()
     .single()
-
   return newData || null
 }
 
