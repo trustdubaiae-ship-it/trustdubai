@@ -129,15 +129,15 @@ function H2({ TH, children, right }) {
 }
 function MiniGauge({ TH, label, score, color }) {
   const isText = typeof score === 'string'
-  const r = 20, c = 2 * Math.PI * r
+  const r = 22, c = 2 * Math.PI * r
   const [fill, setFill] = useState(0)
   useEffect(() => { const t = setTimeout(() => setFill((isText ? 0.5 : score / 100) * c), 120); return () => clearTimeout(t) }, [score])
   return (
     <div className="td-gauge" style={{ background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 12, padding: '12px 8px', textAlign: 'center' }}>
       <div className="td-gauge-label" style={{ fontSize: 10, fontWeight: 700, color: TH.t1, marginBottom: 8, lineHeight: 1.2 }}>{label}</div>
       <div style={{ position: 'relative', display: 'inline-grid', placeItems: 'center' }}>
-        <svg className="td-gauge-svg" width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r={r} fill="none" stroke={TH.line} strokeWidth="5" /><circle cx="28" cy="28" r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 28 28)" style={{ transition: 'stroke-dasharray 1s cubic-bezier(.4,0,.2,1)' }} /></svg>
-        <div className="td-gauge-num" style={{ position: 'absolute', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: isText ? 11 : 15, color }}>{isText ? score : <Counter to={score} suffix="%" />}</div>
+        <svg className="td-gauge-svg" width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r={r} fill="none" stroke={TH.line} strokeWidth="5" /><circle cx="30" cy="30" r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 30 30)" style={{ transition: 'stroke-dasharray 1s cubic-bezier(.4,0,.2,1)' }} /></svg>
+        <div className="td-gauge-num" style={{ position: 'absolute', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: isText ? 9.5 : 12, color }}>{isText ? score : <Counter to={score} suffix="%" />}</div>
       </div>
     </div>
   )
@@ -156,9 +156,9 @@ function TrustRing({ TH, score }) {
         <circle cx="64" cy="64" r={r} fill="none" stroke="url(#trustgrad)" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 64 64)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 8px ${tier.col}66)` }} />
       </svg>
       <div style={{ position: 'absolute', textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 30, color: TH.t1, lineHeight: 1 }}><Counter to={score} /></div>
-        <div style={{ fontSize: 9, color: TH.t3, fontWeight: 600, marginTop: 2 }}>TRUST SCORE</div>
-        <div style={{ fontSize: 9.5, fontWeight: 800, color: tier.col, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tier.l}</div>
+        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 26, color: TH.t1, lineHeight: 1 }}><Counter to={score} /></div>
+        <div style={{ fontSize: 8.5, color: TH.t3, fontWeight: 600, marginTop: 2 }}>TRUST SCORE</div>
+        <div style={{ fontSize: 9, fontWeight: 800, color: tier.col, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tier.l}</div>
       </div>
     </div>
   )
@@ -684,7 +684,7 @@ export default function PublicProfile() {
         </div>
       )}
 
-      {/* lightbox — Instagram post view (fixed: size + close) */}
+      {/* lightbox — Instagram post view */}
       {lightboxImg && (
         <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: 16 }}>
           <div onClick={e => e.stopPropagation()} className="td-lightbox" style={{ maxWidth: 760, width: '100%', maxHeight: '90vh', background: TH.cardSolid, borderRadius: 16, overflow: 'hidden', display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,1fr)', position: 'relative' }}>
@@ -735,14 +735,14 @@ export default function PublicProfile() {
           .td-revgrid{ grid-template-columns: 1fr !important; }
           .td-mgal{ grid-template-columns: repeat(3,1fr) !important; }
           .td-t4{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-hero-ring svg{ width: 104px !important; height: 104px !important; }
+          .td-hero-ring svg{ width: 110px !important; height: 110px !important; }
           .td-lightbox{ grid-template-columns: 1fr !important; max-height: 92vh !important; overflow-y: auto !important; }
           .td-lightbox-imgwrap{ max-height: 46vh !important; }
           .td-lightbox-imgwrap img{ max-height: 46vh !important; }
         }
         @media (max-width: 480px){
           .td-mgal{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-hero-ring svg{ width: 96px !important; height: 96px !important; }
+          .td-hero-ring svg{ width: 100px !important; height: 100px !important; }
         }
       `}</style>
     </div>
