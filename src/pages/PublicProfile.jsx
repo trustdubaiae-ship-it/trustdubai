@@ -142,44 +142,27 @@ function MiniGauge({ TH, label, score, color }) {
     </div>
   )
 }
-/* big hero trust ring */
-function TrustRing({ TH, score }) {
-  const r = 50, c = 2 * Math.PI * r
+
+/* ===== 3 SHIELD RINGS (Trust · Team · Verified) ===== */
+function ShieldRing({ TH, value, suffix = '', fillPct, ringColor, gradId, gradTo, caption, sub, onClick }) {
+  const r = 46, c = 2 * Math.PI * r
   const [fill, setFill] = useState(0)
-  useEffect(() => { const t = setTimeout(() => setFill((score / 100) * c), 200); return () => clearTimeout(t) }, [score])
-  const tier = score >= 80 ? { l: 'Elite', col: TH.gold } : score >= 60 ? { l: 'Trusted', col: TH.green } : score >= 40 ? { l: 'Verified', col: TH.accent } : { l: 'Building', col: TH.t2 }
+  useEffect(() => { const t = setTimeout(() => setFill(Math.max(0, Math.min(1, fillPct)) * c), 250); return () => clearTimeout(t) }, [fillPct])
   return (
-    <div className="td-trustring" style={{ position: 'relative', display: 'inline-grid', placeItems: 'center' }}>
-      <svg width="128" height="128" viewBox="0 0 128 128">
-        <defs><linearGradient id="trustgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={tier.col} /><stop offset="100%" stopColor={TH.violet} /></linearGradient></defs>
-        <circle cx="64" cy="64" r={r} fill="none" stroke={TH.line} strokeWidth="9" />
-        <circle cx="64" cy="64" r={r} fill="none" stroke="url(#trustgrad)" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 64 64)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 8px ${tier.col}66)` }} />
-      </svg>
-      <div style={{ position: 'absolute', textAlign: 'center' }}>
-        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 26, color: TH.t1, lineHeight: 1 }}><Counter to={score} /></div>
-        <div style={{ fontSize: 8.5, color: TH.t3, fontWeight: 600, marginTop: 2 }}>TRUST SCORE</div>
-        <div style={{ fontSize: 9, fontWeight: 800, color: tier.col, marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{tier.l}</div>
+    <div onClick={onClick} className="td-shieldring" style={{ textAlign: 'center', cursor: onClick ? 'pointer' : 'default' }}>
+      <div style={{ position: 'relative', display: 'inline-grid', placeItems: 'center' }}>
+        <svg width="116" height="116" viewBox="0 0 116 116" className="td-shieldring-svg">
+          {gradTo && <defs><linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={ringColor} /><stop offset="100%" stopColor={gradTo} /></linearGradient></defs>}
+          <circle cx="58" cy="58" r={r} fill="none" stroke={ringColor + '26'} strokeWidth="8" />
+          <circle cx="58" cy="58" r={r} fill="none" stroke={gradTo ? `url(#${gradId})` : ringColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 58 58)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 7px ${ringColor}55)` }} />
+        </svg>
+        <div style={{ position: 'absolute', textAlign: 'center' }}>
+          <div style={{ fontSize: 18, lineHeight: 1 }}>🛡️</div>
+          <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 19, color: TH.t1, lineHeight: 1.05, marginTop: 1 }}><Counter to={value} suffix={suffix} /></div>
+        </div>
       </div>
-    </div>
-  )
-}
-/* verified team donut */
-function TeamDonut({ TH, total, verified, onClick }) {
-  const r = 50, c = 2 * Math.PI * r
-  const [fill, setFill] = useState(0)
-  const pct = total > 0 ? verified / total : 0
-  useEffect(() => { const t = setTimeout(() => setFill(pct * c), 300); return () => clearTimeout(t) }, [pct])
-  return (
-    <div onClick={onClick} className="td-teamdonut" style={{ position: 'relative', display: 'inline-grid', placeItems: 'center', cursor: 'pointer' }} title="View team">
-      <svg width="128" height="128" viewBox="0 0 128 128">
-        <circle cx="64" cy="64" r={r} fill="none" stroke={TH.gold + '2e'} strokeWidth="9" />
-        <circle cx="64" cy="64" r={r} fill="none" stroke={TH.gold} strokeWidth="9" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 64 64)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 8px ${TH.gold}66)` }} />
-      </svg>
-      <div style={{ position: 'absolute', textAlign: 'center' }}>
-        <div style={{ fontSize: 24, lineHeight: 1 }}>🛡️</div>
-        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 22, color: TH.t1, lineHeight: 1, marginTop: 2 }}><Counter to={verified} /></div>
-        <div style={{ fontSize: 8, color: TH.gold, fontWeight: 800, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verified Team</div>
-      </div>
+      <div style={{ fontSize: 10.5, fontWeight: 800, color: ringColor, marginTop: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{caption}</div>
+      <div style={{ fontSize: 8.5, color: TH.t3, fontWeight: 600, marginTop: 1 }}>{sub}</div>
     </div>
   )
 }
@@ -194,6 +177,8 @@ export default function PublicProfile() {
   const [badges, setBadges] = useState([])
   const [faqs, setFaqs] = useState([])
   const [team, setTeam] = useState([])
+  const [docMeta, setDocMeta] = useState([])
+  const [companyDocs, setCompanyDocs] = useState({})
   const [leadForm, setLeadForm] = useState(null)
   const [questions, setQuestions] = useState([])
   const [answers, setAnswers] = useState({})
@@ -224,6 +209,7 @@ export default function PublicProfile() {
   const [portLikes, setPortLikes] = useState({})
   const [likedSet, setLikedSet] = useState(() => { try { return new Set(JSON.parse(localStorage.getItem('td_liked') || '[]')) } catch { return new Set() } })
   const [showTeamModal, setShowTeamModal] = useState(false)
+  const [showDocsModal, setShowDocsModal] = useState(false)
   const [activeMember, setActiveMember] = useState(null)
   const [memberRating, setMemberRating] = useState(0)
   const [memberComment, setMemberComment] = useState('')
@@ -249,18 +235,22 @@ export default function PublicProfile() {
     if (error || !data) { setNotFound(true); setLoading(false); return }
     setCompany(data)
     const today = new Date().toISOString().slice(0, 10)
-    const [reviewRes, formRes, portfolioRes, badgeRes, faqRes, teamRes] = await Promise.all([
+    const [reviewRes, formRes, portfolioRes, badgeRes, faqRes, teamRes, docMetaRes, compDocRes] = await Promise.all([
       supabase.from('reviews').select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id, helpful_count').eq('company_id', data.id).eq('is_approved', true).order('created_at', { ascending: false }).limit(60),
       supabase.from('lead_forms').select('*').eq('company_id', data.id).eq('is_active', true).limit(1).maybeSingle(),
       supabase.from('portfolio_items').select('id, image_url, title, description, likes_count, created_at').eq('company_id', data.id).order('created_at', { ascending: false }),
       supabase.from('company_badges').select('*').eq('company_id', data.id).eq('is_active', true).order('display_order'),
       supabase.from('company_faqs').select('*').eq('company_id', data.id).eq('is_active', true).order('display_order'),
       supabase.from('team_members').select('*').eq('company_id', data.id).eq('is_verified', true).eq('is_active', true).order('display_order', { ascending: true }).order('created_at', { ascending: true }),
+      supabase.from('verification_documents').select('*').eq('is_active', true).order('display_order', { ascending: true }),
+      supabase.from('company_documents').select('*').eq('company_id', data.id),
     ])
     setReviews(reviewRes.data || []); setPortfolio(portfolioRes.data || [])
     setBadges(badgeRes.data || []); setFaqs(faqRes.data || [])
     const validTeam = (teamRes.data || []).filter(m => !m.eid_expiry || m.eid_expiry >= today)
     setTeam(validTeam)
+    setDocMeta(docMetaRes.data || [])
+    const dm = {}; (compDocRes.data || []).forEach(d => { dm[d.doc_key] = d }); setCompanyDocs(dm)
     const hl = {}; (reviewRes.data || []).forEach(r => { hl[r.id] = r.helpful_count || 0 }); setHelpful(hl)
     const pl = {}; (portfolioRes.data || []).forEach(p => { pl[p.id] = p.likes_count || 0 }); setPortLikes(pl)
     if (formRes.data) { setLeadForm(formRes.data); const { data: q } = await supabase.from('lead_form_questions').select('*').eq('form_id', formRes.data.id).order('order_num'); setQuestions(q || []) }
@@ -329,8 +319,8 @@ export default function PublicProfile() {
     .td-port:hover{transform:translateY(-4px)}
     .td-port:hover .td-port-ov{opacity:1}
     .td-heart-pop{animation:tdpop .4s ease both}
-    .td-teamdonut{transition:transform .3s}
-    .td-teamdonut:hover{transform:scale(1.04)}
+    .td-shieldring{transition:transform .3s}
+    .td-shieldring:hover{transform:translateY(-3px)}
     .td-tmcard{transition:transform .25s,border-color .25s}
     .td-tmcard:hover{transform:translateY(-3px)}
   `}</style>
@@ -357,6 +347,26 @@ export default function PublicProfile() {
   const shownPortfolio = portfolio.slice(0, Math.min(portLimit, portfolio.length))
   const verifiedCount = team.length
 
+  /* ---- doc verification (3rd shield) ---- */
+  const today = new Date().toISOString().slice(0, 10)
+  function docVerified(doc) {
+    if (doc.source === 'company_column') {
+      if (doc.source_field === 'owner_eid_status') return company.owner_eid_status === 'verified'
+      if (doc.source_field === 'phone_verified_at') return !!company.phone_verified_at
+      if (doc.source_field === 'email_auto') return !!company.owner_email
+      if (doc.source_field === 'trade_license_status') return company.trade_license_status === 'verified'
+      return false
+    }
+    const cd = companyDocs[doc.doc_key]
+    if (!cd || cd.status !== 'verified') return false
+    if (cd.doc_expiry && cd.doc_expiry < today) return false
+    return true
+  }
+  const docTotal = docMeta.length || 8
+  const docVerifiedCount = docMeta.filter(docVerified).length
+  const docPercent = docTotal > 0 ? Math.round((docVerifiedCount / docTotal) * 100) : 0
+  const tier = cred >= 80 ? { l: 'Elite' } : cred >= 60 ? { l: 'Trusted' } : cred >= 40 ? { l: 'Verified' } : { l: 'Building' }
+
   const chip = (t, k) => <span key={k} style={{ fontSize: 10.5, padding: '4px 11px', borderRadius: 7, background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, fontWeight: 600 }}>{t}</span>
   const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
 
@@ -377,7 +387,6 @@ export default function PublicProfile() {
     )
   }
 
-  /* small team card (right column + modal grid) */
   const TeamCard = ({ m }) => (
     <div className="td-tmcard" onClick={() => openMember(m)} style={{ border: `1px solid ${TH.line}`, borderRadius: 12, padding: 12, textAlign: 'center', background: TH.soft, cursor: 'pointer' }}>
       <div style={{ position: 'relative', width: 56, height: 56, margin: '0 auto 8px' }}>
@@ -491,9 +500,21 @@ export default function PublicProfile() {
                 {can('socialLinks', plan) && socialLinks.map(s => <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 13px', background: TH.soft, color: TH.t1, borderRadius: 9, fontSize: 12, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.line}` }}>{s.icon} {s.label}</a>)}
               </div>
             </div>
-            <div className="td-hero-rings" style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <div style={{ animation: 'tdfloat 5s ease-in-out infinite' }}><TrustRing TH={TH} score={cred} /></div>
-              {verifiedCount > 0 && <div style={{ animation: 'tdfloat 5s ease-in-out infinite 0.4s' }}><TeamDonut TH={TH} total={verifiedCount} verified={verifiedCount} onClick={() => setShowTeamModal(true)} /></div>}
+            {/* 3 SHIELD RINGS */}
+            <div className="td-hero-rings" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'nowrap' }}>
+              <div style={{ animation: 'tdfloat 5s ease-in-out infinite' }}>
+                <ShieldRing TH={TH} value={cred} fillPct={cred / 100} ringColor={TH.violet} gradId="grTrust" gradTo={TH.accent} caption="Trust" sub={tier.l} />
+              </div>
+              {verifiedCount > 0 && (
+                <div style={{ animation: 'tdfloat 5s ease-in-out infinite 0.3s' }}>
+                  <ShieldRing TH={TH} value={verifiedCount} fillPct={1} ringColor={TH.gold} gradId="grTeam" gradTo="#f0d278" caption="Team" sub="Verified" onClick={() => setShowTeamModal(true)} />
+                </div>
+              )}
+              {docVerifiedCount > 0 && (
+                <div style={{ animation: 'tdfloat 5s ease-in-out infinite 0.6s' }}>
+                  <ShieldRing TH={TH} value={docPercent} suffix="%" fillPct={docPercent / 100} ringColor={TH.green} gradId="grVer" gradTo="#22c55e" caption="Verified" sub="Documents" onClick={() => setShowDocsModal(true)} />
+                </div>
+              )}
             </div>
           </div>
         </Card>
@@ -702,6 +723,31 @@ export default function PublicProfile() {
               ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
             </Card>
 
+            {/* DOCUMENT VERIFICATION */}
+            {docVerifiedCount > 0 && (
+              <Card TH={TH}>
+                <H2 TH={TH} right={<button onClick={() => setShowDocsModal(true)} style={{ fontSize: 11, fontWeight: 700, color: TH.green, background: 'none', border: 'none', cursor: 'pointer' }}>View all →</button>}>🛡️ Verified Documents</H2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 11 }}>
+                  <div style={{ flex: 1, height: 7, borderRadius: 99, background: TH.soft, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${docPercent}%`, borderRadius: 99, background: 'linear-gradient(90deg,#1e9e63,#22c55e)', transition: 'width 1s' }} />
+                  </div>
+                  <span style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 800, color: TH.green }}>{docPercent}%</span>
+                </div>
+                <div style={{ display: 'grid', gap: 6 }}>
+                  {docMeta.slice(0, 4).map(doc => {
+                    const ok = docVerified(doc)
+                    return (
+                      <div key={doc.doc_key} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5 }}>
+                        <span style={{ width: 17, height: 17, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 800, background: ok ? TH.blue : TH.line, color: ok ? '#fff' : TH.t3 }}>✓</span>
+                        <span style={{ color: ok ? TH.t1 : TH.t3, fontWeight: ok ? 600 : 400 }}>{doc.label}</span>
+                      </div>
+                    )
+                  })}
+                  {docMeta.length > 4 && <div style={{ fontSize: 10.5, color: TH.t3, marginTop: 2 }}>+ {docMeta.length - 4} more documents</div>}
+                </div>
+              </Card>
+            )}
+
             {/* OUR TEAM */}
             {team.length > 0 && (
               <Card TH={TH}>
@@ -772,6 +818,36 @@ export default function PublicProfile() {
         </div>
       )}
 
+      {/* DOCUMENTS modal — verification list */}
+      {showDocsModal && (
+        <div onClick={() => setShowDocsModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 320, padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: TH.cardSolid, borderRadius: 18, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', padding: 24, position: 'relative' }}>
+            <button onClick={() => setShowDocsModal(false)} style={{ position: 'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: '50%', background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, cursor: 'pointer', fontSize: 15 }}>✕</button>
+            <div style={{ textAlign: 'center', marginBottom: 18 }}>
+              <div style={{ fontSize: 30 }}>🛡️</div>
+              <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 18, fontWeight: 800, color: TH.t1, marginTop: 4 }}>Document Verification</div>
+              <div style={{ fontSize: 12, color: TH.t2, marginTop: 2 }}>{company.name}</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: 13, fontWeight: 800, color: TH.green, background: TH.green + '1f', padding: '5px 14px', borderRadius: 20 }}>{docVerifiedCount} of {docTotal} verified · {docPercent}%</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {docMeta.map(doc => {
+                const ok = docVerified(doc)
+                return (
+                  <div key={doc.doc_key} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', borderRadius: 11, border: `1px solid ${ok ? TH.blue + '40' : TH.line}`, background: ok ? TH.blue + '0d' : TH.soft }}>
+                    <span style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, background: ok ? TH.blue : TH.line, color: ok ? '#fff' : TH.t3 }}>✓</span>
+                    <span style={{ flex: 1, fontSize: 13, fontWeight: ok ? 700 : 500, color: ok ? TH.t1 : TH.t3 }}>{doc.label}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: ok ? TH.blue : TH.t3 }}>{ok ? 'Verified' : 'Not verified'}</span>
+                  </div>
+                )
+              })}
+            </div>
+            <div style={{ marginTop: 16, padding: '11px 13px', borderRadius: 10, background: TH.soft, fontSize: 11, color: TH.t3, lineHeight: 1.5, textAlign: 'center' }}>
+              Documents are verified by the TrustDubai team against official records.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TEAM modal — all verified members */}
       {showTeamModal && (
         <div onClick={() => setShowTeamModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 280, overflowY: 'auto', padding: 24 }}>
@@ -813,7 +889,6 @@ export default function PublicProfile() {
               {activeMember.bio && <p style={{ fontSize: 12, color: TH.t2, lineHeight: 1.6, marginTop: 12, textAlign: 'left' }}>{activeMember.bio}</p>}
             </div>
 
-            {/* Rate this member */}
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${TH.line}` }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: TH.t1, marginBottom: 8, textAlign: 'center' }}>Rate this team member</div>
               <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 10 }}>
@@ -879,16 +954,12 @@ export default function PublicProfile() {
           .td-revgrid{ grid-template-columns: 1fr !important; }
           .td-mgal{ grid-template-columns: repeat(3,1fr) !important; }
           .td-t4{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-hero-ring svg{ width: 110px !important; height: 110px !important; }
-          .td-hero-rings svg{ width: 110px !important; height: 110px !important; }
-          .td-lightbox{ grid-template-columns: 1fr !important; max-height: 92vh !important; overflow-y: auto !important; }
-          .td-lightbox-imgwrap{ max-height: 46vh !important; }
-          .td-lightbox-imgwrap img{ max-height: 46vh !important; }
+          .td-hero-rings{ width: 100%; justify-content: space-around !important; }
+          .td-hero-rings .td-shieldring-svg{ width: 96px !important; height: 96px !important; }
         }
         @media (max-width: 480px){
           .td-mgal{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-hero-ring svg{ width: 100px !important; height: 100px !important; }
-          .td-hero-rings svg{ width: 100px !important; height: 100px !important; }
+          .td-hero-rings .td-shieldring-svg{ width: 90px !important; height: 90px !important; }
         }
       `}</style>
     </div>
