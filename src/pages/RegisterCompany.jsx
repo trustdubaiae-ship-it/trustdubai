@@ -1,6 +1,7 @@
-// v2 - company_applications
-import { useState } from 'react'
+// v3 - company_applications + duplicate check
+import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
+import { signInWithGoogle, getCustomer } from '../customerAuth'
 
 export default function RegisterCompany({ navigate }) {
   const [form, setForm] = useState({ name: '', category: '', area: '', phone: '', email: '', description: '', whatsapp: '' })
@@ -10,8 +11,48 @@ export default function RegisterCompany({ navigate }) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [checking, setChecking] = useState(true)
+  const [customer, setCustomer] = useState(null)
+  const [existing, setExisting] = useState(null) // existing application/company
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  useEffect(() => { init() }, [])
+
+  async function init() {
+    setChecking(true)
+    const cust = await getCustomer()
+    setCustomer(cust)
+    const email = cust?.email || ''
+    if (email) {
+      set('email', email)
+      await checkExisting(email)
+    }
+    setChecking(false)
+  }
+
+  // check if this email already has an application OR an approved company
+  async function checkExisting(email) {
+    if (!email) return
+    const lower = email.toLowerCase().trim()
+    // 1) approved/live company with this email
+    const { data: comp } = await supabase
+      .from('companies')
+      .select('id, name, slug, status')
+      .ilike('email', lower)
+      .limit(1)
+      .maybeSingle()
+    if (comp) { setExisting({ type: 'company', ...comp }); return }
+    // 2) pending/rejected application with this email
+    const { data: app } = await supabase
+      .from('company_applications')
+      .select('id, company_name, status, rejection_reason')
+      .ilike('email', lower)
+      .order('applied_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (app) { setExisting({ type: 'application', ...app }) }
+  }
 
   async function uploadTradeLicense(applicationId) {
     if (!tlFile) return null
@@ -26,7 +67,22 @@ export default function RegisterCompany({ navigate }) {
 
   async function handleSubmit() {
     if (!form.name || !form.category || !form.area || !form.phone) return setError('Please fill required fields')
+    if (!form.email) return setError('Email is required so we can update you on your application.')
+    setError('')
     setLoading(true)
+
+    // Re-check duplicate by email just before submit (safety)
+    const lower = form.email.toLowerCase().trim()
+    const { data: dupApp } = await supabase
+      .from('company_applications').select('id').ilike('email', lower).limit(1).maybeSingle()
+    const { data: dupComp } = await supabase
+      .from('companies').select('id').ilike('email', lower).limit(1).maybeSingle()
+    if (dupApp || dupComp) {
+      setLoading(false)
+      await checkExisting(lower)
+      return
+    }
+
     const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
     const { data: app, error: e } = await supabase.from('company_applications').insert({
@@ -45,10 +101,7 @@ export default function RegisterCompany({ navigate }) {
 
     if (e || !app) { setLoading(false); return setError('Failed to submit. Please try again.') }
 
-    // Upload TL PDF
     const tlPdfUrl = await uploadTradeLicense(app.id)
-
-    // Update with TL fields
     await supabase.from('company_applications').update({
       tl_pdf_url: tlPdfUrl,
       tl_number: tlNumber || null,
@@ -59,40 +112,108 @@ export default function RegisterCompany({ navigate }) {
     setSuccess(true)
   }
 
-  if (success) return (
-    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--bg-primary)', minHeight: '100vh' }}>
-      <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 16 }}>
-        <i className="ti ti-circle-check" />
-      </div>
-      <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>Listing submitted!</div>
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
-        We'll contact you on {form.phone} within 24 hours.
-      </p>
-      <button onClick={() => navigate('home')} style={{
-        background: 'var(--primary)', color: '#fff', border: 'none',
-        borderRadius: 24, padding: '12px 32px', fontSize: 14, cursor: 'pointer'
-      }}>Back to Home</button>
+  const Header = ({ title }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border-default)', background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 100 }}>
+      <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-secondary)' }}>
+        <i className="ti ti-arrow-left" />
+      </button>
+      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{title}</span>
+      <div style={{ width: 32 }} />
     </div>
   )
 
+  // ---- loading check ----
+  if (checking) return (
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 30, height: 30, border: '3px solid var(--border-default)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  )
+
+  // ---- already has company (approved/live) ----
+  if (existing?.type === 'company') return (
+    <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <Header title="Your Business" />
+      <div style={{ textAlign: 'center', padding: '60px 24px' }}>
+        <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 14 }}><i className="ti ti-circle-check" /></div>
+        <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>{existing.name} is already listed!</div>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.6 }}>
+          Your business is live on TrustDubai. Manage your profile, reviews, leads and more from the business portal.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
+          <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Open Business Portal →</button>
+          {existing.slug && <button onClick={() => window.location.href = '/' + existing.slug} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 24, padding: '12px', fontSize: 14, cursor: 'pointer' }}>View Public Profile</button>}
+        </div>
+      </div>
+    </div>
+  )
+
+  // ---- already applied (pending / rejected) ----
+  if (existing?.type === 'application') {
+    const isRejected = (existing.status || '').toLowerCase() === 'rejected'
+    return (
+      <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
+        <Header title="Application Status" />
+        <div style={{ textAlign: 'center', padding: '60px 24px' }}>
+          <div style={{ fontSize: 52, color: isRejected ? 'var(--red)' : 'var(--primary)', marginBottom: 14 }}>
+            <i className={`ti ${isRejected ? 'ti-alert-triangle' : 'ti-clock-hour-4'}`} />
+          </div>
+          <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>
+            {isRejected ? 'Application Needs Attention' : 'Application Under Review'}
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8, lineHeight: 1.6 }}>
+            {existing.company_name ? <b>{existing.company_name}</b> : 'Your application'} {isRejected ? 'was not approved.' : 'is being reviewed by our team.'}
+          </p>
+          {isRejected && existing.rejection_reason && (
+            <div style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', borderRadius: 10, padding: '10px 14px', fontSize: 12.5, color: 'var(--red)', maxWidth: 340, margin: '0 auto 18px' }}>
+              Reason: {existing.rejection_reason}
+            </div>
+          )}
+          {!isRejected && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 24 }}>You'll be notified by email once approved.</p>}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
+            <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Go to Business Portal →</button>
+            <button onClick={() => navigate('home')} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 24, padding: '12px', fontSize: 14, cursor: 'pointer' }}>Back to Home</button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ---- success (just submitted) ----
+  if (success) return (
+    <div style={{ textAlign: 'center', padding: '80px 20px', background: 'var(--bg-primary)', minHeight: '100vh' }}>
+      <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 16 }}><i className="ti ti-circle-check" /></div>
+      <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>Listing submitted!</div>
+      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24 }}>
+        We'll review your application and notify you on {form.email || form.phone}. You can also set up your profile in the business portal now.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
+        <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Open Business Portal →</button>
+        <button onClick={() => navigate('home')} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 24, padding: '12px', fontSize: 14, cursor: 'pointer' }}>Back to Home</button>
+      </div>
+    </div>
+  )
+
+  // ---- normal form ----
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px', borderBottom: '1px solid var(--border-default)',
-        background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 100
-      }}>
-        <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-secondary)' }}>
-          <i className="ti ti-arrow-left" />
-        </button>
-        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>List Your Business</span>
-        <div style={{ width: 32 }} />
-      </div>
+      <Header title="List Your Business" />
 
       <div style={{ background: 'var(--primary)', padding: '20px 16px', color: '#fff', textAlign: 'center' }}>
         <div style={{ fontFamily: "'DM Serif Display',serif", fontSize: 20, marginBottom: 6 }}>Get Found on TrustDubai</div>
         <p style={{ fontSize: 12, opacity: 0.85 }}>100% free — no credit card required</p>
       </div>
+
+      {!customer && (
+        <div style={{ margin: '14px 16px 0', padding: '12px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <i className="ti ti-info-circle" style={{ fontSize: 18, color: 'var(--primary)' }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>Sign in for faster tracking</div>
+            <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 1 }}>Track your application status anytime.</div>
+          </div>
+          <button onClick={() => signInWithGoogle()} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 20, padding: '7px 13px', fontSize: 11.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Sign in</button>
+        </div>
+      )}
 
       <div style={{ padding: '16px 16px 0' }}>
         {[
@@ -111,12 +232,11 @@ export default function RegisterCompany({ navigate }) {
       </div>
 
       <div style={{ padding: 16 }}>
-        {/* Basic Fields */}
         {[
           { key: 'name', label: 'Company name *', placeholder: 'Your company name' },
           { key: 'area', label: 'Area / Location *', placeholder: 'e.g. Business Bay, JVC, Marina' },
           { key: 'phone', label: 'WhatsApp number *', placeholder: '+971 50 XXX XXXX' },
-          { key: 'email', label: 'Email address', placeholder: 'your@email.com' },
+          { key: 'email', label: 'Email address *', placeholder: 'your@email.com' },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>{f.label}</label>
@@ -124,7 +244,8 @@ export default function RegisterCompany({ navigate }) {
               value={form[f.key]}
               onChange={e => set(f.key, e.target.value)}
               placeholder={f.placeholder}
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}
+              readOnly={f.key === 'email' && !!customer}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', boxSizing: 'border-box', background: (f.key === 'email' && customer) ? 'var(--bg-tertiary)' : 'var(--bg-secondary)', color: 'var(--text-primary)' }}
             />
           </div>
         ))}
@@ -153,7 +274,6 @@ export default function RegisterCompany({ navigate }) {
           </select>
         </div>
 
-        {/* Trade License Section */}
         <div style={{ marginTop: 20, marginBottom: 8, padding: '10px 12px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius)', borderLeft: '3px solid var(--primary)' }}>
           <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>Trade License</div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Optional but helps faster approval</div>
