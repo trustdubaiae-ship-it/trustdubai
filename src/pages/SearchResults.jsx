@@ -2,21 +2,41 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import CompanyCard from '../components/CompanyCard'
 
-const CATS = ['All','Interior Design','AC Service','Plumbing','Cleaning','Painting','Renovation','Electrical','Handyman']
-
 export default function SearchResults({ navigate, params }) {
   const [query, setQuery] = useState(params.query || '')
   const [category, setCategory] = useState(params.category || '')
   const [companies, setCompanies] = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
+  useEffect(() => { fetchCategories() }, [])
   useEffect(() => { fetchCompanies() }, [query, category])
+
+  async function fetchCategories() {
+    try {
+      const { data } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+      setCategories(data || [])
+    } catch (e) { console.error(e) }
+  }
 
   async function fetchCompanies() {
     setLoading(true)
     let q = supabase.from('companies').select('*').eq('status', 'approved')
-    if (category) q = q.eq('category', category)
-    if (query) q = q.or(`name.ilike.%${query}%,category.ilike.%${query}%,area.ilike.%${query}%`)
+
+    // category filter — match either text `category` OR array `categories`
+    if (category) {
+      q = q.or(`category.eq.${category},categories.cs.{"${category}"}`)
+    }
+
+    // text search — name / category / area
+    if (query) {
+      q = q.or(`name.ilike.%${query}%,category.ilike.%${query}%,area.ilike.%${query}%`)
+    }
+
     const { data } = await q.order('created_at', { ascending: false })
     setCompanies(data || [])
     setLoading(false)
@@ -29,6 +49,9 @@ export default function SearchResults({ navigate, params }) {
       navigate('company', { company })
     }
   }
+
+  // chips: All + DB categories
+  const chips = ['All', ...categories.map(c => c.name)]
 
   return (
     <div style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
@@ -56,18 +79,21 @@ export default function SearchResults({ navigate, params }) {
         </div>
       </div>
 
-      {/* Category filters */}
+      {/* Category filters — from DB */}
       <div style={{ display: 'flex', gap: 6, padding: '10px 16px', overflowX: 'auto', borderBottom: '1px solid var(--border-default)' }}>
-        {CATS.map(c => (
-          <button key={c}
-            onClick={() => setCategory(c === 'All' ? '' : c)}
-            style={{
-              whiteSpace: 'nowrap', fontSize: 12, padding: '5px 12px',
-              borderRadius: 16, border: '1px solid var(--border-default)', cursor: 'pointer',
-              background: (c === 'All' && !category) || c === category ? '#03C1F5' : 'var(--bg-secondary)',
-              color: (c === 'All' && !category) || c === category ? '#fff' : 'var(--text-secondary)'
-            }}>{c}</button>
-        ))}
+        {chips.map(c => {
+          const active = (c === 'All' && !category) || c === category
+          return (
+            <button key={c}
+              onClick={() => setCategory(c === 'All' ? '' : c)}
+              style={{
+                whiteSpace: 'nowrap', fontSize: 12, padding: '5px 12px',
+                borderRadius: 16, border: '1px solid var(--border-default)', cursor: 'pointer',
+                background: active ? '#03C1F5' : 'var(--bg-secondary)',
+                color: active ? '#fff' : 'var(--text-secondary)'
+              }}>{c}</button>
+          )
+        })}
       </div>
 
       <div style={{ padding: '8px 16px' }}>
