@@ -143,18 +143,19 @@ function MiniGauge({ TH, label, score, color }) {
   )
 }
 
-/* ===== 3 SHIELD RINGS (Trust · Team · Verified) ===== */
+/* ===== 3 SHIELD RINGS (Trust · Team · Verified) — flicker-free ===== */
 function ShieldRing({ TH, value, suffix = '', fillPct, ringColor, gradId, gradTo, caption, sub, onClick }) {
   const r = 46, c = 2 * Math.PI * r
+  const target = Math.max(0, Math.min(1, fillPct)) * c
   const [fill, setFill] = useState(0)
-  useEffect(() => { const t = setTimeout(() => setFill(Math.max(0, Math.min(1, fillPct)) * c), 250); return () => clearTimeout(t) }, [fillPct])
+  useEffect(() => { const t = setTimeout(() => setFill(target), 250); return () => clearTimeout(t) }, [target])
   return (
     <div onClick={onClick} className="td-shieldring" style={{ textAlign: 'center', cursor: onClick ? 'pointer' : 'default' }}>
       <div style={{ position: 'relative', display: 'inline-grid', placeItems: 'center' }}>
-        <svg width="116" height="116" viewBox="0 0 116 116" className="td-shieldring-svg">
+        <svg width="116" height="116" viewBox="0 0 116 116" className="td-shieldring-svg" style={{ overflow: 'visible' }}>
           {gradTo && <defs><linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={ringColor} /><stop offset="100%" stopColor={gradTo} /></linearGradient></defs>}
           <circle cx="58" cy="58" r={r} fill="none" stroke={ringColor + '26'} strokeWidth="8" />
-          <circle cx="58" cy="58" r={r} fill="none" stroke={gradTo ? `url(#${gradId})` : ringColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 58 58)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)', filter: `drop-shadow(0 0 7px ${ringColor}55)` }} />
+          <circle cx="58" cy="58" r={r} fill="none" stroke={gradTo ? `url(#${gradId})` : ringColor} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${fill} ${c}`} strokeDashoffset={c * 0.25} transform="rotate(-90 58 58)" style={{ transition: 'stroke-dasharray 1.3s cubic-bezier(.34,1.2,.5,1)' }} />
         </svg>
         <div style={{ position: 'absolute', textAlign: 'center' }}>
           <div style={{ fontSize: 18, lineHeight: 1 }}>🛡️</div>
@@ -323,6 +324,7 @@ export default function PublicProfile() {
     .td-shieldring:hover{transform:translateY(-3px)}
     .td-tmcard{transition:transform .25s,border-color .25s}
     .td-tmcard:hover{transform:translateY(-3px)}
+    .td-navtab:hover{color:#1d6fb8 !important}
   `}</style>
 
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070b15' }}><Fonts /><div style={{ textAlign: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid #4f9fe0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'tdspin .8s linear infinite', margin: '0 auto 14px' }} /><div style={{ fontSize: 14, color: '#9aa7bd', fontFamily: 'Manrope,sans-serif' }}>Loading profile…</div></div></div>
@@ -455,6 +457,8 @@ export default function PublicProfile() {
             <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16, color: TH.t1 }}>🛡️ Trust<span style={{ background: TH.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Dubai</span></button>
             <div className="td-navtabs" style={{ display: 'flex', gap: 18 }}>
               {[['overview', 'Overview'], ['portfolio', 'Work'], ['trust', 'Trust'], ['reviews', 'Reviews']].map(([k, l]) => <button key={k} onClick={() => scrollTo(k)} className="td-navtab" style={{ fontSize: 11, fontWeight: 700, background: 'none', border: 'none', color: TH.t2, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{l}</button>)}
+              {verifiedCount > 0 && <button onClick={() => setShowTeamModal(true)} className="td-navtab" style={{ fontSize: 11, fontWeight: 700, background: 'none', border: 'none', color: TH.t2, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Team</button>}
+              {docVerifiedCount > 0 && <button onClick={() => setShowDocsModal(true)} className="td-navtab" style={{ fontSize: 11, fontWeight: 700, background: 'none', border: 'none', color: TH.t2, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Verification</button>}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -524,21 +528,21 @@ export default function PublicProfile() {
 
           {/* LEFT */}
           <div>
-            <Card TH={TH} id="trust">
-              <H2 TH={TH}>🛡️ Trust Overview</H2>
-              {can('trustGauges', plan) ? (
+            {can('trustGauges', plan) && (
+              <Card TH={TH} id="trust">
+                <H2 TH={TH}>🛡️ Trust Overview</H2>
                 <div className="td-t4" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
                   <MiniGauge TH={TH} label="Reputation" score={sub.reputation} color={TH.green} />
                   <MiniGauge TH={TH} label="Satisfaction" score={sub.satisfaction} color={TH.blue} />
                   <MiniGauge TH={TH} label="Service Quality" score={sub.service} color={TH.gold} />
                   <MiniGauge TH={TH} label="Community" score={sub.community} color={TH.violet} />
                 </div>
-              ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
-            </Card>
+              </Card>
+            )}
 
-            <Card TH={TH}>
-              <H2 TH={TH}>🤖 AI Business Summary</H2>
-              {can('aiSummary', plan) ? (
+            {can('aiSummary', plan) && (
+              <Card TH={TH}>
+                <H2 TH={TH}>🤖 AI Business Summary</H2>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 800, marginBottom: 9, color: TH.green }}>Customers Love</div>
@@ -549,8 +553,8 @@ export default function PublicProfile() {
                     {(ai.concerns.length ? ai.concerns : ['None reported']).map((c, i) => <div key={i} style={{ fontSize: 11, color: TH.t2, marginBottom: 7, display: 'flex', gap: 6, alignItems: 'center', fontWeight: 600 }}><span style={{ color: TH.red }}>✖</span>{c}</div>)}
                   </div>
                 </div>
-              ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
-            </Card>
+              </Card>
+            )}
 
             <Card TH={TH}>
               <H2 TH={TH}>📋 About</H2>
@@ -577,16 +581,16 @@ export default function PublicProfile() {
 
           {/* CENTER */}
           <div id="reviews">
-            <Card TH={TH} id="portfolio">
-              <H2 TH={TH} right={portfolio.length > 6 ? <button onClick={() => setShowAllGallery(true)} style={{ fontSize: 11, fontWeight: 700, color: TH.accent, background: 'none', border: 'none', cursor: 'pointer' }}>View All ({portfolio.length}) →</button> : null}>🖼️ Portfolio</H2>
-              {can('portfolio', plan) ? (
-                shownPortfolio.length ? (
+            {can('portfolio', plan) && (
+              <Card TH={TH} id="portfolio">
+                <H2 TH={TH} right={portfolio.length > 6 ? <button onClick={() => setShowAllGallery(true)} style={{ fontSize: 11, fontWeight: 700, color: TH.accent, background: 'none', border: 'none', cursor: 'pointer' }}>View All ({portfolio.length}) →</button> : null}>🖼️ Portfolio</H2>
+                {shownPortfolio.length ? (
                   <div className="td-mgal" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 9 }}>
                     {shownPortfolio.slice(0, 6).map(p => <PortCard key={p.id} p={p} />)}
                   </div>
-                ) : <div style={{ textAlign: 'center', padding: 24, color: TH.t3, fontSize: 12, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🖼️ No work posted yet</div>
-              ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Silver plan and above</div>}
-            </Card>
+                ) : <div style={{ textAlign: 'center', padding: 24, color: TH.t3, fontSize: 12, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🖼️ No work posted yet</div>}
+              </Card>
+            )}
 
             <Card TH={TH}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
@@ -630,34 +634,36 @@ export default function PublicProfile() {
               </Card>
             )}
 
-            <Card TH={TH}>
-              <H2 TH={TH}>📈 Customer Sentiment</H2>
-              {can('sentiment', plan) ? (() => {
-                const dist = [5,4,3,2,1].map(s => reviews.filter(r => r.rating === s).length)
-                const maxD = Math.max(...dist, 1)
-                const pos = reviews.filter(r => r.rating >= 4).length, neu = reviews.filter(r => r.rating === 3).length, neg = reviews.filter(r => r.rating <= 2).length
-                const tot = reviews.length || 1
-                return (
-                  <div>
-                    <div style={{ display: 'flex', gap: 22, marginBottom: 12 }}>
-                      <div><div style={{ fontSize: 11, color: TH.green, fontWeight: 700 }}>● Positive</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800, color: TH.green }}><Counter to={Math.round(pos / tot * 100)} suffix="%" /></div></div>
-                      <div><div style={{ fontSize: 11, color: TH.t2, fontWeight: 700 }}>● Neutral</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800 }}><Counter to={Math.round(neu / tot * 100)} suffix="%" /></div></div>
-                      <div><div style={{ fontSize: 11, color: TH.red, fontWeight: 700 }}>● Negative</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800, color: TH.red }}><Counter to={Math.round(neg / tot * 100)} suffix="%" /></div></div>
+            {can('sentiment', plan) && (
+              <Card TH={TH}>
+                <H2 TH={TH}>📈 Customer Sentiment</H2>
+                {(() => {
+                  const dist = [5,4,3,2,1].map(s => reviews.filter(r => r.rating === s).length)
+                  const maxD = Math.max(...dist, 1)
+                  const pos = reviews.filter(r => r.rating >= 4).length, neu = reviews.filter(r => r.rating === 3).length, neg = reviews.filter(r => r.rating <= 2).length
+                  const tot = reviews.length || 1
+                  return (
+                    <div>
+                      <div style={{ display: 'flex', gap: 22, marginBottom: 12 }}>
+                        <div><div style={{ fontSize: 11, color: TH.green, fontWeight: 700 }}>● Positive</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800, color: TH.green }}><Counter to={Math.round(pos / tot * 100)} suffix="%" /></div></div>
+                        <div><div style={{ fontSize: 11, color: TH.t2, fontWeight: 700 }}>● Neutral</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800 }}><Counter to={Math.round(neu / tot * 100)} suffix="%" /></div></div>
+                        <div><div style={{ fontSize: 11, color: TH.red, fontWeight: 700 }}>● Negative</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800, color: TH.red }}><Counter to={Math.round(neg / tot * 100)} suffix="%" /></div></div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 130, borderBottom: `1px solid ${TH.line}`, padding: '0 6px' }}>
+                        {[5,4,3,2,1].map((star, i) => (
+                          <div key={star} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
+                            <div style={{ fontSize: 9, color: TH.t3 }}>{dist[i]}</div>
+                            <div style={{ width: '55%', maxWidth: 24, height: `${Math.max(3, dist[i] / maxD * 100)}%`, background: star >= 4 ? TH.green : star === 3 ? TH.gold : TH.red, borderRadius: '5px 5px 0 0', transition: 'height 1s cubic-bezier(.3,1,.4,1)' }} />
+                            <div style={{ fontSize: 9, color: TH.t3 }}>{star}★</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 10, fontSize: 9.5, color: TH.t2, flexWrap: 'wrap' }}><span>● Positive (4-5★)</span><span style={{ color: TH.gold }}>● Neutral (3★)</span><span style={{ color: TH.red }}>● Negative (1-2★)</span></div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 130, borderBottom: `1px solid ${TH.line}`, padding: '0 6px' }}>
-                      {[5,4,3,2,1].map((star, i) => (
-                        <div key={star} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
-                          <div style={{ fontSize: 9, color: TH.t3 }}>{dist[i]}</div>
-                          <div style={{ width: '55%', maxWidth: 24, height: `${Math.max(3, dist[i] / maxD * 100)}%`, background: star >= 4 ? TH.green : star === 3 ? TH.gold : TH.red, borderRadius: '5px 5px 0 0', transition: 'height 1s cubic-bezier(.3,1,.4,1)' }} />
-                          <div style={{ fontSize: 9, color: TH.t3 }}>{star}★</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div style={{ display: 'flex', gap: 14, justifyContent: 'center', marginTop: 10, fontSize: 9.5, color: TH.t2, flexWrap: 'wrap' }}><span>● Positive (4-5★)</span><span style={{ color: TH.gold }}>● Neutral (3★)</span><span style={{ color: TH.red }}>● Negative (1-2★)</span></div>
-                  </div>
-                )
-              })() : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
-            </Card>
+                  )
+                })()}
+              </Card>
+            )}
 
             {leadForm && (
               <Card TH={TH}>
@@ -687,13 +693,11 @@ export default function PublicProfile() {
 
           {/* RIGHT */}
           <div>
-            <Card TH={TH}>
-              <H2 TH={TH}>🏅 Achievements</H2>
-              {can('badges', plan) ? (
+            {can('badges', plan) && badges.length > 0 && (
+              <Card TH={TH}>
+                <H2 TH={TH}>🏅 Achievements</H2>
                 <div style={{ display: 'grid', gap: 9 }}>
-                  {Array.from({ length: Math.max(3, badges.length) }).map((_, i) => {
-                    const b = badges[i]
-                    if (!b) return <div key={i} style={{ border: `1px dashed ${TH.line}`, borderRadius: 12, padding: '14px', textAlign: 'center', background: TH.soft, color: TH.t3, fontSize: 10 }}><div style={{ fontSize: 22, opacity: 0.4 }}>🏅</div><div style={{ marginTop: 5 }}>No badge yet</div></div>
+                  {badges.map((b, i) => {
                     const bc = b.style === 'navy' ? TH.blue : b.style === 'red' ? TH.red : TH.gold
                     return (
                       <div key={i} className="td-shine" style={{ border: `1.5px solid ${bc}`, borderRadius: 12, padding: '15px', textAlign: 'center', background: TH.dark ? `${bc}1f` : (b.style === 'red' ? 'linear-gradient(180deg,#fdf3f4,#fff)' : b.style === 'navy' ? 'linear-gradient(180deg,#f3f7fc,#fff)' : 'linear-gradient(180deg,#fdfaf0,#fff)') }}>
@@ -704,13 +708,13 @@ export default function PublicProfile() {
                     )
                   })}
                 </div>
-              ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Silver plan and above</div>}
-            </Card>
+              </Card>
+            )}
 
-            <Card TH={TH}>
-              <H2 TH={TH}>📊 Business Insights</H2>
-              {can('businessInsights', plan) ? (
-                [
+            {can('businessInsights', plan) && (
+              <Card TH={TH}>
+                <H2 TH={TH}>📊 Business Insights</H2>
+                {[
                   { k: 'Profile Views', v: company.profile_views || 0, c: TH.accent, suff: '' },
                   { k: 'Total Reviews', v: company.total_reviews || reviews.length, c: TH.blue, suff: '' },
                   { k: 'Avg Rating', v: company.avg_rating || 0, c: TH.green, suff: '★', dec: 1 },
@@ -719,9 +723,9 @@ export default function PublicProfile() {
                     <span style={{ fontSize: 10.5, color: TH.t2, fontWeight: 600 }}>{m.k}</span>
                     <span style={{ fontFamily: "'Sora',sans-serif", fontSize: 18, fontWeight: 800, color: m.c }}><Counter to={m.v} decimals={m.dec || 0} suffix={m.suff} /></span>
                   </div>
-                ))
-              ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
-            </Card>
+                ))}
+              </Card>
+            )}
 
             {/* DOCUMENT VERIFICATION */}
             {docVerifiedCount > 0 && (
@@ -758,21 +762,21 @@ export default function PublicProfile() {
               </Card>
             )}
 
-            <Card TH={TH}>
-              <H2 TH={TH}>❓ FAQ</H2>
-              {can('faq', plan) ? (
-                faqs.length ? faqs.map((f, i) => (
+            {can('faq', plan) && faqs.length > 0 && (
+              <Card TH={TH}>
+                <H2 TH={TH}>❓ FAQ</H2>
+                {faqs.map((f, i) => (
                   <div key={f.id} onClick={() => setOpenFaq(openFaq === i ? -1 : i)} style={{ borderBottom: i < faqs.length - 1 ? `1px solid ${TH.line}` : 'none', padding: '10px 2px', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600 }}>{f.question}<span style={{ color: TH.t3 }}>{openFaq === i ? '▴' : '▾'}</span></div>
                     {openFaq === i && <div style={{ fontSize: 11, color: TH.t2, marginTop: 7, lineHeight: 1.5 }}>{f.answer}</div>}
                   </div>
-                )) : <div style={{ textAlign: 'center', padding: 16, color: TH.t3, fontSize: 11 }}>No FAQs added yet.</div>
-              ) : <div style={{ textAlign: 'center', padding: 18, color: TH.t3, fontSize: 11, border: `1px dashed ${TH.line}`, borderRadius: 10 }}>🔒 Gold plan and above</div>}
-            </Card>
+                ))}
+              </Card>
+            )}
 
-            <Card TH={TH}>
-              <H2 TH={TH}>🔗 Related Businesses</H2>
-              {can('relatedBusiness', plan) && related.length ? (
+            {can('relatedBusiness', plan) && related.length > 0 && (
+              <Card TH={TH}>
+                <H2 TH={TH}>🔗 Related Businesses</H2>
                 <div style={{ display: 'grid', gap: 8 }}>
                   {related.slice(0, 5).map((rc, i) => (
                     <div key={i} onClick={() => { if (rc.slug) window.location.href = '/' + rc.slug }} style={{ border: `1px solid ${TH.line}`, borderRadius: 10, padding: 11, background: TH.soft, cursor: 'pointer' }}>
@@ -782,8 +786,8 @@ export default function PublicProfile() {
                     </div>
                   ))}
                 </div>
-              ) : <div style={{ textAlign: 'center', padding: 16, color: TH.t3, fontSize: 11 }}>No related businesses found.</div>}
-            </Card>
+              </Card>
+            )}
           </div>
         </div>
 
