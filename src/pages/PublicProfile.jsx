@@ -353,7 +353,12 @@ export default function PublicProfile() {
   const today = new Date().toISOString().slice(0, 10)
   function docVerified(doc) {
     if (doc.source === 'company_column') {
-      if (doc.source_field === 'owner_eid_status') return company.owner_eid_status === 'verified'
+      if (doc.source_field === 'owner_eid_status') {
+        // Owner EID: must be verified AND not expired (if expiry is set)
+        if (company.owner_eid_status !== 'verified') return false
+        if (company.owner_eid_expiry && company.owner_eid_expiry < today) return false
+        return true
+      }
       if (doc.source_field === 'phone_verified_at') return !!company.phone_verified_at
       if (doc.source_field === 'email_auto') return !!company.owner_email
       if (doc.source_field === 'trade_license_status') return company.trade_license_status === 'verified'
