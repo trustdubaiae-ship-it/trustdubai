@@ -39,6 +39,252 @@ function Logo({ size = 15 }) {
   )
 }
 
+/* ============ GET QUOTES BUTTON (reusable) ============ */
+function GetQuotesButton({ onClick, mobile }) {
+  return (
+    <button onClick={onClick}
+      style={{ width:'100%', maxWidth: mobile?'100%':440, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'center', gap:7,
+        background:'#0099cc', color:'#fff', border:'none', borderRadius:mobile?10:12, padding:mobile?'11px':'13px',
+        fontSize:mobile?13:14.5, fontWeight:700, cursor:'pointer', boxShadow:'0 4px 14px rgba(0,153,204,0.3)', transition:'all 0.15s' }}
+      onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 6px 18px rgba(0,153,204,0.4)' }}
+      onMouseLeave={e=>{ e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='0 4px 14px rgba(0,153,204,0.3)' }}>
+      <i className="ti ti-sparkles" style={{ fontSize:mobile?14:16 }} /> Get 3 Free Quotes
+    </button>
+  )
+}
+
+/* ============ LEAD QUOTE MODAL ============ */
+function LeadQuoteModal({ open, onClose, customer, mobile }) {
+  const [form, setForm]         = useState(null)
+  const [questions, setQuestions] = useState([])
+  const [answers, setAnswers]   = useState({})
+  const [loading, setLoading]   = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [done, setDone]         = useState(false)
+  const [error, setError]       = useState('')
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    if (open) { loadForm(); setDone(false); setAnswers({}); setError('') }
+  }, [open])
+
+  async function loadForm() {
+    setLoading(true)
+    try {
+      const { data: f } = await supabase
+        .from('lead_forms')
+        .select('*')
+        .eq('is_platform', true)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle()
+      if (!f) { setForm(null); setLoading(false); return }
+      setForm(f)
+      const { data: qs } = await supabase
+        .from('lead_form_questions')
+        .select('*')
+        .eq('form_id', f.id)
+        .order('order_num', { ascending: true })
+      setQuestions(qs || [])
+      // categories for service_category dropdown
+      const { data: cats } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+      setCategories((cats || []).map(c => c.name))
+      // track view + increment view_count
+      await supabase.from('lead_form_views').insert({ form_id: f.id, source_url: 'home' })
+      await supabase.from('lead_forms').update({ view_count: (f.view_count || 0) + 1 }).eq('id', f.id)
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }
+
+  function setAns(qid, val) { setAnswers(prev => ({ ...prev, [qid]: val })) }
+
+  function toggleMulti(qid, opt) {
+    setAnswers(prev => {
+      const cur = Array.isArray(prev[qid]) ? prev[qid] : []
+      return { ...prev, [qid]: cur.includes(opt) ? cur.filter(x => x !== opt) : [...cur, opt] }
+    })
+  }
+
+  function optionsFor(q) {
+    if ((q.question || '').toLowerCase().includes('service category') && (!q.options || !q.options.length)) return categories
+    return Array.isArray(q.options) ? q.options : []
+  }
+
+  async function submit() {
+    // required check
+    for (const q of questions) {
+      if (q.required) {
+        const a = answers[q.id]
+        if (a == null || a === '' || (Array.isArray(a) && a.length === 0)) {
+          setError('Please fill: ' + q.question); return
+        }
+      }
+    }
+    setError('')
+    setSubmitting(true)
+    try {
+      const answerObj = {}
+      questions.forEach(q => { answerObj[q.question] = answers[q.id] ?? '' })
+      const { error: insErr } = await supabase.from('lead_submissions').insert({
+        form_id: form.id,
+        name: customer.full_name || customer.email?.split('@')[0] || 'Customer',
+        phone: customer.phone || '',
+        email: customer.email || '',
+        answers: answerObj,
+        source_url: 'home',
+        customer_id: customer.id || null,
+        status: 'new',
+      })
+      if (insErr) throw insErr
+      await supabase.from('lead_forms').update({ submit_count: (form.submit_count || 0) + 1 }).eq('id', form.id)
+      setDone(true)
+    } catch (e) { console.error(e); setError('Something went wrong. Please try again.') }
+    finally { setSubmitting(false) }
+  }
+
+  if (!open) return null
+
+  const overlay = { position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:3000, display:'flex',
+    alignItems: mobile ? 'flex-end' : 'center', justifyContent:'center' }
+  const sheet = { background:'var(--bg-card)', border:'0.5px solid var(--border-default)',
+    borderRadius: mobile ? '18px 18px 0 0' : 14, padding: mobile ? '14px 16px 22px' : 24,
+    width: mobile ? '100%' : 400, maxWidth: mobile ? '100%' : '92vw', maxHeight:'88vh', overflowY:'auto' }
+
+  return (
+    <div style={overlay} onClick={onClose}>
+      <div style={sheet} onClick={e => e.stopPropagation()}>
+        {mobile && <div style={{ width:34, height:4, background:'var(--border-default)', borderRadius:99, margin:'0 auto 12px' }} />}
+
+        {done ? (
+          <div style={{ textAlign:'center', padding:'18px 0 8px' }}>
+            <div style={{ width:54, height:54, borderRadius:'50%', background:'#f0fdf4', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}>
+              <i className="ti ti-check" style={{ fontSize:28, color:'#10b981' }} />
+            </div>
+            <div style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)', marginBottom:6 }}>Request received!</div>
+            <div style={{ fontSize:12.5, color:'var(--text-muted)', lineHeight:1.5, marginBottom:18 }}>
+              We're matching you with top trusted companies. You'll hear from them shortly.
+            </div>
+            <button onClick={onClose}
+              style={{ padding:'10px 22px', background:'var(--bg-secondary)', color:'var(--text-primary)', border:'0.5px solid var(--border-default)', borderRadius:9, fontSize:13, fontWeight:600, cursor:'pointer' }}>
+              Done
+            </button>
+          </div>
+        ) : (
+          <>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:3 }}>
+              <div style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)' }}>{form?.title || 'Get Free Quotes'}</div>
+              <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:18, lineHeight:1 }}>×</button>
+            </div>
+            <div style={{ fontSize:11.5, color:'var(--text-muted)', marginBottom:16 }}>
+              {form?.description || "Answer a few questions — we'll match you with up to 3 trusted companies."}
+            </div>
+
+            {loading ? (
+              <div style={{ textAlign:'center', padding:30, color:'var(--text-muted)', fontSize:13 }}>
+                <div style={{ width:28, height:28, border:'3px solid #0099cc', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 10px' }} />
+                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                Loading...
+              </div>
+            ) : !form ? (
+              <div style={{ textAlign:'center', padding:24, color:'var(--text-muted)', fontSize:13 }}>
+                Quote requests are not available right now. Please try again later.
+              </div>
+            ) : (
+              <>
+                <div style={{ display:'flex', flexDirection:'column', gap:13, marginBottom:14 }}>
+                  {questions.map(q => {
+                    const opts = optionsFor(q)
+                    return (
+                      <div key={q.id}>
+                        <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>
+                          {q.question}{q.required && <span style={{ color:'#ef4444' }}> *</span>}
+                        </div>
+                        {q.help_text && <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:5 }}>{q.help_text}</div>}
+
+                        {(q.type === 'dropdown') && (
+                          <select value={answers[q.id] || ''} onChange={e => setAns(q.id, e.target.value)}
+                            style={inpStyle}>
+                            <option value="">Select...</option>
+                            {opts.map(o => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        )}
+
+                        {(q.type === 'multiselect') && (
+                          <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                            {opts.map(o => {
+                              const on = Array.isArray(answers[q.id]) && answers[q.id].includes(o)
+                              return (
+                                <button key={o} onClick={() => toggleMulti(q.id, o)}
+                                  style={{ fontSize:11.5, padding:'7px 12px', borderRadius:99, cursor:'pointer',
+                                    border:`0.5px solid ${on ? '#0099cc' : 'var(--border-default)'}`,
+                                    background: on ? '#0099cc' : 'var(--bg-secondary)', color: on ? '#fff' : 'var(--text-primary)' }}>
+                                  {o}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {(q.type === 'yesno') && (
+                          <div style={{ display:'flex', gap:8 }}>
+                            {['Yes','No'].map(o => {
+                              const on = answers[q.id] === o
+                              return (
+                                <button key={o} onClick={() => setAns(q.id, o)}
+                                  style={{ flex:1, fontSize:12.5, padding:'9px', borderRadius:8, cursor:'pointer',
+                                    border:`0.5px solid ${on ? '#0099cc' : 'var(--border-default)'}`,
+                                    background: on ? '#0099cc' : 'var(--bg-secondary)', color: on ? '#fff' : 'var(--text-primary)', fontWeight:600 }}>
+                                  {o}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {(q.type === 'textarea') && (
+                          <textarea value={answers[q.id] || ''} onChange={e => setAns(q.id, e.target.value)}
+                            placeholder={q.placeholder || ''} rows={3} style={{ ...inpStyle, resize:'none', fontFamily:'inherit' }} />
+                        )}
+
+                        {(q.type === 'text' || q.type === 'number' || q.type === 'phone' || q.type === 'email') && (
+                          <input
+                            type={q.type === 'number' ? 'number' : q.type === 'email' ? 'email' : q.type === 'phone' ? 'tel' : 'text'}
+                            value={answers[q.id] || ''} onChange={e => setAns(q.id, e.target.value)}
+                            placeholder={q.placeholder || ''} style={inpStyle} />
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px 11px', fontSize:10.5, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
+                  <i className="ti ti-user-check" style={{ fontSize:13 }} />
+                  Signed in as {customer.full_name || customer.email?.split('@')[0]} — name &amp; phone auto-attached
+                </div>
+
+                {error && <div style={{ fontSize:11.5, color:'#dc2626', marginBottom:10 }}>{error}</div>}
+
+                <button onClick={submit} disabled={submitting}
+                  style={{ width:'100%', padding:'12px', background:'#0099cc', color:'#fff', border:'none', borderRadius:9, fontSize:14, fontWeight:700, cursor:'pointer', opacity:submitting?0.7:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                  {submitting
+                    ? <><div style={{ width:15, height:15, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin 0.8s linear infinite' }}/> Submitting...<style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></>
+                    : <><i className="ti ti-send" style={{ fontSize:14 }}/> Submit request</>
+                  }
+                </button>
+              </>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+const inpStyle = { width:'100%', padding:'10px 12px', background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, fontSize:12.5, color:'var(--text-primary)', outline:'none', boxSizing:'border-box' }
+
 function TrustWave({ score }) {
   const bars = [4,8,12,6,10,14,8,5,11,7,9,13,6,10,8,12,5,9,11,7,8,11,7,13]
   return (
@@ -321,7 +567,7 @@ function RightPanel({ recentReviews }) {
         </div>
       </div>
 
-      {/* Quote Modal */}
+      {/* Sponsored Quote Modal */}
       {quoteModal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:14, padding:24, width:360, maxWidth:'90vw' }}>
@@ -473,6 +719,8 @@ export default function Home({ navigate }) {
   const [customer,      setCustomer]      = useState(null)
   const [showUserMenu,  setShowUserMenu]  = useState(false)
   const [blockedMsg,    setBlockedMsg]    = useState(null)
+  const [hasActiveForm, setHasActiveForm] = useState(false)
+  const [leadModalOpen, setLeadModalOpen] = useState(false)
   const device    = useDevice()
   const isMobile  = device === 'mobile'
   const isTablet  = device === 'tablet'
@@ -483,6 +731,7 @@ export default function Home({ navigate }) {
   useEffect(() => {
     fetchAll()
     fetchCategories()
+    checkActiveForm()
     checkCustomer()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event==='SIGNED_IN' && session?.user) {
@@ -494,6 +743,24 @@ export default function Home({ navigate }) {
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  async function checkActiveForm() {
+    try {
+      const { data } = await supabase
+        .from('lead_forms')
+        .select('id')
+        .eq('is_platform', true)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle()
+      setHasActiveForm(!!data)
+    } catch(e) { console.error(e) }
+  }
+
+  function openQuotes() {
+    if (!customer) { signInWithGoogle(); return }
+    setLeadModalOpen(true)
+  }
 
   async function fetchCategories() {
     try {
@@ -667,9 +934,15 @@ export default function Home({ navigate }) {
           <p style={{ fontSize:12, color:'var(--text-muted)', marginBottom:12, lineHeight:1.6 }}>
             Verified companies · Real reviews from real customers
           </p>
-          <div style={{ maxWidth:440, margin:'0 auto 12px' }}>
+          <div style={{ maxWidth:440, margin:'0 auto 10px' }}>
             <SearchBar placeholder="AC repair, plumbing, renovation..." onSearch={q=>navigate('search',{query:q})} />
           </div>
+          {hasActiveForm && (
+            <div style={{ maxWidth:440, margin:'0 auto 12px' }}>
+              <GetQuotesButton onClick={openQuotes} />
+              <div style={{ fontSize:9, color:'var(--text-muted)', marginTop:6 }}>Tell us once — we match you with up to 3 trusted companies</div>
+            </div>
+          )}
           <div style={{ display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap' }}>
             {[['companies','Companies'],['reviews','Reviews'],['avgRating','Avg Rating'],['verified','Verified']].map(([k,l])=>(
               <div key={k} style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, padding:'6px 12px', textAlign:'center', minWidth:65 }}>
@@ -821,10 +1094,13 @@ export default function Home({ navigate }) {
     )
   }
 
+  const LeadModal = <LeadQuoteModal open={leadModalOpen} onClose={()=>setLeadModalOpen(false)} customer={customer} mobile={isMobile} />
+
   if (isMobile) {
     return (
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', paddingBottom:72, overflowX:'hidden' }}>
         {BlockedBanner}
+        {LeadModal}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100 }}>
           <Logo size={14} />
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
@@ -877,6 +1153,12 @@ export default function Home({ navigate }) {
           </h1>
           <p style={{ fontSize:11, color:'var(--text-muted)', marginBottom:12 }}>Real reviews from real customers in Dubai</p>
           <SearchBar placeholder="AC repair, plumbing, interiors..." onSearch={q=>navigate('search',{query:q})} />
+          {hasActiveForm && (
+            <div style={{ marginTop:10 }}>
+              <GetQuotesButton onClick={openQuotes} mobile />
+              <div style={{ fontSize:8.5, color:'var(--text-muted)', marginTop:6 }}>Tell us once — we match you with top companies</div>
+            </div>
+          )}
         </div>
         <div style={{ padding:'10px 14px 6px' }}>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:7 }}>
@@ -913,6 +1195,7 @@ export default function Home({ navigate }) {
     return (
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
         {BlockedBanner}
+        {LeadModal}
         <Topbar />
         <Hero />
         <div style={{ display:'flex' }}>
@@ -947,6 +1230,7 @@ export default function Home({ navigate }) {
   return (
     <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
       {BlockedBanner}
+      {LeadModal}
       <Topbar />
       <Hero />
       <div style={{ display:'flex', alignItems:'stretch' }}>
