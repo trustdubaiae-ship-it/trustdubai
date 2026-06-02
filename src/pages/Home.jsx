@@ -5,21 +5,6 @@ import CompanyCard from '../components/CompanyCard'
 import { SearchBar } from '../components/SearchBar'
 import { ThemeToggle } from '../components/ThemeToggle'
 
-const CATEGORIES = [
-  { name: 'Interior',   icon: '🛋️', cat: 'Interior Design' },
-  { name: 'AC Service', icon: '❄️', cat: 'AC Service' },
-  { name: 'Plumbing',   icon: '🔧', cat: 'Plumbing' },
-  { name: 'Cleaning',   icon: '🧹', cat: 'Cleaning' },
-  { name: 'Painting',   icon: '🎨', cat: 'Painting' },
-  { name: 'Renovation', icon: '🏗️', cat: 'Renovation' },
-  { name: 'Electrical', icon: '⚡', cat: 'Electrical' },
-  { name: 'Handyman',   icon: '🔨', cat: 'Handyman' },
-  { name: 'Flooring',   icon: '🏠', cat: 'Flooring' },
-  { name: 'Bathroom',   icon: '🛁', cat: 'Bathroom' },
-  { name: 'Windows',    icon: '🪟', cat: 'Windows' },
-  { name: 'Landscape',  icon: '🌿', cat: 'Landscaping' },
-]
-
 const MAP_PINS = [
   { top: '30%', left: '34%' }, { top: '44%', left: '52%' },
   { top: '56%', left: '22%' }, { top: '22%', left: '66%' },
@@ -480,6 +465,7 @@ export default function Home({ navigate }) {
   const [nearCos,       setNearCos]       = useState([])
   const [newCos,        setNewCos]        = useState([])
   const [recentReviews, setRecentReviews] = useState([])
+  const [categories,    setCategories]    = useState([])
   const [stats,         setStats]         = useState({ companies:0, reviews:0, avgRating:'0.0', verified:0 })
   const [reviewData,    setReviewData]    = useState({ total:0, s5:0, s4:0, s3:0, s2:0, s1:0, s5_pct:0, s4_pct:0 })
   const [trustScore,    setTrustScore]    = useState(0)
@@ -496,6 +482,7 @@ export default function Home({ navigate }) {
 
   useEffect(() => {
     fetchAll()
+    fetchCategories()
     checkCustomer()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event==='SIGNED_IN' && session?.user) {
@@ -507,6 +494,17 @@ export default function Home({ navigate }) {
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  async function fetchCategories() {
+    try {
+      const { data } = await supabase
+        .from('categories')
+        .select('id, name, icon, type, sort_order')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+      setCategories(data || [])
+    } catch(e) { console.error(e) }
+  }
 
   async function fetchAll() {
     try {
@@ -696,14 +694,16 @@ export default function Home({ navigate }) {
           <span style={{ fontSize:8, color:'var(--text-muted)' }}>← swipe →</span>
         </div>
         <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
-          {CATEGORIES.map((c,i)=>(
-            <div key={c.cat} onClick={()=>navigate('search',{category:c.cat})}
+          {categories.length === 0 ? (
+            [1,2,3,4,5,6].map(i => <div key={i} style={{ flexShrink:0, width:52, height:52, background:'var(--bg-secondary)', borderRadius:9 }} />)
+          ) : categories.map((c,i)=>(
+            <div key={c.id} onClick={()=>navigate('search',{category:c.name})}
               style={{ flexShrink:0, width:52, height:52, background:i===0?'#f0faff':'var(--bg-secondary)', border:`0.5px solid ${i===0?'#0099cc':'var(--border-default)'}`, borderRadius:9, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:3, cursor:'pointer', transition:'all 0.15s' }}
               onMouseEnter={e=>{ e.currentTarget.style.borderColor='#0099cc'; e.currentTarget.style.background='#f0faff' }}
               onMouseLeave={e=>{ if(i!==0){ e.currentTarget.style.borderColor='var(--border-default)'; e.currentTarget.style.background='var(--bg-secondary)' }}}
             >
-              <span style={{ fontSize:17, lineHeight:1 }}>{c.icon}</span>
-              <span style={{ fontSize:7, color:i===0?'#0099cc':'var(--text-muted)', fontWeight:i===0?600:400, textAlign:'center' }}>{c.name}</span>
+              <span style={{ fontSize:17, lineHeight:1 }}>{c.icon || '🏷️'}</span>
+              <span style={{ fontSize:7, color:i===0?'#0099cc':'var(--text-muted)', fontWeight:i===0?600:400, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>{c.name}</span>
             </div>
           ))}
         </div>
@@ -880,12 +880,14 @@ export default function Home({ navigate }) {
         </div>
         <div style={{ padding:'10px 14px 6px' }}>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:7 }}>
-            {CATEGORIES.slice(0,8).map(c=>(
-              <div key={c.cat} onClick={()=>navigate('search',{category:c.cat})} style={{ cursor:'pointer' }}>
+            {categories.length === 0 ? (
+              [1,2,3,4,5,6,7,8].map(i => <div key={i} style={{ width:'100%', paddingTop:'100%', background:'var(--bg-card)', borderRadius:10 }} />)
+            ) : categories.slice(0,8).map(c=>(
+              <div key={c.id} onClick={()=>navigate('search',{category:c.name})} style={{ cursor:'pointer' }}>
                 <div style={{ position:'relative', width:'100%', paddingTop:'100%', background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, overflow:'hidden' }}>
                   <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4 }}>
-                    <span style={{ fontSize:20, lineHeight:1 }}>{c.icon}</span>
-                    <span style={{ fontSize:8, color:'var(--text-muted)', textAlign:'center', fontWeight:500 }}>{c.name}</span>
+                    <span style={{ fontSize:20, lineHeight:1 }}>{c.icon || '🏷️'}</span>
+                    <span style={{ fontSize:8, color:'var(--text-muted)', textAlign:'center', fontWeight:500, padding:'0 2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>{c.name}</span>
                   </div>
                 </div>
               </div>
