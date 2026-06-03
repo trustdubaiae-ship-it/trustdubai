@@ -86,14 +86,12 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
         .eq('form_id', f.id)
         .order('order_num', { ascending: true })
       setQuestions(qs || [])
-      // categories for service_category dropdown
       const { data: cats } = await supabase
         .from('categories')
         .select('name')
         .eq('is_active', true)
         .order('sort_order', { ascending: true })
       setCategories((cats || []).map(c => c.name))
-      // track view + increment view_count
       await supabase.from('lead_form_views').insert({ form_id: f.id, source_url: 'home' })
       await supabase.from('lead_forms').update({ view_count: (f.view_count || 0) + 1 }).eq('id', f.id)
     } catch (e) { console.error(e) }
@@ -115,7 +113,6 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   }
 
   async function submit() {
-    // required check
     for (const q of questions) {
       if (q.required) {
         const a = answers[q.id]
@@ -452,7 +449,6 @@ function RightPanel({ recentReviews }) {
   return (
     <div style={{ width:230, flexShrink:0, background:'var(--bg-card)', borderLeft:'0.5px solid var(--border-default)', padding:12, display:'flex', flexDirection:'column', gap:14, overflowY:'auto' }}>
 
-      {/* Sponsored */}
       <div>
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-ad-2" style={{ fontSize:11, color:'#0099cc' }}/> Sponsored
@@ -490,7 +486,6 @@ function RightPanel({ recentReviews }) {
         })}
       </div>
 
-      {/* Trending */}
       <div>
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-trending-up" style={{ fontSize:11, color:'#0099cc' }}/> Trending
@@ -512,7 +507,6 @@ function RightPanel({ recentReviews }) {
         ))}
       </div>
 
-      {/* Recent Reviews */}
       <div>
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-message-circle" style={{ fontSize:11, color:'#0099cc' }}/> Recent Reviews
@@ -531,7 +525,6 @@ function RightPanel({ recentReviews }) {
         ))}
       </div>
 
-      {/* Newsletter */}
       <div style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:10 }}>
         <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-mail" style={{ fontSize:11, color:'#0099cc' }}/> Service Deals
@@ -549,7 +542,6 @@ function RightPanel({ recentReviews }) {
         )}
       </div>
 
-      {/* App Download */}
       <div style={{ background:'#1a2744', borderRadius:10, padding:10 }}>
         <div style={{ fontSize:10, fontWeight:700, color:'#fff', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-device-mobile" style={{ fontSize:11, color:'#0099cc' }}/> Download App
@@ -567,7 +559,6 @@ function RightPanel({ recentReviews }) {
         </div>
       </div>
 
-      {/* Sponsored Quote Modal */}
       {quoteModal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:14, padding:24, width:360, maxWidth:'90vw' }}>
@@ -832,7 +823,6 @@ export default function Home({ navigate }) {
     return String(n||0)
   }
 
-  // Business email blocked banner (sab layouts ke upar)
   const BlockedBanner = blockedMsg ? (
     <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:3000, background:'#fef2f2', borderBottom:'1px solid #fecaca', padding:'12px 18px', display:'flex', alignItems:'center', gap:12 }}>
       <i className="ti ti-alert-triangle" style={{ fontSize:20, color:'#dc2626', flexShrink:0 }} />
@@ -1161,17 +1151,20 @@ export default function Home({ navigate }) {
           )}
         </div>
         <div style={{ padding:'10px 14px 6px' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:7 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+            <span style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase' }}>Categories</span>
+            <button onClick={()=>navigate('search',{})} style={{ background:'none', border:'none', fontSize:9, color:'#0099cc', cursor:'pointer', fontWeight:600 }}>View all</button>
+          </div>
+          <div style={{ display:'flex', gap:9, overflowX:'auto', paddingBottom:4, scrollbarWidth:'none', msOverflowStyle:'none' }}>
             {categories.length === 0 ? (
-              [1,2,3,4,5,6,7,8].map(i => <div key={i} style={{ width:'100%', paddingTop:'100%', background:'var(--bg-card)', borderRadius:10 }} />)
-            ) : categories.slice(0,8).map(c=>(
-              <div key={c.id} onClick={()=>navigate('search',{category:c.name})} style={{ cursor:'pointer' }}>
-                <div style={{ position:'relative', width:'100%', paddingTop:'100%', background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, overflow:'hidden' }}>
-                  <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4 }}>
-                    <span style={{ fontSize:20, lineHeight:1 }}>{c.icon || '🏷️'}</span>
-                    <span style={{ fontSize:8, color:'var(--text-muted)', textAlign:'center', fontWeight:500, padding:'0 2px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>{c.name}</span>
-                  </div>
+              [1,2,3,4,5,6].map(i => <div key={i} style={{ flexShrink:0, width:70, height:70, background:'var(--bg-card)', borderRadius:14 }} />)
+            ) : categories.map(c=>(
+              <div key={c.id} onClick={()=>navigate('search',{category:c.name})}
+                style={{ flexShrink:0, width:70, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+                <div style={{ width:70, height:70, background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:14, display:'flex', alignItems:'center', justifyContent:'center', fontSize:30 }}>
+                  {c.icon || '🏷️'}
                 </div>
+                <span style={{ fontSize:9, color:'var(--text-secondary)', textAlign:'center', fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>{c.name}</span>
               </div>
             ))}
           </div>
