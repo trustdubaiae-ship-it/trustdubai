@@ -1138,6 +1138,10 @@ export default function Home({ navigate }) {
           </div>
         </div>
         <div style={{ background:'var(--bg-card)', padding:'16px 14px 14px', borderBottom:'0.5px solid var(--border-default)', textAlign:'center' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:99, padding:'3px 10px', marginBottom:10 }}>
+            <i className="ti ti-shield-check" style={{ fontSize:10, color:'#0099cc' }} />
+            <span style={{ fontSize:9, color:'#0099cc', fontWeight:600 }}>Dubai's Most Trusted Review Platform</span>
+          </div>
           <h1 style={{ fontSize:22, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.5px', lineHeight:1.1, marginBottom:5 }}>
             Find Trusted <span style={{ color:'#0099cc' }}>Services</span>
           </h1>
