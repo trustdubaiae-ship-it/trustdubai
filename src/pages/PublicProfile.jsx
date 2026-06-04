@@ -170,7 +170,7 @@ function ShieldRing({ TH, value, suffix = '', fillPct, ringColor, gradId, gradTo
 
 export default function PublicProfile() {
   const { slug } = useParams()
-  const [dark, setDark] = useState(false)
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem('td_theme') === 'dark' } catch { return false } })
   const [company, setCompany] = useState(null)
   const [reviews, setReviews] = useState([])
   const [portfolio, setPortfolio] = useState([])
@@ -224,6 +224,11 @@ export default function PublicProfile() {
     })
     return () => subscription.unsubscribe()
   }, [slug])
+
+  // Persist dark/light theme across refresh
+  useEffect(() => {
+    try { localStorage.setItem('td_theme', dark ? 'dark' : 'light') } catch (e) {}
+  }, [dark])
 
   async function checkCustomer() { setCustomer((await getCustomer()) || null) }
   async function fetchAiSetting() { const { data } = await supabase.from('app_settings').select('value').eq('key', 'feature.ai_analysis').maybeSingle(); setAiAnalysisOn(data?.value?.enabled === true); const { data: g } = await supabase.from('app_settings').select('value').eq('key', 'feature.google_reviews').maybeSingle(); setGoogleOn(g?.value?.enabled === true) }
