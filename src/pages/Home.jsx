@@ -371,7 +371,7 @@ function ReviewGraph({ data }) {
   )
 }
 
-function RightPanel({ recentReviews }) {
+function RightPanel({ recentReviews, trending, onCompanyClick }) {
   const [email,           setEmail]           = useState('')
   const [subscribed,      setSubscribed]       = useState(false)
   const [sponsoredCos,    setSponsoredCos]     = useState([])
@@ -379,6 +379,7 @@ function RightPanel({ recentReviews }) {
   const [quoteForm,       setQuoteForm]        = useState({ name:'', phone:'', message:'' })
   const [quoteSubmitting, setQuoteSubmitting]  = useState(false)
   const [quoteDone,       setQuoteDone]        = useState(false)
+  const [installPrompt,   setInstallPrompt]    = useState(null)
 
   const fallbackReviews = [
     { id:1, reviewer_name:'M. Ahmed',     rating:5, review_text:'Incredible job! Highly recommend.' },
@@ -387,7 +388,22 @@ function RightPanel({ recentReviews }) {
   ]
   const reviews = recentReviews.length>0 ? recentReviews : fallbackReviews
 
-  useEffect(() => { fetchSponsoredSlots() }, [])
+  useEffect(() => {
+    fetchSponsoredSlots()
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  async function installApp() {
+    if (installPrompt) {
+      installPrompt.prompt()
+      await installPrompt.userChoice
+      setInstallPrompt(null)
+    } else {
+      alert('To add TrustDubai to your home screen:\n\n• iPhone (Safari): tap Share → "Add to Home Screen"\n• Android (Chrome): tap menu (⋮) → "Add to Home screen"')
+    }
+  }
 
   async function fetchSponsoredSlots() {
     try {
@@ -415,7 +431,7 @@ function RightPanel({ recentReviews }) {
   }
 
   async function submitQuote() {
-    if (!quoteForm.name||!quoteForm.phone) { alert('Name aur phone required!'); return }
+    if (!quoteForm.name||!quoteForm.phone) { alert('Name and phone are required!'); return }
     setQuoteSubmitting(true)
     try {
       await supabase.from('sponsor_analytics').insert({
@@ -490,17 +506,15 @@ function RightPanel({ recentReviews }) {
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-trending-up" style={{ fontSize:11, color:'#0099cc' }}/> Trending
         </div>
-        {[
-          { r:'1', name:'RenoFix Plus',    cat:'Construction',   hot:true },
-          { r:'2', name:'Jaguar Interiors', cat:'Interior Design', hot:true },
-          { r:'3', name:'AirCool Dubai',    cat:'AC Service' },
-          { r:'4', name:'CleanPro Dubai',   cat:'Cleaning' },
-        ].map((t,i) => (
-          <div key={t.name} style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 0', borderBottom:i<3?'0.5px solid var(--border-default)':'none' }}>
-            <span style={{ fontSize:10, fontWeight:700, width:14, color:t.hot?'#f5a623':'var(--text-muted)', flexShrink:0 }}>{t.r}</span>
+        {(!trending || trending.length === 0) ? (
+          <div style={{ fontSize:8.5, color:'var(--text-muted)', padding:'4px 0' }}>Gathering trends…</div>
+        ) : trending.map((co,i) => (
+          <div key={co.id||i} onClick={()=>onCompanyClick && onCompanyClick(co)}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'5px 0', borderBottom:i<trending.length-1?'0.5px solid var(--border-default)':'none', cursor:'pointer' }}>
+            <span style={{ fontSize:10, fontWeight:700, width:14, color:i<2?'#f5a623':'var(--text-muted)', flexShrink:0 }}>{i+1}</span>
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.name}</div>
-              <div style={{ fontSize:7.5, color:'var(--text-muted)' }}>{t.cat}</div>
+              <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{co.name||'—'}</div>
+              <div style={{ fontSize:7.5, color:'var(--text-muted)' }}>{co.category||co.categories?.[0]||'—'}</div>
             </div>
             <i className="ti ti-arrow-up-right" style={{ fontSize:10, color:'#0099cc', flexShrink:0 }}/>
           </div>
@@ -544,19 +558,14 @@ function RightPanel({ recentReviews }) {
 
       <div style={{ background:'#1a2744', borderRadius:10, padding:10 }}>
         <div style={{ fontSize:10, fontWeight:700, color:'#fff', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
-          <i className="ti ti-device-mobile" style={{ fontSize:11, color:'#0099cc' }}/> Download App
+          <i className="ti ti-device-mobile" style={{ fontSize:11, color:'#0099cc' }}/> Add to Home Screen
         </div>
-        <div style={{ fontSize:8, color:'rgba(255,255,255,0.45)', marginBottom:8, lineHeight:1.5 }}>Find trusted services on the go.</div>
-        <div style={{ display:'flex', gap:6 }}>
-          <button style={{ flex:1, background:'rgba(255,255,255,0.1)', border:'0.5px solid rgba(255,255,255,0.15)', borderRadius:7, padding:'6px 4px', cursor:'pointer', textAlign:'center' }}>
-            <i className="ti ti-brand-apple" style={{ fontSize:14, color:'#fff', display:'block', marginBottom:2 }}/>
-            <span style={{ fontSize:7.5, color:'rgba(255,255,255,0.6)' }}>App Store</span>
-          </button>
-          <button style={{ flex:1, background:'rgba(0,153,204,0.2)', border:'0.5px solid rgba(0,153,204,0.3)', borderRadius:7, padding:'6px 4px', cursor:'pointer', textAlign:'center' }}>
-            <i className="ti ti-brand-android" style={{ fontSize:14, color:'#0099cc', display:'block', marginBottom:2 }}/>
-            <span style={{ fontSize:7.5, color:'rgba(255,255,255,0.6)' }}>Play Store</span>
-          </button>
-        </div>
+        <div style={{ fontSize:8, color:'rgba(255,255,255,0.45)', marginBottom:8, lineHeight:1.5 }}>Install TrustDubai on your device — open it like an app.</div>
+        <button onClick={installApp}
+          style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6, background:'rgba(0,153,204,0.2)', border:'0.5px solid rgba(0,153,204,0.4)', borderRadius:7, padding:'8px 4px', cursor:'pointer' }}>
+          <i className="ti ti-download" style={{ fontSize:14, color:'#0099cc' }}/>
+          <span style={{ fontSize:9.5, color:'#fff', fontWeight:700 }}>Add to Home Screen</span>
+        </button>
       </div>
 
       {quoteModal && (
@@ -616,14 +625,14 @@ function RightPanel({ recentReviews }) {
   )
 }
 
-function Sidebar({ navigate }) {
+function Sidebar({ navigate, scrollToSection }) {
   const sections = [
     { label:'Browse', items:[
-      { icon:'ti-home',    name:'Home',           active:true },
+      { icon:'ti-home',    name:'Home',           active:true, action:()=>scrollToSection('top') },
       { icon:'ti-search',  name:'Search',         action:()=>navigate('search',{}) },
-      { icon:'ti-star',    name:'Top Rated',      action:()=>navigate('search',{}) },
-      { icon:'ti-map-pin', name:'Near Me' },
-      { icon:'ti-clock',   name:'Recently Added' },
+      { icon:'ti-star',    name:'Top Rated',      action:()=>navigate('search',{sort:'rating'}) },
+      { icon:'ti-map-pin', name:'By Area',        action:()=>scrollToSection('by-area') },
+      { icon:'ti-clock',   name:'Recently Added', action:()=>navigate('search',{sort:'recent'}) },
     ]},
     { label:'Services', items:[
       { icon:'ti-snowflake', name:'AC Service',  action:()=>navigate('search',{category:'AC Service'}) },
@@ -634,9 +643,9 @@ function Sidebar({ navigate }) {
       { icon:'ti-building',  name:'Renovation',  action:()=>navigate('search',{category:'Renovation'}) },
     ]},
     { label:'Explore', items:[
-      { icon:'ti-map-2',      name:'City Map' },
-      { icon:'ti-chart-line', name:'Review Trends' },
-      { icon:'ti-users',      name:'Community' },
+      { icon:'ti-map-2',      name:'City Map',      action:()=>scrollToSection('city-network') },
+      { icon:'ti-chart-line', name:'Review Trends', action:()=>scrollToSection('review-trends') },
+      { icon:'ti-users',      name:'Community',     action:()=>navigate('search',{}) },
     ]},
   ]
   return (
@@ -699,10 +708,13 @@ function PlanTag({ plan }) {
 
 export default function Home({ navigate }) {
   const [topCos,        setTopCos]        = useState([])
-  const [nearCos,       setNearCos]       = useState([])
+  const [approvedCos,   setApprovedCos]   = useState([])
   const [newCos,        setNewCos]        = useState([])
+  const [trending,      setTrending]      = useState([])
   const [recentReviews, setRecentReviews] = useState([])
   const [categories,    setCategories]    = useState([])
+  const [areaList,      setAreaList]      = useState([])
+  const [areaFilter,    setAreaFilter]    = useState('')
   const [stats,         setStats]         = useState({ companies:0, reviews:0, avgRating:'0.0', verified:0 })
   const [reviewData,    setReviewData]    = useState({ total:0, s5:0, s4:0, s3:0, s2:0, s1:0, s5_pct:0, s4_pct:0 })
   const [trustScore,    setTrustScore]    = useState(0)
@@ -734,6 +746,12 @@ export default function Home({ navigate }) {
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  function scrollToSection(id) {
+    if (id === 'top') { window.scrollTo({ top:0, behavior:'smooth' }); return }
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior:'smooth', block:'start' })
+  }
 
   async function checkActiveForm() {
     try {
@@ -774,21 +792,33 @@ export default function Home({ navigate }) {
         { data: allCo },
         { data: revData },
         { data: recentRev },
+        { data: areaRows },
       ] = await Promise.all([
         supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved'),
         supabase.from('reviews').select('*',{count:'exact',head:true}).eq('is_approved',true),
         supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved').eq('is_verified',true),
         supabase.from('reviews').select('rating').eq('is_approved',true),
-        supabase.from('companies').select('*').eq('status','approved').order('created_at',{ascending:false}).limit(20),
+        supabase.from('companies').select('*').eq('status','approved').order('created_at',{ascending:false}).limit(50),
         supabase.from('reviews').select('rating,created_at').eq('is_approved',true),
         supabase.from('reviews').select('id,reviewer_name,rating,review_text,created_at').eq('is_approved',true).order('created_at',{ascending:false}).limit(5),
+        supabase.from('companies').select('area').eq('status','approved'),
       ])
       const avg = ratData?.length>0 ? (ratData.reduce((s,r)=>s+r.rating,0)/ratData.length).toFixed(1) : '0.0'
       setStats({ companies:totalCo||0, reviews:totalRev||0, avgRating:avg, verified:verifiedCo||0 })
       const approved = allCo||[]
+      setApprovedCos(approved)
       setTopCos([...approved].sort((a,b)=>(b.avg_rating||0)-(a.avg_rating||0)).slice(0,4))
-      setNearCos([...approved].slice(0,4))
       setNewCos([...approved].slice(0,4))
+      // Trending — real: highest profile_views + reviews weight
+      setTrending([...approved].sort((a,b)=>
+        ((b.profile_views||0)+(b.total_reviews||0)*3) - ((a.profile_views||0)+(a.total_reviews||0)*3)
+      ).slice(0,5))
+      // Areas — real: count companies per area
+      const counts = {}
+      ;(areaRows||[]).forEach(r => { const a=(r.area||'').trim(); if(a) counts[a]=(counts[a]||0)+1 })
+      const areaArr = Object.entries(counts).map(([area,count])=>({area,count})).sort((a,b)=>b.count-a.count)
+      setAreaList(areaArr)
+      setAreaFilter(prev => prev || areaArr[0]?.area || '')
       setRecentReviews(recentRev||[])
       const monthStart = new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString()
       const tm = (revData||[]).filter(r=>r.created_at>=monthStart)
@@ -823,6 +853,11 @@ export default function Home({ navigate }) {
     return String(n||0)
   }
 
+  // Companies in the selected area (client-side from fetched list)
+  const byAreaCompanies = areaFilter
+    ? approvedCos.filter(c => (c.area||c.location||'').trim().toLowerCase() === areaFilter.toLowerCase()).slice(0,4)
+    : []
+
   const BlockedBanner = blockedMsg ? (
     <div style={{ position:'fixed', top:0, left:0, right:0, zIndex:3000, background:'#fef2f2', borderBottom:'1px solid #fecaca', padding:'12px 18px', display:'flex', alignItems:'center', gap:12 }}>
       <i className="ti ti-alert-triangle" style={{ fontSize:20, color:'#dc2626', flexShrink:0 }} />
@@ -842,15 +877,21 @@ export default function Home({ navigate }) {
   ) : null
 
   function Topbar() {
+    const navItems = [
+      { l:'Home',       action:()=>scrollToSection('top'), active:true },
+      { l:'Categories', action:()=>scrollToSection('services-row') },
+      { l:'Top Rated',  action:()=>navigate('search',{sort:'rating'}) },
+      { l:'By Area',    action:()=>scrollToSection('by-area') },
+      { l:'City Map',   action:()=>scrollToSection('city-network') },
+    ]
     return (
       <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 20px', height:48, background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100, width:'100%' }}>
         <Logo size={15} />
         <nav style={{ display:'flex', gap:4, marginLeft:8 }}>
-          {['Home','Categories','Top Rated','Near Me','City Map'].map((l,i)=>(
-            <button key={l}
-              onClick={()=>{ if(l!=='Home') navigate('search',{}) }}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:10, fontWeight:i===0?700:500, color:i===0?'#0099cc':'var(--text-muted)', borderBottom:i===0?'1.5px solid #0099cc':'none', padding:'0 8px', height:48, whiteSpace:'nowrap' }}>
-              {l}
+          {navItems.map((it,i)=>(
+            <button key={it.l} onClick={it.action}
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:10, fontWeight:it.active?700:500, color:it.active?'#0099cc':'var(--text-muted)', borderBottom:it.active?'1.5px solid #0099cc':'none', padding:'0 8px', height:48, whiteSpace:'nowrap' }}>
+              {it.l}
             </button>
           ))}
         </nav>
@@ -948,7 +989,7 @@ export default function Home({ navigate }) {
 
   function ServicesRow() {
     return (
-      <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'7px 10px', marginBottom:8 }}>
+      <div id="services-row" style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'7px 10px', marginBottom:8 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
           <div style={{ display:'flex', alignItems:'center', gap:5 }}>
             <i className="ti ti-category" style={{ fontSize:11, color:'#0099cc' }} />
@@ -1004,10 +1045,72 @@ export default function Home({ navigate }) {
     )
   }
 
+  /* ===== By Area card (real, replaces Near Me) ===== */
+  function ByAreaCard() {
+    const areaChips = areaList.slice(0, 6)
+    return (
+      <div id="by-area" style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
+        <SecHeader icon="ti-map-pin" title="By Area" subtitle={areaFilter ? '· '+areaFilter : ''}
+          viewAll={areaFilter ? 'View all →' : null}
+          onViewAll={()=>navigate('search',{area:areaFilter})} />
+        {areaChips.length === 0 ? (
+          <div style={{ fontSize:9, color:'var(--text-muted)', padding:'6px 0' }}>No areas yet.</div>
+        ) : (
+          <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginBottom:9 }}>
+            {areaChips.map(a=>(
+              <span key={a.area} onClick={()=>setAreaFilter(a.area)}
+                style={{ fontSize:7.5, padding:'3px 8px', borderRadius:99, cursor:'pointer', fontWeight:600,
+                  background: areaFilter===a.area ? '#0099cc' : '#e0f9ff',
+                  color: areaFilter===a.area ? '#fff' : '#0077aa' }}>
+                {a.area} ({a.count})
+              </span>
+            ))}
+          </div>
+        )}
+        {byAreaCompanies.length > 0 ? (
+          <CardGrid companies={byAreaCompanies}
+            renderBadge={(c)=>(
+              <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                <span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>
+                <PlanTag plan={c.plan} />
+              </div>
+            )}
+            renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
+          />
+        ) : (
+          <div style={{ textAlign:'center', padding:'14px 8px', fontSize:9, color:'var(--text-muted)' }}>
+            {areaFilter ? `No companies listed in ${areaFilter} yet.` : 'Select an area above.'}
+            {areaFilter && <div onClick={()=>navigate('search',{area:areaFilter})} style={{ color:'#0099cc', fontWeight:600, cursor:'pointer', marginTop:6 }}>Search in {areaFilter} →</div>}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  /* ===== City Network card (real area chips) ===== */
+  function CityNetworkCard({ height = 120 }) {
+    const chips = areaList.slice(0, 8)
+    return (
+      <div id="city-network" style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
+        <SecHeader icon="ti-map-2" title="City Network" subtitle={areaList.length ? '· '+areaList.length+' areas' : ''} />
+        <CityMap height={height} />
+        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:7 }}>
+          {chips.length === 0 ? (
+            <span style={{ fontSize:7.5, color:'var(--text-muted)' }}>Areas appear as companies are added.</span>
+          ) : chips.map(a=>(
+            <span key={a.area} onClick={()=>navigate('search',{area:a.area})}
+              style={{ fontSize:7.5, background:'#e0f9ff', color:'#0077aa', padding:'2px 7px', borderRadius:4, fontWeight:600, cursor:'pointer' }}>
+              {a.area} · {a.count}
+            </span>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   function MainContent() {
     const empty = [null,null,null,null]
     const top  = loading ? empty : (topCos.length>0  ? topCos  : empty)
-    const near = loading ? empty : (nearCos.length>0 ? nearCos : empty)
     const novo = loading ? empty : (newCos.length>0  ? newCos  : empty)
     return (
       <div style={{ flex:1, minWidth:0, padding:'10px 14px', background:'var(--bg-secondary)', overflowX:'hidden' }}>
@@ -1015,7 +1118,7 @@ export default function Home({ navigate }) {
         <TrustWave score={trustScore} />
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
-            <SecHeader icon="ti-star" title="Top Rated Companies" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
+            <SecHeader icon="ti-star" title="Top Rated Companies" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'rating'})} />
             <CardGrid companies={top}
               renderBadge={(c)=>(
                 <div style={{ display:'flex', alignItems:'center', gap:4 }}>
@@ -1026,22 +1129,11 @@ export default function Home({ navigate }) {
               renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
             />
           </div>
-          <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
-            <SecHeader icon="ti-map-pin" title="Near Me" subtitle="· Dubai" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
-            <CardGrid companies={near}
-              renderBadge={(c,i)=>(
-                <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                  <span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>
-                  <span style={{ fontSize:7.5, color:'#0099cc', fontWeight:600 }}>{((i+1)*0.7).toFixed(1)}km</span>
-                </div>
-              )}
-              renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
-            />
-          </div>
+          <ByAreaCard />
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
-            <SecHeader icon="ti-clock" title="Recently Added" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
+            <SecHeader icon="ti-clock" title="Recently Added" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'recent'})} />
             <CardGrid companies={novo}
               renderBadge={()=>(
                 <span style={{ fontSize:7, background:'#e0f9ff', color:'#0077aa', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>New</span>
@@ -1049,17 +1141,11 @@ export default function Home({ navigate }) {
               renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
             />
           </div>
-          <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
-            <SecHeader icon="ti-map-2" title="City Network" />
-            <CityMap height={120} />
-            <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:7 }}>
-              {['Downtown','Business Bay','JBR','DIFC','Marina','Jumeirah','+6 more'].map(a=>(
-                <span key={a} style={{ fontSize:7.5, background:'#e0f9ff', color:'#0077aa', padding:'2px 7px', borderRadius:4, fontWeight:600 }}>{a}</span>
-              ))}
-            </div>
-          </div>
+          <CityNetworkCard height={120} />
         </div>
-        <ReviewGraph data={reviewData} />
+        <div id="review-trends">
+          <ReviewGraph data={reviewData} />
+        </div>
       </div>
     )
   }
@@ -1068,7 +1154,7 @@ export default function Home({ navigate }) {
     return (
       <div style={{ position:'fixed', bottom:0, left:0, right:0, maxWidth:480, margin:'0 auto', background:'var(--bg-card)', borderTop:'0.5px solid var(--border-default)', padding:'8px 0 10px', display:'flex', justifyContent:'space-around', zIndex:100 }}>
         {[
-          { icon:'ti-home',           label:'Home',     active:true },
+          { icon:'ti-home',           label:'Home',     active:true, action:()=>scrollToSection('top') },
           { icon:'ti-search',         label:'Search',   action:()=>navigate('search',{}) },
           { icon:'ti-building-store', label: customer ? 'My Biz' : 'List Biz', action:()=>window.open(BIZ_URL,'_blank') },
           { icon:'ti-star',           label:'Reviews',  action:()=>{ if(customer) navigate('add-review',{}); else signInWithGoogle() } },
@@ -1173,11 +1259,39 @@ export default function Home({ navigate }) {
             ))}
           </div>
         </div>
+
+        {/* Mobile — By Area */}
+        {areaList.length > 0 && (
+          <div style={{ padding:'6px 14px' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+              <span style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase' }}>By Area</span>
+              {areaFilter && <button onClick={()=>navigate('search',{area:areaFilter})} style={{ background:'none', border:'none', fontSize:9, color:'#0099cc', cursor:'pointer', fontWeight:600 }}>View all</button>}
+            </div>
+            <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:6 }}>
+              {areaList.slice(0,8).map(a=>(
+                <span key={a.area} onClick={()=>setAreaFilter(a.area)}
+                  style={{ flexShrink:0, fontSize:10, padding:'6px 12px', borderRadius:99, cursor:'pointer', fontWeight:600,
+                    background: areaFilter===a.area ? '#0099cc' : 'var(--bg-card)',
+                    border:`0.5px solid ${areaFilter===a.area ? '#0099cc' : 'var(--border-default)'}`,
+                    color: areaFilter===a.area ? '#fff' : 'var(--text-secondary)', whiteSpace:'nowrap' }}>
+                  {a.area} ({a.count})
+                </span>
+              ))}
+            </div>
+            <div style={{ marginTop:8 }}>
+              {byAreaCompanies.length > 0
+                ? byAreaCompanies.map(c=><CompanyCard key={c.id} company={c} onClick={()=>goTo(c)} />)
+                : <div style={{ fontSize:10, color:'var(--text-muted)', padding:'8px 0', textAlign:'center' }}>{areaFilter ? `No companies in ${areaFilter} yet.` : 'Select an area.'}</div>
+              }
+            </div>
+          </div>
+        )}
+
         <div style={{ padding:'6px 14px' }}>
           <TrustWave score={trustScore} />
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
             <span style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase' }}>Top Rated</span>
-            <button onClick={()=>navigate('search',{})} style={{ background:'none', border:'none', fontSize:9, color:'#0099cc', cursor:'pointer', fontWeight:600 }}>View all</button>
+            <button onClick={()=>navigate('search',{sort:'rating'})} style={{ background:'none', border:'none', fontSize:9, color:'#0099cc', cursor:'pointer', fontWeight:600 }}>View all</button>
           </div>
           {loading ? [1,2,3].map(i=><div key={i} style={{ height:70, background:'var(--bg-tertiary)', borderRadius:10, marginBottom:6 }}/>) :
             topCos.map(c=><CompanyCard key={c.id} company={c} onClick={()=>goTo(c)} />)
@@ -1196,28 +1310,41 @@ export default function Home({ navigate }) {
         <Topbar />
         <Hero />
         <div style={{ display:'flex' }}>
-          <Sidebar navigate={navigate} />
+          <Sidebar navigate={navigate} scrollToSection={scrollToSection} />
           <div style={{ flex:1, minWidth:0, padding:'10px 16px' }}>
             <ServicesRow />
             <TrustWave score={trustScore} />
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
               <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
-                <SecHeader icon="ti-star" title="Top Rated" viewAll="View all →" onViewAll={()=>navigate('search',{})} />
+                <SecHeader icon="ti-star" title="Top Rated" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'rating'})} />
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:7 }}>
-                  {topCos.slice(0,4).map((c,i)=>(
+                  {(loading ? [null,null,null,null] : topCos.slice(0,4)).map((c,i)=> c ? (
                     <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
                       badge={<span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>}
                       extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
                     />
-                  ))}
+                  ) : <div key={i} style={{ height:80, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
                 </div>
               </div>
-              <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
-                <SecHeader icon="ti-map-2" title="City Network" />
-                <CityMap height={120} />
-              </div>
+              <ByAreaCard />
             </div>
-            <ReviewGraph data={reviewData} />
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
+              <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
+                <SecHeader icon="ti-clock" title="Recently Added" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'recent'})} />
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:7 }}>
+                  {(loading ? [null,null,null,null] : newCos.slice(0,4)).map((c,i)=> c ? (
+                    <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
+                      badge={<span style={{ fontSize:7, background:'#e0f9ff', color:'#0077aa', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>New</span>}
+                      extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
+                    />
+                  ) : <div key={i} style={{ height:80, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
+                </div>
+              </div>
+              <CityNetworkCard height={120} />
+            </div>
+            <div id="review-trends">
+              <ReviewGraph data={reviewData} />
+            </div>
           </div>
         </div>
       </div>
@@ -1231,9 +1358,9 @@ export default function Home({ navigate }) {
       <Topbar />
       <Hero />
       <div style={{ display:'flex', alignItems:'stretch' }}>
-        <Sidebar navigate={navigate} />
+        <Sidebar navigate={navigate} scrollToSection={scrollToSection} />
         <MainContent />
-        <RightPanel recentReviews={recentReviews} />
+        <RightPanel recentReviews={recentReviews} trending={trending} onCompanyClick={goTo} />
       </div>
     </div>
   )
