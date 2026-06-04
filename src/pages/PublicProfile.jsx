@@ -336,6 +336,8 @@ export default function PublicProfile() {
   if (notFound) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e7ecf3' }}><Fonts /><div style={{ textAlign: 'center', padding: 40 }}><div style={{ fontSize: 52 }}>🔍</div><h2 style={{ fontFamily: 'Sora,sans-serif', color: '#16233a', margin: '12px 0' }}>Company not found</h2><button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#1d6fb8', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 700 }}>Go to TrustDubai</button></div></div>
 
   const plan = company.plan || 'free'
+  const isPremium = plan === 'gold' || plan === 'platinum'
+  const isPlatinum = plan === 'platinum'
   const TH = makeTheme(dark)
   const F = "'Manrope',sans-serif"
   const cats = Array.isArray(company.categories) && company.categories.length ? company.categories : company.category ? [company.category] : []
@@ -491,13 +493,14 @@ export default function PublicProfile() {
       <div style={{ maxWidth: 1300, margin: '0 auto', padding: '18px 16px 50px' }} className="td-container">
 
         {/* HERO */}
-        <Card TH={TH} id="overview" style={{ padding: 0, overflow: 'hidden' }}>
-          <div style={{ background: TH.dark ? 'linear-gradient(120deg,rgba(79,159,224,0.16),rgba(167,139,250,0.12))' : 'linear-gradient(120deg,rgba(29,111,184,0.08),rgba(139,92,246,0.07))', padding: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, flexWrap: 'wrap' }} className="td-hero">
+        <Card TH={TH} id="overview" style={{ padding: 0, overflow: 'hidden', ...(isPremium ? { border: `1px solid ${TH.gold}66`, boxShadow: TH.glowGold } : {}) }}>
+          {isPremium && <div className="td-shine" style={{ height: 4, background: TH.gradGold }} />}
+          <div style={{ background: isPremium ? (TH.dark ? 'linear-gradient(120deg,rgba(224,181,62,0.16),rgba(167,139,250,0.10))' : 'linear-gradient(120deg,rgba(201,162,39,0.10),rgba(139,92,246,0.06))') : (TH.dark ? 'linear-gradient(120deg,rgba(79,159,224,0.16),rgba(167,139,250,0.12))' : 'linear-gradient(120deg,rgba(29,111,184,0.08),rgba(139,92,246,0.07))'), padding: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, flexWrap: 'wrap' }} className="td-hero">
             <div style={{ flex: 1, minWidth: 240 }}>
               <div className="td-bizname" style={{ fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05 }}>{company.name}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '8px 0 14px' }}>
                 {company.is_verified && <span className="td-shine" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: 'linear-gradient(135deg,#1e9e63,#22c55e)', padding: '4px 11px', borderRadius: 20 }}>✓ Verified Business</span>}
-                {plan !== 'free' && <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: TH.gradGold, color: '#3a2c00', padding: '4px 11px', borderRadius: 20 }}>★ {plan.charAt(0).toUpperCase() + plan.slice(1)}</span>}
+                {plan !== 'free' && <span className={isPremium ? 'td-shine' : ''} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: TH.gradGold, color: '#3a2c00', padding: '4px 11px', borderRadius: 20, boxShadow: isPremium ? TH.glowGold : 'none' }}>{isPlatinum ? '💎' : '★'} {isPremium ? 'Premium · ' : ''}{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>}
               </div>
               <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
                 {[['Rating', (company.avg_rating || '0.0'), '★', TH.gold, true], ['Reviews', company.total_reviews || reviews.length, '', TH.t1], ['Response', respRate, '%', TH.green]].map(([k, v, st, col, dec]) => (
