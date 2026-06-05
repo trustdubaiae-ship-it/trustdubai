@@ -43,6 +43,7 @@ export async function getCustomer() {
     .select('*')
     .eq('id', user.id)
     .maybeSingle()
+
   if (data) return data
 
   // Row nahi mili — upsert karo
@@ -72,5 +73,21 @@ export async function upsertCustomer(user) {
     }, { onConflict: 'id' })
     .select()
     .single()
+  return data
+}
+
+// Lead profile complete — phone + area save (Get 3 Quotes ke liye)
+export async function updateCustomerProfile(id, fields) {
+  const { data, error } = await supabase
+    .from('customers')
+    .update({
+      ...(fields.full_name !== undefined ? { full_name: fields.full_name } : {}),
+      ...(fields.phone !== undefined ? { phone: fields.phone } : {}),
+      ...(fields.area !== undefined ? { area: fields.area } : {}),
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) { console.error('Profile update error:', error); return null }
   return data
 }
