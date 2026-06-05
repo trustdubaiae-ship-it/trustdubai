@@ -62,7 +62,7 @@ function setJsonLD(service, area, companies) {
   s.text = JSON.stringify({
     '@context':'https://schema.org','@type':'Service',
     serviceType: service, areaServed: { '@type':'Place', name: (area||'Dubai')+', Dubai' },
-    provider: { '@type':'Organization', name:'TrustDubai', url:'https://trustdubai.ae' },
+    provider: { '@type':'Organization', name:'TrustDubai', url:'https://www.trustdubai.ae' },
     description: `Find verified ${service} companies in ${area||'Dubai'}. Compare reviews and get free quotes.`,
   })
   document.head.appendChild(s)
@@ -100,7 +100,7 @@ export default function ServiceArea() {
       const where = area ? `${area}, Dubai` : 'Dubai'
       const title = `${service} in ${where} — Top Verified Companies | TrustDubai`
       const desc  = `Find the best ${service.toLowerCase()} companies in ${where}. Compare verified reviews, ratings, and get up to 3 free quotes from trusted professionals.`
-      const url   = `https://trustdubai.ae/services/${serviceArea}`
+      const url   = `https://www.trustdubai.ae/services/${serviceArea}`
       setSEO({ title, description: desc, url })
       setJsonLD(service, area, rows)
     } catch(e){ console.error(e) }
