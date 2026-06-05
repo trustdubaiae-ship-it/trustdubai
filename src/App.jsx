@@ -12,6 +12,7 @@ import RegisterCompany from './pages/RegisterCompany'
 import RegisterEmployee from './pages/RegisterEmployee'
 import PublicProfile from './pages/PublicProfile'
 import CustomerProfile from './pages/CustomerProfile'
+import ServiceArea from './pages/ServiceArea'
 import BottomNav from './components/BottomNav'
 
 function useIsMobile() {
@@ -32,18 +33,16 @@ export default function App() {
   const [screen, setScreen] = useState('home')
   const [params, setParams] = useState({})
   const isMobile = useIsMobile()
-
   function navigate(to, p = {}) {
     setScreen(to)
     setParams(p)
     window.scrollTo(0, 0)
   }
-
   const screenProps = { navigate, params }
-
   return (
     <div style={{ background:'var(--bg-primary)', minHeight:'100vh' }}>
       <Routes>
+        <Route path="/services/:serviceArea" element={<ServiceArea />} />
         <Route path="/:slug" element={<PublicProfile />} />
         <Route path="/" element={
           <div style={{ paddingBottom: isMobile ? 64 : 0 }}>
