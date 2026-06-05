@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
-import { signInWithGoogle, signOut, getCustomer, upsertCustomer } from '../customerAuth'
+import { signInWithGoogle, signOut, getCustomer, upsertCustomer, updateCustomerProfile } from '../customerAuth'
 import CompanyCard from '../components/CompanyCard'
 import { SearchBar } from '../components/SearchBar'
 import { ThemeToggle } from '../components/ThemeToggle'
+
+const DUBAI_AREAS = [
+  'Downtown Dubai','Business Bay','Dubai Marina','Palm Jumeirah','Jumeirah Village Circle (JVC)',
+  'Jumeirah Lake Towers (JLT)','Jumeirah','Dubai Hills Estate','Arabian Ranches','DAMAC Hills',
+  'Emirates Hills','The Springs','The Meadows','The Greens','Dubai Silicon Oasis',
+  'Mirdif','Al Barsha','Deira','Bur Dubai','Dubai Investment Park (DIP)',
+  'Jumeirah Beach Residence (JBR)','DIFC','City Walk','Al Furjan','Discovery Gardens',
+  'Motor City','Jumeirah Golf Estates','Dubailand','International City','Town Square','Other',
+]
 
 const MAP_PINS = [
   { top: '30%', left: '34%' }, { top: '44%', left: '52%' },
@@ -50,6 +59,96 @@ function GetQuotesButton({ onClick, mobile }) {
       onMouseLeave={e=>{ e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='0 4px 14px rgba(0,153,204,0.3)' }}>
       <i className="ti ti-sparkles" style={{ fontSize:mobile?14:16 }} /> Get 3 Free Quotes
     </button>
+  )
+}
+
+/* ============ PROFILE GATE MODAL (complete profile before quotes) ============ */
+function ProfileGateModal({ open, onClose, customer, onComplete, mobile }) {
+  const [name, setName]   = useState('')
+  const [phone, setPhone] = useState('')
+  const [area, setArea]   = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (open && customer) {
+      setName(customer.full_name || '')
+      setPhone(customer.phone || '')
+      setArea(customer.area || '')
+      setError('')
+    }
+  }, [open, customer])
+
+  if (!open) return null
+
+  async function save() {
+    if (!name.trim())  { setError('Please enter your name'); return }
+    if (!phone.trim() || phone.replace(/[^0-9]/g,'').length < 7) { setError('Please enter a valid phone number'); return }
+    if (!area)         { setError('Please select your area'); return }
+    setError('')
+    setSaving(true)
+    const updated = await updateCustomerProfile(customer.id, {
+      full_name: name.trim(), phone: phone.trim(), area,
+    })
+    setSaving(false)
+    if (!updated) { setError('Could not save. Please try again.'); return }
+    onComplete(updated)
+  }
+
+  const overlay = { position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:3000, display:'flex',
+    alignItems: mobile ? 'flex-end' : 'center', justifyContent:'center' }
+  const sheet = { background:'var(--bg-card)', border:'0.5px solid var(--border-default)',
+    borderRadius: mobile ? '18px 18px 0 0' : 14, padding: mobile ? '16px 16px 24px' : 24,
+    width: mobile ? '100%' : 400, maxWidth: mobile ? '100%' : '92vw', maxHeight:'88vh', overflowY:'auto' }
+  const lbl = { fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600, display:'block' }
+  const inp = { width:'100%', padding:'10px 12px', background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, fontSize:13, color:'var(--text-primary)', outline:'none', boxSizing:'border-box' }
+
+  return (
+    <div style={overlay} onClick={onClose}>
+      <div style={sheet} onClick={e => e.stopPropagation()}>
+        {mobile && <div style={{ width:34, height:4, background:'var(--border-default)', borderRadius:99, margin:'0 auto 12px' }} />}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:3 }}>
+          <div style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)' }}>Complete your profile</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:18, lineHeight:1 }}>×</button>
+        </div>
+        <div style={{ fontSize:11.5, color:'var(--text-muted)', marginBottom:16 }}>
+          We need a few details so trusted companies can reach you with quotes.
+        </div>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:13, marginBottom:16 }}>
+          <div>
+            <label style={lbl}>Full Name <span style={{ color:'#ef4444' }}>*</span></label>
+            <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>Phone Number <span style={{ color:'#ef4444' }}>*</span></label>
+            <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+971 50 123 4567" style={inp} />
+          </div>
+          <div>
+            <label style={lbl}>Your Area in Dubai <span style={{ color:'#ef4444' }}>*</span></label>
+            <select value={area} onChange={e=>setArea(e.target.value)} style={inp}>
+              <option value="">Select area...</option>
+              {DUBAI_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px 11px', fontSize:10.5, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
+          <i className="ti ti-lock" style={{ fontSize:13 }} />
+          Your details are only shared with companies you request quotes from.
+        </div>
+
+        {error && <div style={{ fontSize:11.5, color:'#dc2626', marginBottom:10 }}>{error}</div>}
+
+        <button onClick={save} disabled={saving}
+          style={{ width:'100%', padding:'12px', background:'#0099cc', color:'#fff', border:'none', borderRadius:9, fontSize:14, fontWeight:700, cursor:'pointer', opacity:saving?0.7:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+          {saving
+            ? <><div style={{ width:15, height:15, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin 0.8s linear infinite' }}/> Saving...<style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></>
+            : <><i className="ti ti-arrow-right" style={{ fontSize:15 }}/> Save &amp; Continue</>
+          }
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -131,7 +230,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
         name: customer.full_name || customer.email?.split('@')[0] || 'Customer',
         phone: customer.phone || '',
         email: customer.email || '',
-        answers: answerObj,
+        answers: { ...answerObj, _area: customer.area || '' },
         source_url: 'home',
         customer_id: customer.id || null,
         status: 'new',
@@ -260,7 +359,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
 
                 <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px 11px', fontSize:10.5, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
                   <i className="ti ti-user-check" style={{ fontSize:13 }} />
-                  Signed in as {customer.full_name || customer.email?.split('@')[0]} — name &amp; phone auto-attached
+                  Signed in as {customer.full_name || customer.email?.split('@')[0]} · {customer.phone || ''} {customer.area ? '· '+customer.area : ''}
                 </div>
 
                 {error && <div style={{ fontSize:11.5, color:'#dc2626', marginBottom:10 }}>{error}</div>}
@@ -724,6 +823,7 @@ export default function Home({ navigate }) {
   const [blockedMsg,    setBlockedMsg]    = useState(null)
   const [hasActiveForm, setHasActiveForm] = useState(false)
   const [leadModalOpen, setLeadModalOpen] = useState(false)
+  const [profileGateOpen, setProfileGateOpen] = useState(false)
   const device    = useDevice()
   const isMobile  = device === 'mobile'
   const isTablet  = device === 'tablet'
@@ -766,8 +866,19 @@ export default function Home({ navigate }) {
     } catch(e) { console.error(e) }
   }
 
+  function profileComplete(c) {
+    return !!(c && c.phone && c.phone.trim() && c.area && c.area.trim())
+  }
+
   function openQuotes() {
     if (!customer) { signInWithGoogle(); return }
+    if (!profileComplete(customer)) { setProfileGateOpen(true); return }
+    setLeadModalOpen(true)
+  }
+
+  function onProfileComplete(updated) {
+    setCustomer(updated)
+    setProfileGateOpen(false)
     setLeadModalOpen(true)
   }
 
@@ -809,11 +920,9 @@ export default function Home({ navigate }) {
       setApprovedCos(approved)
       setTopCos([...approved].sort((a,b)=>(b.avg_rating||0)-(a.avg_rating||0)).slice(0,4))
       setNewCos([...approved].slice(0,4))
-      // Trending — real: highest profile_views + reviews weight
       setTrending([...approved].sort((a,b)=>
         ((b.profile_views||0)+(b.total_reviews||0)*3) - ((a.profile_views||0)+(a.total_reviews||0)*3)
       ).slice(0,5))
-      // Areas — real: count companies per area
       const counts = {}
       ;(areaRows||[]).forEach(r => { const a=(r.area||'').trim(); if(a) counts[a]=(counts[a]||0)+1 })
       const areaArr = Object.entries(counts).map(([area,count])=>({area,count})).sort((a,b)=>b.count-a.count)
@@ -853,7 +962,6 @@ export default function Home({ navigate }) {
     return String(n||0)
   }
 
-  // Companies in the selected area (client-side from fetched list)
   const byAreaCompanies = areaFilter
     ? approvedCos.filter(c => (c.area||c.location||'').trim().toLowerCase() === areaFilter.toLowerCase()).slice(0,4)
     : []
@@ -888,7 +996,7 @@ export default function Home({ navigate }) {
       <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 20px', height:48, background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100, width:'100%' }}>
         <Logo size={15} />
         <nav style={{ display:'flex', gap:4, marginLeft:8 }}>
-          {navItems.map((it,i)=>(
+          {navItems.map((it)=>(
             <button key={it.l} onClick={it.action}
               style={{ background:'none', border:'none', cursor:'pointer', fontSize:10, fontWeight:it.active?700:500, color:it.active?'#0099cc':'var(--text-muted)', borderBottom:it.active?'1.5px solid #0099cc':'none', padding:'0 8px', height:48, whiteSpace:'nowrap' }}>
               {it.l}
@@ -1045,7 +1153,6 @@ export default function Home({ navigate }) {
     )
   }
 
-  /* ===== By Area card (real, replaces Near Me) ===== */
   function ByAreaCard() {
     const areaChips = areaList.slice(0, 6)
     return (
@@ -1087,7 +1194,6 @@ export default function Home({ navigate }) {
     )
   }
 
-  /* ===== City Network card (real area chips) ===== */
   function CityNetworkCard({ height = 120 }) {
     const chips = areaList.slice(0, 8)
     return (
@@ -1171,12 +1277,14 @@ export default function Home({ navigate }) {
   }
 
   const LeadModal = <LeadQuoteModal open={leadModalOpen} onClose={()=>setLeadModalOpen(false)} customer={customer} mobile={isMobile} />
+  const ProfileGate = <ProfileGateModal open={profileGateOpen} onClose={()=>setProfileGateOpen(false)} customer={customer} onComplete={onProfileComplete} mobile={isMobile} />
 
   if (isMobile) {
     return (
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', paddingBottom:72, overflowX:'hidden' }}>
         {BlockedBanner}
         {LeadModal}
+        {ProfileGate}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100 }}>
           <Logo size={14} />
           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
@@ -1260,7 +1368,6 @@ export default function Home({ navigate }) {
           </div>
         </div>
 
-        {/* Mobile — By Area */}
         {areaList.length > 0 && (
           <div style={{ padding:'6px 14px' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
@@ -1307,6 +1414,7 @@ export default function Home({ navigate }) {
       <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
         {BlockedBanner}
         {LeadModal}
+        {ProfileGate}
         <Topbar />
         <Hero />
         <div style={{ display:'flex' }}>
@@ -1355,6 +1463,7 @@ export default function Home({ navigate }) {
     <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
       {BlockedBanner}
       {LeadModal}
+      {ProfileGate}
       <Topbar />
       <Hero />
       <div style={{ display:'flex', alignItems:'stretch' }}>
