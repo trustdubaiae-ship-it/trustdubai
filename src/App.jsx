@@ -12,6 +12,7 @@ import RegisterCompany from './pages/RegisterCompany'
 import RegisterEmployee from './pages/RegisterEmployee'
 import PublicProfile from './pages/PublicProfile'
 import CustomerProfile from './pages/CustomerProfile'
+import MyRequests from './pages/MyRequests'
 import ServiceArea from './pages/ServiceArea'
 import Legal from './pages/Legal'
 import BottomNav from './components/BottomNav'
@@ -58,6 +59,7 @@ export default function App() {
             {screen === 'register-company'  && <RegisterCompany {...screenProps} />}
             {screen === 'register-employee' && <RegisterEmployee {...screenProps} />}
             {screen === 'customer-profile'  && <CustomerProfile {...screenProps} />}
+            {screen === 'my-requests'       && <MyRequests {...screenProps} />}
             {isMobile && <BottomNav screen={screen} navigate={navigate} />}
           </div>
         } />
