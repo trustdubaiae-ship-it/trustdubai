@@ -152,6 +152,44 @@ function ProfileGateModal({ open, onClose, customer, onComplete, mobile }) {
   )
 }
 
+/* ============ MATCHED COMPANY CARD (Phase 1 success screen) ============ */
+function MatchedCompanyCard({ co, rank }) {
+  const name = co?.name || 'Company'
+  const initials = name.slice(0,2).toUpperCase()
+  const verified = co?.is_verified
+  const plan = (co?.plan || 'free').toLowerCase()
+  const planTag = plan==='platinum' ? { t:'Platinum', bg:'#ede9fe', c:'#5b21b6' }
+                : plan==='gold'     ? { t:'Gold', bg:'#fef3c7', c:'#92400e' }
+                : plan==='silver'   ? { t:'Silver', bg:'#f1f5f9', c:'#475569' }
+                : null
+  function open() { if (co?.slug) window.open('/'+co.slug, '_blank') }
+  return (
+    <div style={{ display:'flex', alignItems:'center', gap:11, padding:'11px 12px', border:'0.5px solid var(--border-default)', borderRadius:11, background:'var(--bg-card)', marginBottom:8 }}>
+      <div style={{ width:40, height:40, borderRadius:10, overflow:'hidden', flexShrink:0, background:'#e0f9ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        {co?.logo_url
+          ? <img src={co.logo_url} alt={name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+          : <span style={{ fontSize:13, fontWeight:700, color:'#0077aa' }}>{initials}</span>}
+      </div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+          <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
+          {verified && <i className="ti ti-rosette-discount-check-filled" style={{ fontSize:13, color:'#1e9e63', flexShrink:0 }} />}
+        </div>
+        <div style={{ fontSize:10.5, color:'var(--text-muted)', marginTop:1, display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
+          <span style={{ color:'#f5a623', fontWeight:700 }}>★ {co?.avg_rating ? Number(co.avg_rating).toFixed(1) : 'New'}</span>
+          <span>{co?.total_reviews || 0} reviews</span>
+          {co?.trust_score != null && <span style={{ color:'#0099cc', fontWeight:600 }}>Trust {Math.round(co.trust_score)}</span>}
+          {planTag && <span style={{ fontSize:8, fontWeight:700, background:planTag.bg, color:planTag.c, padding:'1px 6px', borderRadius:4 }}>{planTag.t}</span>}
+        </div>
+      </div>
+      <button onClick={open}
+        style={{ flexShrink:0, fontSize:11, fontWeight:600, color:'#0099cc', background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:7, padding:'6px 11px', cursor:'pointer', whiteSpace:'nowrap' }}>
+        View
+      </button>
+    </div>
+  )
+}
+
 /* ============ LEAD QUOTE MODAL ============ */
 function LeadQuoteModal({ open, onClose, customer, mobile }) {
   const [form, setForm]         = useState(null)
@@ -162,9 +200,11 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   const [done, setDone]         = useState(false)
   const [error, setError]       = useState('')
   const [categories, setCategories] = useState([])
+  const [matched, setMatched]   = useState([])
+  const [matchLoading, setMatchLoading] = useState(false)
 
   useEffect(() => {
-    if (open) { loadForm(); setDone(false); setAnswers({}); setError('') }
+    if (open) { loadForm(); setDone(false); setAnswers({}); setError(''); setMatched([]) }
   }, [open])
 
   async function loadForm() {
@@ -211,6 +251,22 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
     return Array.isArray(q.options) ? q.options : []
   }
 
+  async function fetchMatched(leadId) {
+    setMatchLoading(true)
+    try {
+      // give the after-insert trigger a moment to run fn_distribute_lead
+      await new Promise(r => setTimeout(r, 1300))
+      const { data } = await supabase
+        .from('lead_distributions')
+        .select('rank, companies(id,name,slug,logo_url,avg_rating,total_reviews,trust_score,is_verified,category,plan)')
+        .eq('lead_id', leadId)
+        .order('rank', { ascending: true })
+      const cos = (data || []).map(d => d.companies).filter(Boolean)
+      setMatched(cos)
+    } catch (e) { console.error(e) }
+    finally { setMatchLoading(false) }
+  }
+
   async function submit() {
     for (const q of questions) {
       if (q.required) {
@@ -225,7 +281,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
     try {
       const answerObj = {}
       questions.forEach(q => { answerObj[q.question] = answers[q.id] ?? '' })
-      const { error: insErr } = await supabase.from('lead_submissions').insert({
+      const { data: ins, error: insErr } = await supabase.from('lead_submissions').insert({
         form_id: form.id,
         name: customer.full_name || customer.email?.split('@')[0] || 'Customer',
         phone: customer.phone || '',
@@ -234,10 +290,11 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
         source_url: 'home',
         customer_id: customer.id || null,
         status: 'new',
-      })
+      }).select('id').single()
       if (insErr) throw insErr
       await supabase.from('lead_forms').update({ submit_count: (form.submit_count || 0) + 1 }).eq('id', form.id)
       setDone(true)
+      if (ins?.id) fetchMatched(ins.id)
     } catch (e) { console.error(e); setError('Something went wrong. Please try again.') }
     finally { setSubmitting(false) }
   }
@@ -248,7 +305,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
     alignItems: mobile ? 'flex-end' : 'center', justifyContent:'center' }
   const sheet = { background:'var(--bg-card)', border:'0.5px solid var(--border-default)',
     borderRadius: mobile ? '18px 18px 0 0' : 14, padding: mobile ? '14px 16px 22px' : 24,
-    width: mobile ? '100%' : 400, maxWidth: mobile ? '100%' : '92vw', maxHeight:'88vh', overflowY:'auto' }
+    width: mobile ? '100%' : 420, maxWidth: mobile ? '100%' : '92vw', maxHeight:'88vh', overflowY:'auto' }
 
   return (
     <div style={overlay} onClick={onClose}>
@@ -256,16 +313,36 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
         {mobile && <div style={{ width:34, height:4, background:'var(--border-default)', borderRadius:99, margin:'0 auto 12px' }} />}
 
         {done ? (
-          <div style={{ textAlign:'center', padding:'18px 0 8px' }}>
-            <div style={{ width:54, height:54, borderRadius:'50%', background:'#f0fdf4', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' }}>
-              <i className="ti ti-check" style={{ fontSize:28, color:'#10b981' }} />
+          <div style={{ padding:'6px 0 2px' }}>
+            <div style={{ textAlign:'center', marginBottom:16 }}>
+              <div style={{ width:50, height:50, borderRadius:'50%', background:'#f0fdf4', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+                <i className="ti ti-check" style={{ fontSize:26, color:'#10b981' }} />
+              </div>
+              <div style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)', marginBottom:5 }}>Request sent!</div>
+              <div style={{ fontSize:12, color:'var(--text-muted)', lineHeight:1.5 }}>
+                {matched.length > 0
+                  ? `We matched you with ${matched.length} trusted ${matched.length===1?'company':'companies'}. They'll contact you shortly.`
+                  : "We're matching you with top trusted companies. They'll contact you shortly."}
+              </div>
             </div>
-            <div style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)', marginBottom:6 }}>Request received!</div>
-            <div style={{ fontSize:12.5, color:'var(--text-muted)', lineHeight:1.5, marginBottom:18 }}>
-              We're matching you with top trusted companies. You'll hear from them shortly.
-            </div>
+
+            {matchLoading ? (
+              <div style={{ textAlign:'center', padding:'14px 0', color:'var(--text-muted)', fontSize:12 }}>
+                <div style={{ width:24, height:24, border:'3px solid #0099cc', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 8px' }} />
+                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                Finding the best matches…
+              </div>
+            ) : matched.length > 0 ? (
+              <>
+                <div style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:9 }}>
+                  Matched with these trusted companies
+                </div>
+                {matched.map((co, i) => <MatchedCompanyCard key={co.id || i} co={co} rank={i+1} />)}
+              </>
+            ) : null}
+
             <button onClick={onClose}
-              style={{ padding:'10px 22px', background:'var(--bg-secondary)', color:'var(--text-primary)', border:'0.5px solid var(--border-default)', borderRadius:9, fontSize:13, fontWeight:600, cursor:'pointer' }}>
+              style={{ width:'100%', marginTop:8, padding:'11px', background:'var(--bg-secondary)', color:'var(--text-primary)', border:'0.5px solid var(--border-default)', borderRadius:9, fontSize:13, fontWeight:600, cursor:'pointer' }}>
               Done
             </button>
           </div>
