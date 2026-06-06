@@ -236,21 +236,35 @@ export default function PublicProfile() {
   async function trackProfileView(id) {
     // 1) bump the aggregate counter (best-effort, never blocks)
     try { await supabase.rpc('increment_profile_views', { p_company_id: id }) } catch (e) {}
-    // 2) log the view via Edge Function — captures IP + country server-side
-    //    (server-side avoids browser/ad-blocker blocking of geo-IP calls)
+    // 2) let the browser detect its own public IP + country (ipwho.is is rarely blocked).
+    //    Whatever we get is sent to the Edge Function, which also has header fallbacks.
+    let ip = null, country = null
+    try {
+      const ctrl = new AbortController()
+      const tmo = setTimeout(() => ctrl.abort(), 2500)
+      const geo = await fetch('https://ipwho.is/', { signal: ctrl.signal })
+      clearTimeout(tmo)
+      if (geo.ok) {
+        const g = await geo.json()
+        if (g && g.success !== false) { ip = g.ip || null; country = g.country || null }
+      }
+    } catch (e) {}
+    // 3) log the view via Edge Function (server-side insert + header fallbacks)
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/log-profile-view`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_id: id }),
+        body: JSON.stringify({ company_id: id, ip, country }),
       })
     } catch (e) {
-      // fallback: log minimally if the function is unreachable
+      // last-resort fallback: minimal direct insert
       try {
         await supabase.from('profile_views_log').insert({
           company_id: id,
           visited_at: new Date().toISOString(),
           user_agent: navigator.userAgent,
+          visitor_ip: ip,
+          country: country,
         })
       } catch (e2) {}
     }
