@@ -107,6 +107,21 @@ export default function ServiceArea() {
     finally { setLoading(false) }
   }
 
+  // Send user to Home with quote modal auto-open (service + area pre-filled)
+  function startQuote() {
+    const params = new URLSearchParams()
+    params.set('quote', '1')
+    if (service) params.set('service', service)
+    if (area)    params.set('area', area)
+    if (!customer) {
+      // after login, Google redirect returns to home; still pass intent
+      try { sessionStorage.setItem('td_quote_intent', params.toString()) } catch(e){}
+      signInWithGoogle()
+      return
+    }
+    window.location.href = '/?' + params.toString()
+  }
+
   // theme tokens
   const t1 = dark?'#eef3fb':'#16233a', t2 = dark?'#9aa7bd':'#56657c', t3 = dark?'#5d6b7e':'#94a3b8'
   const bg = dark?'#070b15':'#f4f7fb', card = dark?'#0f1626':'#ffffff', line = dark?'rgba(255,255,255,0.08)':'#e4e9f0'
@@ -178,7 +193,7 @@ export default function ServiceArea() {
         <div style={{ background:'linear-gradient(135deg,#0099cc,#0077a3)', borderRadius:16, padding:'20px 22px', marginBottom:20, color:'#fff' }}>
           <div style={{ fontFamily:"'Sora',sans-serif", fontSize:18, fontWeight:800, marginBottom:5 }}>Get 3 free quotes for {service.toLowerCase()}</div>
           <div style={{ fontSize:13, opacity:0.9, marginBottom:14 }}>Tell us about your project in {where} — we'll match you with trusted companies.</div>
-          <button onClick={()=> customer ? (window.location.href='/') : signInWithGoogle()}
+          <button onClick={startQuote}
             style={{ padding:'11px 22px', background:'#fff', color:'#0077a3', border:'none', borderRadius:10, fontSize:14, fontWeight:800, cursor:'pointer' }}>
             ✨ Get Free Quotes
           </button>
@@ -224,7 +239,7 @@ export default function ServiceArea() {
             <p style={{ fontSize:14, color:t2, lineHeight:1.6, maxWidth:520, margin:'0 auto 18px' }}>
               No verified {service.toLowerCase()} companies are listed in {where} yet. Looking for this service? Get free quotes from trusted companies across Dubai.
             </p>
-            <button onClick={()=> customer ? (window.location.href='/') : signInWithGoogle()}
+            <button onClick={startQuote}
               style={{ padding:'11px 24px', background:'#0099cc', color:'#fff', border:'none', borderRadius:10, fontSize:14, fontWeight:700, cursor:'pointer' }}>
               ✨ Get Free Quotes
             </button>
