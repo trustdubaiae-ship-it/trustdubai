@@ -11,10 +11,9 @@ import AddEmpReview from './pages/AddEmpReview'
 import RegisterCompany from './pages/RegisterCompany'
 import RegisterEmployee from './pages/RegisterEmployee'
 import PublicProfile from './pages/PublicProfile'
-import CustomerProfile from './pages/CustomerProfile'
+import MyAccount from './pages/MyAccount'
 import ServiceArea from './pages/ServiceArea'
 import Legal from './pages/Legal'
-import Partner from './pages/Partner'
 import BottomNav from './components/BottomNav'
 function useIsMobile() {
   const [mobile, setMobile] = useState(
@@ -46,7 +45,6 @@ export default function App() {
         <Route path="/terms"   element={<Legal page="terms" />} />
         <Route path="/privacy" element={<Legal page="privacy" />} />
         <Route path="/refund"  element={<Legal page="refund" />} />
-        <Route path="/partner" element={<Partner />} />
         <Route path="/services/:serviceArea" element={<ServiceArea />} />
         <Route path="/:slug" element={<PublicProfile />} />
         <Route path="/" element={
@@ -59,7 +57,9 @@ export default function App() {
             {screen === 'add-emp-review'    && <AddEmpReview {...screenProps} />}
             {screen === 'register-company'  && <RegisterCompany {...screenProps} />}
             {screen === 'register-employee' && <RegisterEmployee {...screenProps} />}
-            {screen === 'customer-profile'  && <CustomerProfile {...screenProps} />}
+            {screen === 'customer-profile'  && <MyAccount {...screenProps} />}
+            {screen === 'my-requests'       && <MyAccount {...screenProps} />}
+            {screen === 'my-account'        && <MyAccount {...screenProps} />}
             {isMobile && <BottomNav screen={screen} navigate={navigate} />}
           </div>
         } />
