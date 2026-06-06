@@ -236,29 +236,24 @@ export default function PublicProfile() {
   async function trackProfileView(id) {
     // 1) bump the aggregate counter (best-effort, never blocks)
     try { await supabase.rpc('increment_profile_views', { p_company_id: id }) } catch (e) {}
-    // 2) resolve visitor IP + country from a free geo-IP service (best-effort)
-    let visitorIp = null, country = null
+    // 2) log the view via Edge Function — captures IP + country server-side
+    //    (server-side avoids browser/ad-blocker blocking of geo-IP calls)
     try {
-      const ctrl = new AbortController()
-      const tmo = setTimeout(() => ctrl.abort(), 2500)
-      const res = await fetch('https://ipapi.co/json/', { signal: ctrl.signal })
-      clearTimeout(tmo)
-      if (res.ok) {
-        const geo = await res.json()
-        visitorIp = geo.ip || null
-        country = geo.country_name || geo.country || null
-      }
-    } catch (e) {}
-    // 3) log the view (with IP + country when available)
-    try {
-      await supabase.from('profile_views_log').insert({
-        company_id: id,
-        visited_at: new Date().toISOString(),
-        user_agent: navigator.userAgent,
-        visitor_ip: visitorIp,
-        country: country,
+      await fetch(`${SUPABASE_URL}/functions/v1/log-profile-view`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_id: id }),
       })
-    } catch (e) {}
+    } catch (e) {
+      // fallback: log minimally if the function is unreachable
+      try {
+        await supabase.from('profile_views_log').insert({
+          company_id: id,
+          visited_at: new Date().toISOString(),
+          user_agent: navigator.userAgent,
+        })
+      } catch (e2) {}
+    }
   }
 
   async function fetchCompany() {
