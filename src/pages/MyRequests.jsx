@@ -122,11 +122,37 @@ function ChatDrawer({ open, onClose, company, leadId, customer, mobile }) {
 }
 
 /* ---------- Company row (inside a request) ---------- */
-function CompanyRow({ co, unread, onMessage, onView }) {
+function StatusBadge({ status, unread }) {
+  // Phase 3 will add 'quote' (Quote ready). For now: chatting / awaiting / new.
+  if (status === 'chatting') {
+    return (
+      <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#0077aa', background: '#e0f9ff', padding: '7px 12px', borderRadius: 8, whiteSpace: 'nowrap' }}>
+        <i className="ti ti-message-2" style={{ fontSize: 13 }} /> Chatting
+        {unread > 0 && <span style={{ position: 'absolute', top: -5, right: -5, minWidth: 16, height: 16, borderRadius: 99, background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{unread}</span>
+        }
+      </span>
+    )
+  }
+  if (status === 'awaiting') {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--bg-secondary)', border: '0.5px solid var(--border-default)', padding: '7px 12px', borderRadius: 8, whiteSpace: 'nowrap' }}>
+        Awaiting reply
+      </span>
+    )
+  }
+  // new — invite to chat
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: '#fff', background: '#0099cc', padding: '7px 12px', borderRadius: 8, whiteSpace: 'nowrap' }}>
+      <i className="ti ti-message-2" style={{ fontSize: 13 }} /> Message
+    </span>
+  )
+}
+
+function CompanyRow({ co, unread, status, onMessage }) {
   const name = co?.name || 'Company'
   const initials = name.slice(0, 2).toUpperCase()
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderTop: '0.5px solid var(--border-default)' }}>
+    <div onClick={onMessage} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderTop: '0.5px solid var(--border-default)', cursor: 'pointer' }}>
       <div style={{ width: 38, height: 38, borderRadius: 9, overflow: 'hidden', flexShrink: 0, background: '#e0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {co?.logo_url ? <img src={co.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 12, fontWeight: 700, color: '#0077aa' }}>{initials}</span>}
       </div>
@@ -137,14 +163,11 @@ function CompanyRow({ co, unread, onMessage, onView }) {
         </div>
         <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 1, display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
           <span style={{ color: '#f5a623', fontWeight: 700 }}>★ {co?.avg_rating ? Number(co.avg_rating).toFixed(1) : 'New'}</span>
+          <span>{co?.total_reviews || 0} reviews</span>
           {co?.trust_score != null && <span style={{ color: '#0099cc', fontWeight: 600 }}>Trust {Math.round(co.trust_score)}</span>}
         </div>
       </div>
-      <button onClick={onMessage}
-        style={{ position: 'relative', flexShrink: 0, fontSize: 11, fontWeight: 700, color: '#fff', background: '#0099cc', border: 'none', borderRadius: 7, padding: '7px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}>
-        <i className="ti ti-message-2" style={{ fontSize: 13 }} /> Chat
-        {unread > 0 && <span style={{ position: 'absolute', top: -5, right: -5, minWidth: 16, height: 16, borderRadius: 99, background: '#ef4444', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{unread}</span>}
-      </button>
+      <StatusBadge status={status} unread={unread} />
     </div>
   )
 }
@@ -202,15 +225,22 @@ export default function MyRequests({ navigate }) {
       const built = leadRows.map(l => {
         const cos = (dists || []).filter(d => d.lead_id === l.id).map(d => d.companies).filter(Boolean)
         const unreadByCompany = {}
-        ;(chats || []).forEach(m => {
-          if (m.lead_id === l.id && m.sender_type === 'company' && !m.read_by_customer) {
-            unreadByCompany[m.company_id] = (unreadByCompany[m.company_id] || 0) + 1
-          }
+        const statusByCompany = {}
+        cos.forEach(co => {
+          const msgs = (chats || []).filter(m => m.lead_id === l.id && m.company_id === co.id)
+          const hasCustomer = msgs.some(m => m.sender_type === 'customer')
+          const hasCompany = msgs.some(m => m.sender_type === 'company')
+          let st = 'new'                       // no chat yet
+          if (hasCompany) st = 'chatting'      // company has replied
+          else if (hasCustomer) st = 'awaiting' // customer sent, company not replied
+          statusByCompany[co.id] = st
+          const unread = msgs.filter(m => m.sender_type === 'company' && !m.read_by_customer).length
+          if (unread) unreadByCompany[co.id] = unread
         })
         const service = l.answers?.['Service Category'] || l.answers?.category || l.answers?.['Project Type'] || 'Service request'
         const area = l.answers?._area || l.answers?.['Area'] || l.answers?.area || ''
         const hasAnyChat = (chats || []).some(m => m.lead_id === l.id)
-        return { id: l.id, created_at: l.created_at, service, area, companies: cos, unreadByCompany, hasAnyChat }
+        return { id: l.id, created_at: l.created_at, service, area, companies: cos, unreadByCompany, statusByCompany, hasAnyChat }
       })
       setRequests(built)
     } catch (e) { console.error(e) }
@@ -238,6 +268,7 @@ export default function MyRequests({ navigate }) {
 
   // requests that have at least one chat thread (for Messages tab)
   const msgRequests = requests.filter(r => r.hasAnyChat || Object.keys(r.unreadByCompany).length > 0)
+  const totalUnread = requests.reduce((sum, r) => sum + Object.values(r.unreadByCompany || {}).reduce((a, b) => a + b, 0), 0)
 
   return (
     <div style={{ minHeight: '100vh', background: soft, fontFamily: "'Manrope',sans-serif" }}>
@@ -245,10 +276,20 @@ export default function MyRequests({ navigate }) {
 
       {/* Top bar */}
       <div style={{ background: card, borderBottom: `1px solid ${line}`, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, position: 'sticky', top: 0, zIndex: 50 }}>
-        <button onClick={() => navigate && navigate('home')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${line}`, background: soft, color: t2, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button onClick={() => navigate && navigate('home')} style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${line}`, background: soft, color: t2, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <i className="ti ti-arrow-left" style={{ fontSize: 17 }} />
         </button>
-        <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 17, color: t1 }}>My Requests</div>
+        <div style={{ width: 38, height: 38, borderRadius: '50%', background: '#e0f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, color: '#0077aa', flexShrink: 0 }}>
+          {((customer?.full_name || customer?.email || 'U')[0] || 'U').toUpperCase()}{((customer?.full_name || '').split(' ')[1]?.[0] || '').toUpperCase()}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 17, color: t1, lineHeight: 1.1 }}>My Requests</div>
+          <div style={{ fontSize: 11.5, color: t3 }}>{customer?.full_name ? customer.full_name.split(' ')[0] + ' · ' : ''}your quotes &amp; projects</div>
+        </div>
+        <div style={{ position: 'relative', width: 38, height: 38, borderRadius: '50%', border: `1px solid ${line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t2, flexShrink: 0 }}>
+          <i className="ti ti-bell" style={{ fontSize: 18 }} />
+          {totalUnread > 0 && <span style={{ position: 'absolute', top: 7, right: 8, width: 8, height: 8, borderRadius: '50%', background: '#ef4444', border: `1.5px solid ${card}` }} />}
+        </div>
       </div>
 
       <div style={{ maxWidth: 760, margin: '0 auto', padding: '16px 14px 60px' }}>
@@ -296,8 +337,8 @@ export default function MyRequests({ navigate }) {
                       <div style={{ padding: '0 14px 14px', fontSize: 12, color: t3 }}>Matching you with companies — check back shortly.</div>
                     ) : r.companies.map(co => (
                       <CompanyRow key={co.id} co={co} unread={r.unreadByCompany[co.id] || 0}
-                        onMessage={() => openChat(r.id, co)}
-                        onView={() => co.slug && window.open('/' + co.slug, '_blank')} />
+                        status={r.statusByCompany?.[co.id] || 'new'}
+                        onMessage={() => openChat(r.id, co)} />
                     ))}
                   </div>
                 ))
@@ -316,8 +357,8 @@ export default function MyRequests({ navigate }) {
                     <div style={{ padding: '11px 14px', fontSize: 12, fontWeight: 600, color: t2, background: soft }}>{r.service}{r.area ? ` · ${r.area}` : ''}</div>
                     {r.companies.map(co => (
                       <CompanyRow key={co.id} co={co} unread={r.unreadByCompany[co.id] || 0}
-                        onMessage={() => openChat(r.id, co)}
-                        onView={() => co.slug && window.open('/' + co.slug, '_blank')} />
+                        status={r.statusByCompany?.[co.id] || 'new'}
+                        onMessage={() => openChat(r.id, co)} />
                     ))}
                   </div>
                 ))
@@ -336,6 +377,11 @@ export default function MyRequests({ navigate }) {
                 text="Once you accept a quote, you'll track your project here — milestones, updates and photos from your company." />
             )}
           </>
+        )}
+        {customer && (
+          <div style={{ textAlign: 'center', marginTop: 22, fontSize: 11.5, color: t3, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <i className="ti ti-shield-check" style={{ fontSize: 14, color: '#0099cc' }} /> Sab kuch ek jagah — companies, chat, quote, deal, project
+          </div>
         )}
       </div>
 
