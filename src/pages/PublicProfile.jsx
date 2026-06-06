@@ -236,20 +236,35 @@ export default function PublicProfile() {
   async function trackProfileView(id) {
     // 1) bump the aggregate counter (best-effort, never blocks)
     try { await supabase.rpc('increment_profile_views', { p_company_id: id }) } catch (e) {}
-    // 2) let the browser detect its own public IP + country (ipwho.is is rarely blocked).
-    //    Whatever we get is sent to the Edge Function, which also has header fallbacks.
+
+    // 2) detect visitor IP + country in the browser, trying several providers
+    //    so a single blocked/down service does not break it.
     let ip = null, country = null
-    try {
-      const ctrl = new AbortController()
-      const tmo = setTimeout(() => ctrl.abort(), 2500)
-      const geo = await fetch('https://ipwho.is/', { signal: ctrl.signal })
-      clearTimeout(tmo)
-      if (geo.ok) {
-        const g = await geo.json()
-        if (g && g.success !== false) { ip = g.ip || null; country = g.country || null }
-      }
-    } catch (e) {}
-    // 3) log the view via Edge Function (server-side insert + header fallbacks)
+    const tryFetch = async (url) => {
+      try {
+        const ctrl = new AbortController()
+        const tmo = setTimeout(() => ctrl.abort(), 2500)
+        const r = await fetch(url, { signal: ctrl.signal })
+        clearTimeout(tmo)
+        if (r.ok) return await r.json()
+      } catch (e) {}
+      return null
+    }
+    // a) ipwho.is — gives ip + country in one shot
+    const a = await tryFetch('https://ipwho.is/')
+    if (a && a.success !== false) { ip = a.ip || null; country = a.country || null }
+    // b) country.is — gives ip + 2-letter country
+    if (!ip || !country) {
+      const b = await tryFetch('https://api.country.is/')
+      if (b) { ip = ip || b.ip || null; country = country || b.country || null }
+    }
+    // c) ipify — very reliable for the IP at least
+    if (!ip) {
+      const c = await tryFetch('https://api.ipify.org?format=json')
+      if (c) ip = c.ip || null
+    }
+
+    // 3) send to the Edge Function (which also has its own server-side fallbacks)
     try {
       await fetch(`${SUPABASE_URL}/functions/v1/log-profile-view`, {
         method: 'POST',
