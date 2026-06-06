@@ -22,6 +22,7 @@ const can = (f, plan) => !!(FEATURES[f] && FEATURES[f][plan])
 const limitOf = (f, plan) => (FEATURES[f] ? (FEATURES[f][plan] ?? 0) : 0)
 
 const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpYmRvcnJheHhoZmJma2pocGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTkzNDUsImV4cCI6MjA5NTM3NTM0NX0.w5EMvd47CtWTc-8NgTlsM44EYmbGSQHc79wgjXTQlHE'
 
 function makeTheme(dark) {
   if (dark) return {
@@ -251,7 +252,11 @@ export default function PublicProfile() {
       try {
         await fetch(`${SUPABASE_URL}/functions/v1/log-profile-view`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
           body: JSON.stringify({ company_id: id, ip }),
         })
       } catch (e) {
