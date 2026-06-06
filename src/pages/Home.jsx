@@ -152,8 +152,8 @@ function ProfileGateModal({ open, onClose, customer, onComplete, mobile }) {
   )
 }
 
-/* ============ MATCHED COMPANY CARD (Phase 1 success screen) ============ */
-function MatchedCompanyCard({ co, rank }) {
+/* ============ LEAD QUOTE MODAL ============ */
+function MatchedCompanyCard({ co }) {
   const name = co?.name || 'Company'
   const initials = name.slice(0,2).toUpperCase()
   const verified = co?.is_verified
@@ -190,7 +190,6 @@ function MatchedCompanyCard({ co, rank }) {
   )
 }
 
-/* ============ LEAD QUOTE MODAL ============ */
 function LeadQuoteModal({ open, onClose, customer, mobile }) {
   const [form, setForm]         = useState(null)
   const [questions, setQuestions] = useState([])
@@ -254,7 +253,6 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   async function fetchMatched(leadId) {
     setMatchLoading(true)
     try {
-      // give the after-insert trigger a moment to run fn_distribute_lead
       await new Promise(r => setTimeout(r, 1300))
       const { data } = await supabase
         .from('lead_distributions')
@@ -305,12 +303,14 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
     alignItems: mobile ? 'flex-end' : 'center', justifyContent:'center' }
   const sheet = { background:'var(--bg-card)', border:'0.5px solid var(--border-default)',
     borderRadius: mobile ? '18px 18px 0 0' : 14, padding: mobile ? '14px 16px 22px' : 24,
-    width: mobile ? '100%' : 420, maxWidth: mobile ? '100%' : '92vw', maxHeight:'88vh', overflowY:'auto' }
+    width: mobile ? '100%' : 420, maxWidth: mobile ? '100%' : '92vw',
+    maxHeight: mobile ? '90vh' : '88vh', overflowY:'auto', display:'flex', flexDirection:'column',
+    WebkitOverflowScrolling:'touch' }
 
   return (
     <div style={overlay} onClick={onClose}>
       <div style={sheet} onClick={e => e.stopPropagation()}>
-        {mobile && <div style={{ width:34, height:4, background:'var(--border-default)', borderRadius:99, margin:'0 auto 12px' }} />}
+        {mobile && <div style={{ width:34, height:4, background:'var(--border-default)', borderRadius:99, margin:'0 auto 12px', flexShrink:0 }} />}
 
         {done ? (
           <div style={{ padding:'6px 0 2px' }}>
@@ -337,12 +337,12 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
                 <div style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:9 }}>
                   Matched with these trusted companies
                 </div>
-                {matched.map((co, i) => <MatchedCompanyCard key={co.id || i} co={co} rank={i+1} />)}
+                {matched.map((co, i) => <MatchedCompanyCard key={co.id || i} co={co} />)}
               </>
             ) : null}
 
             <button onClick={onClose}
-              style={{ width:'100%', marginTop:8, padding:'11px', background:'var(--bg-secondary)', color:'var(--text-primary)', border:'0.5px solid var(--border-default)', borderRadius:9, fontSize:13, fontWeight:600, cursor:'pointer' }}>
+              style={{ width:'100%', marginTop:8, padding:'11px', background:'var(--bg-secondary)', color:'var(--text-primary)', border:'0.5px solid var(--border-default)', borderRadius:9, fontSize:13, fontWeight:600, cursor:'pointer', flexShrink:0 }}>
               Done
             </button>
           </div>
