@@ -13,8 +13,8 @@ import RegisterEmployee from './pages/RegisterEmployee'
 import PublicProfile from './pages/PublicProfile'
 import CustomerProfile from './pages/CustomerProfile'
 import ServiceArea from './pages/ServiceArea'
+import Legal from './pages/Legal'
 import BottomNav from './components/BottomNav'
-
 function useIsMobile() {
   const [mobile, setMobile] = useState(
     () => document.documentElement.clientWidth < 481
@@ -28,7 +28,6 @@ function useIsMobile() {
   })
   return mobile
 }
-
 export default function App() {
   const [screen, setScreen] = useState('home')
   const [params, setParams] = useState({})
@@ -42,6 +41,10 @@ export default function App() {
   return (
     <div style={{ background:'var(--bg-primary)', minHeight:'100vh' }}>
       <Routes>
+        {/* Static / reserved routes — MUST come before the catch-all "/:slug" */}
+        <Route path="/terms"   element={<Legal page="terms" />} />
+        <Route path="/privacy" element={<Legal page="privacy" />} />
+        <Route path="/refund"  element={<Legal page="refund" />} />
         <Route path="/services/:serviceArea" element={<ServiceArea />} />
         <Route path="/:slug" element={<PublicProfile />} />
         <Route path="/" element={
