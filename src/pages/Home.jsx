@@ -1275,6 +1275,10 @@ export default function Home({ navigate }) {
       style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
       <i className="ti ti-user" style={{ fontSize:12 }}/> My Profile
     </button>
+    <button onClick={()=>{navigate('my-requests');setShowUserMenu(false)}}
+      style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
+      <i className="ti ti-clipboard-list" style={{ fontSize:12 }}/> My Requests
+    </button>
     <button onClick={()=>{navigate('add-review',{});setShowUserMenu(false)}}
       style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
       <i className="ti ti-star" style={{ fontSize:12 }}/> Write a Review
@@ -1549,6 +1553,10 @@ export default function Home({ navigate }) {
                     <button onClick={()=>{navigate('customer-profile');setShowUserMenu(false)}}
                       style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
                       <i className="ti ti-user" style={{ fontSize:12 }}/> My Profile
+                    </button>
+                    <button onClick={()=>{navigate('my-requests');setShowUserMenu(false)}}
+                      style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
+                      <i className="ti ti-clipboard-list" style={{ fontSize:12 }}/> My Requests
                     </button>
                     <button onClick={()=>{navigate('add-review',{});setShowUserMenu(false)}}
                       style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
