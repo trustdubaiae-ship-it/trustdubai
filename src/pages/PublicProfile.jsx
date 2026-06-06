@@ -233,56 +233,39 @@ export default function PublicProfile() {
   async function checkCustomer() { setCustomer((await getCustomer()) || null) }
   async function fetchAiSetting() { const { data } = await supabase.from('app_settings').select('value').eq('key', 'feature.ai_analysis').maybeSingle(); setAiAnalysisOn(data?.value?.enabled === true); const { data: g } = await supabase.from('app_settings').select('value').eq('key', 'feature.google_reviews').maybeSingle(); setGoogleOn(g?.value?.enabled === true) }
   async function fetchSocial() { const { data } = await supabase.from('app_settings').select('value').eq('key', 'trustdubai.social').maybeSingle(); setSocial(data?.value || null) }
-  async function trackProfileView(id) {
-    // 1) bump the aggregate counter (best-effort, never blocks)
-    try { await supabase.rpc('increment_profile_views', { p_company_id: id }) } catch (e) {}
-
-    // 2) detect visitor IP + country in the browser, trying several providers
-    //    so a single blocked/down service does not break it.
-    let ip = null, country = null
-    const tryFetch = async (url) => {
+  function trackProfileView(id) {
+    // fully fire-and-forget — never blocks page render
+    // 1) bump aggregate counter
+    try { supabase.rpc('increment_profile_views', { p_company_id: id }) } catch (e) {}
+    // 2) get visitor IP from ipify (fast, reliable), then log via Edge Function.
+    //    The Edge Function resolves COUNTRY from this IP server-side (not blocked).
+    ;(async () => {
+      let ip = null
       try {
         const ctrl = new AbortController()
-        const tmo = setTimeout(() => ctrl.abort(), 2500)
-        const r = await fetch(url, { signal: ctrl.signal })
+        const tmo = setTimeout(() => ctrl.abort(), 2000)
+        const r = await fetch('https://api.ipify.org?format=json', { signal: ctrl.signal })
         clearTimeout(tmo)
-        if (r.ok) return await r.json()
+        if (r.ok) { const j = await r.json(); ip = j.ip || null }
       } catch (e) {}
-      return null
-    }
-    // a) ipwho.is — gives ip + country in one shot
-    const a = await tryFetch('https://ipwho.is/')
-    if (a && a.success !== false) { ip = a.ip || null; country = a.country || null }
-    // b) country.is — gives ip + 2-letter country
-    if (!ip || !country) {
-      const b = await tryFetch('https://api.country.is/')
-      if (b) { ip = ip || b.ip || null; country = country || b.country || null }
-    }
-    // c) ipify — very reliable for the IP at least
-    if (!ip) {
-      const c = await tryFetch('https://api.ipify.org?format=json')
-      if (c) ip = c.ip || null
-    }
-
-    // 3) send to the Edge Function (which also has its own server-side fallbacks)
-    try {
-      await fetch(`${SUPABASE_URL}/functions/v1/log-profile-view`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company_id: id, ip, country }),
-      })
-    } catch (e) {
-      // last-resort fallback: minimal direct insert
       try {
-        await supabase.from('profile_views_log').insert({
-          company_id: id,
-          visited_at: new Date().toISOString(),
-          user_agent: navigator.userAgent,
-          visitor_ip: ip,
-          country: country,
+        await fetch(`${SUPABASE_URL}/functions/v1/log-profile-view`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ company_id: id, ip }),
         })
-      } catch (e2) {}
-    }
+      } catch (e) {
+        // last-resort minimal insert
+        try {
+          await supabase.from('profile_views_log').insert({
+            company_id: id,
+            visited_at: new Date().toISOString(),
+            user_agent: navigator.userAgent,
+            visitor_ip: ip,
+          })
+        } catch (e2) {}
+      }
+    })()
   }
 
   async function fetchCompany() {
