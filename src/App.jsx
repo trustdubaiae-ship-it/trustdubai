@@ -1,4 +1,3 @@
-// trustdubai/src/App.jsx
 import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import './index.css'
@@ -12,11 +11,10 @@ import AddEmpReview from './pages/AddEmpReview'
 import RegisterCompany from './pages/RegisterCompany'
 import RegisterEmployee from './pages/RegisterEmployee'
 import PublicProfile from './pages/PublicProfile'
-import PublicLeadForm from './pages/PublicLeadForm'
 import CustomerProfile from './pages/CustomerProfile'
-import MyRequests from './pages/MyRequests'
 import ServiceArea from './pages/ServiceArea'
 import Legal from './pages/Legal'
+import Partner from './pages/Partner'
 import BottomNav from './components/BottomNav'
 function useIsMobile() {
   const [mobile, setMobile] = useState(
@@ -48,7 +46,7 @@ export default function App() {
         <Route path="/terms"   element={<Legal page="terms" />} />
         <Route path="/privacy" element={<Legal page="privacy" />} />
         <Route path="/refund"  element={<Legal page="refund" />} />
-        <Route path="/form/:formId" element={<PublicLeadForm />} />
+        <Route path="/partner" element={<Partner />} />
         <Route path="/services/:serviceArea" element={<ServiceArea />} />
         <Route path="/:slug" element={<PublicProfile />} />
         <Route path="/" element={
@@ -62,7 +60,6 @@ export default function App() {
             {screen === 'register-company'  && <RegisterCompany {...screenProps} />}
             {screen === 'register-employee' && <RegisterEmployee {...screenProps} />}
             {screen === 'customer-profile'  && <CustomerProfile {...screenProps} />}
-            {screen === 'my-requests'       && <MyRequests {...screenProps} />}
             {isMobile && <BottomNav screen={screen} navigate={navigate} />}
           </div>
         } />
