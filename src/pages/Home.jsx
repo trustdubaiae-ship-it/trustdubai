@@ -48,26 +48,6 @@ function Logo({ size = 15 }) {
   )
 }
 
-/* ============ SITE FOOTER (legal links) ============ */
-function Footer() {
-  const linkStyle = { fontSize: 11, color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: 600 }
-  return (
-    <div style={{ background: 'var(--bg-card)', borderTop: '0.5px solid var(--border-default)', padding: '18px 16px' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <Logo size={13} />
-          <span style={{ fontSize: 9.5, color: 'var(--text-muted)' }}>© 2026 TrustDubai. All rights reserved.</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-          <a href="/terms" style={linkStyle}>Terms of Service</a>
-          <a href="/privacy" style={linkStyle}>Privacy Policy</a>
-          <a href="/refund" style={linkStyle}>Refund Policy</a>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /* ============ GET QUOTES BUTTON (reusable) ============ */
 function GetQuotesButton({ onClick, mobile }) {
   return (
@@ -173,7 +153,7 @@ function ProfileGateModal({ open, onClose, customer, onComplete, mobile }) {
 }
 
 /* ============ LEAD QUOTE MODAL ============ */
-function MatchedCompanyCard({ co }) {
+function MatchedCompanyCard({ co, leadId, customer, onMessage }) {
   const name = co?.name || 'Company'
   const initials = name.slice(0,2).toUpperCase()
   const verified = co?.is_verified
@@ -182,30 +162,162 @@ function MatchedCompanyCard({ co }) {
                 : plan==='gold'     ? { t:'Gold', bg:'#fef3c7', c:'#92400e' }
                 : plan==='silver'   ? { t:'Silver', bg:'#f1f5f9', c:'#475569' }
                 : null
-  function open() { if (co?.slug) window.open('/'+co.slug, '_blank') }
+  function openProfile() { if (co?.slug) window.open('/'+co.slug, '_blank') }
   return (
-    <div style={{ display:'flex', alignItems:'center', gap:11, padding:'11px 12px', border:'0.5px solid var(--border-default)', borderRadius:11, background:'var(--bg-card)', marginBottom:8 }}>
-      <div style={{ width:40, height:40, borderRadius:10, overflow:'hidden', flexShrink:0, background:'#e0f9ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
-        {co?.logo_url
-          ? <img src={co.logo_url} alt={name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-          : <span style={{ fontSize:13, fontWeight:700, color:'#0077aa' }}>{initials}</span>}
-      </div>
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-          <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
-          {verified && <i className="ti ti-rosette-discount-check-filled" style={{ fontSize:13, color:'#1e9e63', flexShrink:0 }} />}
+    <div style={{ border:'0.5px solid var(--border-default)', borderRadius:11, background:'var(--bg-card)', marginBottom:8, padding:'11px 12px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:11 }}>
+        <div style={{ width:40, height:40, borderRadius:10, overflow:'hidden', flexShrink:0, background:'#e0f9ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          {co?.logo_url
+            ? <img src={co.logo_url} alt={name} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+            : <span style={{ fontSize:13, fontWeight:700, color:'#0077aa' }}>{initials}</span>}
         </div>
-        <div style={{ fontSize:10.5, color:'var(--text-muted)', marginTop:1, display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
-          <span style={{ color:'#f5a623', fontWeight:700 }}>★ {co?.avg_rating ? Number(co.avg_rating).toFixed(1) : 'New'}</span>
-          <span>{co?.total_reviews || 0} reviews</span>
-          {co?.trust_score != null && <span style={{ color:'#0099cc', fontWeight:600 }}>Trust {Math.round(co.trust_score)}</span>}
-          {planTag && <span style={{ fontSize:8, fontWeight:700, background:planTag.bg, color:planTag.c, padding:'1px 6px', borderRadius:4 }}>{planTag.t}</span>}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:5 }}>
+            <span style={{ fontSize:13, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
+            {verified && <i className="ti ti-rosette-discount-check-filled" style={{ fontSize:13, color:'#1e9e63', flexShrink:0 }} />}
+          </div>
+          <div style={{ fontSize:10.5, color:'var(--text-muted)', marginTop:1, display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
+            <span style={{ color:'#f5a623', fontWeight:700 }}>★ {co?.avg_rating ? Number(co.avg_rating).toFixed(1) : 'New'}</span>
+            <span>{co?.total_reviews || 0} reviews</span>
+            {co?.trust_score != null && <span style={{ color:'#0099cc', fontWeight:600 }}>Trust {Math.round(co.trust_score)}</span>}
+            {planTag && <span style={{ fontSize:8, fontWeight:700, background:planTag.bg, color:planTag.c, padding:'1px 6px', borderRadius:4 }}>{planTag.t}</span>}
+          </div>
         </div>
       </div>
-      <button onClick={open}
-        style={{ flexShrink:0, fontSize:11, fontWeight:600, color:'#0099cc', background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:7, padding:'6px 11px', cursor:'pointer', whiteSpace:'nowrap' }}>
-        View
-      </button>
+      <div style={{ display:'flex', gap:7, marginTop:9 }}>
+        <button onClick={()=>onMessage && onMessage(co)}
+          style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5, fontSize:12, fontWeight:700, color:'#fff', background:'#0099cc', border:'none', borderRadius:8, padding:'8px', cursor:'pointer' }}>
+          <i className="ti ti-message-2" style={{ fontSize:14 }} /> Message
+        </button>
+        <button onClick={openProfile}
+          style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5, fontSize:12, fontWeight:600, color:'#0099cc', background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px', cursor:'pointer' }}>
+          <i className="ti ti-eye" style={{ fontSize:14 }} /> View
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ChatDrawer({ open, onClose, company, leadId, customer, mobile }) {
+  const [messages, setMessages] = useState([])
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
+
+  useEffect(() => {
+    if (!open || !company || !leadId) return
+    let alive = true
+    load()
+    const t = setInterval(load, 4000)
+    return () => { alive = false; clearInterval(t) }
+    async function load() {
+      try {
+        const { data } = await supabase
+          .from('lead_chat')
+          .select('id,sender_type,body,created_at,read_by_company,read_by_customer')
+          .eq('lead_id', leadId)
+          .eq('company_id', company.id)
+          .order('created_at', { ascending: true })
+        if (!alive) return
+        setMessages(data || [])
+        const unread = (data || []).filter(m => m.sender_type==='company' && !m.read_by_customer)
+        if (unread.length) {
+          await supabase.from('lead_chat').update({ read_by_customer:true })
+            .eq('lead_id', leadId).eq('company_id', company.id).eq('sender_type','company').eq('read_by_customer', false)
+        }
+      } catch(e){ console.error(e) }
+      finally { if (alive) setLoading(false) }
+    }
+  }, [open, company, leadId])
+
+  async function send() {
+    const body = text.trim()
+    if (!body || sending) return
+    setSending(true)
+    const optimistic = { id:'tmp'+Date.now(), sender_type:'customer', body, created_at:new Date().toISOString() }
+    setMessages(m => [...m, optimistic])
+    setText('')
+    try {
+      await supabase.from('lead_chat').insert({
+        lead_id: leadId, company_id: company.id, customer_id: customer?.id || null,
+        sender_type: 'customer', body, read_by_customer: true,
+      })
+    } catch(e){ console.error(e) }
+    finally { setSending(false) }
+  }
+
+  if (!open || !company) return null
+  const name = company.name || 'Company'
+  const initials = name.slice(0,2).toUpperCase()
+
+  const overlay = { position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:4000, display:'flex',
+    alignItems: mobile ? 'stretch' : 'center', justifyContent: mobile ? 'stretch' : 'flex-end' }
+  const panel = { background:'var(--bg-card)', display:'flex', flexDirection:'column',
+    width: mobile ? '100%' : 400, height: mobile ? '100%' : '88vh',
+    maxHeight: mobile ? '100%' : '88vh',
+    borderRadius: mobile ? 0 : '14px 0 0 14px', overflow:'hidden',
+    marginRight: mobile ? 0 : 0 }
+
+  return (
+    <div style={overlay} onClick={onClose}>
+      <div style={panel} onClick={e=>e.stopPropagation()}>
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', borderBottom:'0.5px solid var(--border-default)', flexShrink:0 }}>
+          <button onClick={onClose} style={{ width:30, height:30, borderRadius:8, border:'0.5px solid var(--border-default)', background:'var(--bg-secondary)', color:'var(--text-secondary)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <i className="ti ti-arrow-left" style={{ fontSize:17 }} />
+          </button>
+          <div style={{ width:36, height:36, borderRadius:9, overflow:'hidden', background:'#e0f9ff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            {company.logo_url ? <img src={company.logo_url} alt={name} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <span style={{ fontSize:12, fontWeight:700, color:'#0077aa' }}>{initials}</span>}
+          </div>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', display:'flex', alignItems:'center', gap:4 }}>
+              {name} {company.is_verified && <i className="ti ti-rosette-discount-check-filled" style={{ fontSize:12, color:'#1e9e63' }} />}
+            </div>
+            <div style={{ fontSize:11, color:'var(--text-muted)' }}>
+              {company.avg_rating ? '★ '+Number(company.avg_rating).toFixed(1) : 'New'}{company.trust_score!=null ? ' · Trust '+Math.round(company.trust_score) : ''}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ flex:1, overflowY:'auto', padding:'14px', background:'var(--bg-secondary)', display:'flex', flexDirection:'column', gap:9, WebkitOverflowScrolling:'touch' }}>
+          {loading ? (
+            <div style={{ textAlign:'center', color:'var(--text-muted)', fontSize:12, padding:20 }}>
+              <div style={{ width:22, height:22, border:'3px solid #0099cc', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 8px' }} />
+              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+              Loading…
+            </div>
+          ) : messages.length === 0 ? (
+            <div style={{ textAlign:'center', color:'var(--text-muted)', fontSize:12, padding:'20px 10px' }}>
+              <i className="ti ti-message-2" style={{ fontSize:26, color:'#0099cc', display:'block', marginBottom:8 }} />
+              Start the conversation with {name}. Ask about your project, pricing, or timeline.
+            </div>
+          ) : messages.map(m => {
+            const mine = m.sender_type === 'customer'
+            return (
+              <div key={m.id} style={{ alignSelf: mine?'flex-end':'flex-start', maxWidth:'80%' }}>
+                <div style={{ background: mine?'#0099cc':'var(--bg-card)', color: mine?'#fff':'var(--text-primary)',
+                  border: mine?'none':'0.5px solid var(--border-default)',
+                  padding:'9px 12px', borderRadius: mine?'12px 12px 4px 12px':'12px 12px 12px 4px', fontSize:13, lineHeight:1.5, wordBreak:'break-word' }}>
+                  {m.body}
+                </div>
+                <div style={{ fontSize:9.5, color:'var(--text-muted)', textAlign: mine?'right':'left', marginTop:3 }}>
+                  {new Date(m.created_at).toLocaleTimeString('en-AE',{hour:'numeric',minute:'2-digit'})}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 12px', borderTop:'0.5px solid var(--border-default)', flexShrink:0 }}>
+          <input value={text} onChange={e=>setText(e.target.value)}
+            onKeyDown={e=>{ if(e.key==='Enter') send() }}
+            placeholder="Type a message…"
+            style={{ flex:1, height:38, border:'0.5px solid var(--border-default)', borderRadius:99, padding:'0 14px', fontSize:13, background:'var(--bg-secondary)', color:'var(--text-primary)', outline:'none' }} />
+          <button onClick={send} disabled={sending || !text.trim()}
+            style={{ width:38, height:38, borderRadius:'50%', background:'#0099cc', border:'none', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', flexShrink:0, cursor:'pointer', opacity:(sending||!text.trim())?0.6:1 }}>
+            <i className="ti ti-send" style={{ fontSize:17 }} />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -221,9 +333,11 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   const [categories, setCategories] = useState([])
   const [matched, setMatched]   = useState([])
   const [matchLoading, setMatchLoading] = useState(false)
+  const [leadId, setLeadId]     = useState(null)
+  const [chatCo, setChatCo]     = useState(null)
 
   useEffect(() => {
-    if (open) { loadForm(); setDone(false); setAnswers({}); setError(''); setMatched([]) }
+    if (open) { loadForm(); setDone(false); setAnswers({}); setError(''); setMatched([]); setLeadId(null); setChatCo(null) }
   }, [open])
 
   async function loadForm() {
@@ -321,7 +435,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
       if (insErr) throw insErr
       await supabase.from('lead_forms').update({ submit_count: (form.submit_count || 0) + 1 }).eq('id', form.id)
       setDone(true)
-      if (ins?.id) fetchMatched(ins.id)
+      if (ins?.id) { setLeadId(ins.id); fetchMatched(ins.id) }
     } catch (e) { console.error(e); setError('Something went wrong. Please try again.') }
     finally { setSubmitting(false) }
   }
@@ -337,6 +451,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
     WebkitOverflowScrolling:'touch' }
 
   return (
+    <>
     <div style={overlay} onClick={onClose}>
       <div style={sheet} onClick={e => e.stopPropagation()}>
         {mobile && <div style={{ width:34, height:4, background:'var(--border-default)', borderRadius:99, margin:'0 auto 12px', flexShrink:0 }} />}
@@ -366,7 +481,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
                 <div style={{ fontSize:10.5, fontWeight:700, color:'var(--text-muted)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:9 }}>
                   Matched with these trusted companies
                 </div>
-                {matched.map((co, i) => <MatchedCompanyCard key={co.id || i} co={co} />)}
+                {matched.map((co, i) => <MatchedCompanyCard key={co.id || i} co={co} leadId={leadId} customer={customer} onMessage={(c)=>setChatCo(c)} />)}
               </>
             ) : null}
 
@@ -483,6 +598,8 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
         )}
       </div>
     </div>
+      <ChatDrawer open={!!chatCo} onClose={()=>setChatCo(null)} company={chatCo} leadId={leadId} customer={customer} mobile={mobile} />
+    </>
   )
 }
 const inpStyle = { width:'100%', padding:'10px 12px', background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, fontSize:12.5, color:'var(--text-primary)', outline:'none', boxSizing:'border-box' }
@@ -952,6 +1069,25 @@ export default function Home({ navigate }) {
     })
     return () => subscription.unsubscribe()
   }, [])
+
+  // Auto-open quote modal when arriving from a service page (?quote=1) or after login intent
+  useEffect(() => {
+    if (!customer || !hasActiveForm) return
+    let intent = ''
+    try {
+      const sp = new URLSearchParams(window.location.search)
+      if (sp.get('quote') === '1') intent = sp.toString()
+      if (!intent) {
+        const saved = sessionStorage.getItem('td_quote_intent')
+        if (saved) { intent = saved; sessionStorage.removeItem('td_quote_intent') }
+      }
+    } catch(e) {}
+    if (!intent) return
+    // clean the URL so refresh doesn't reopen
+    try { window.history.replaceState({}, '', '/') } catch(e) {}
+    if (profileComplete(customer)) setLeadModalOpen(true)
+    else setProfileGateOpen(true)
+  }, [customer, hasActiveForm])
 
   function scrollToSection(id) {
     if (id === 'top') { window.scrollTo({ top:0, behavior:'smooth' }); return }
@@ -1510,7 +1646,6 @@ export default function Home({ navigate }) {
             topCos.map(c=><CompanyCard key={c.id} company={c} onClick={()=>goTo(c)} />)
           }
         </div>
-        <Footer />
         <BottomNav />
       </div>
     )
@@ -1562,7 +1697,6 @@ export default function Home({ navigate }) {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     )
   }
@@ -1579,7 +1713,6 @@ export default function Home({ navigate }) {
         <MainContent />
         <RightPanel recentReviews={recentReviews} trending={trending} onCompanyClick={goTo} />
       </div>
-      <Footer />
     </div>
   )
 }
