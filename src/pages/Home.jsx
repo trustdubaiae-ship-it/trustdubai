@@ -48,6 +48,26 @@ function Logo({ size = 15 }) {
   )
 }
 
+/* ============ SITE FOOTER (legal links) ============ */
+function Footer() {
+  const linkStyle = { fontSize: 11, color: 'var(--text-secondary)', textDecoration: 'none', fontWeight: 600 }
+  return (
+    <div style={{ background: 'var(--bg-card)', borderTop: '0.5px solid var(--border-default)', padding: '18px 16px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <Logo size={13} />
+          <span style={{ fontSize: 9.5, color: 'var(--text-muted)' }}>© 2026 TrustDubai. All rights reserved.</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+          <a href="/terms" style={linkStyle}>Terms of Service</a>
+          <a href="/privacy" style={linkStyle}>Privacy Policy</a>
+          <a href="/refund" style={linkStyle}>Refund Policy</a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ============ GET QUOTES BUTTON (reusable) ============ */
 function GetQuotesButton({ onClick, mobile }) {
   return (
@@ -1490,6 +1510,7 @@ export default function Home({ navigate }) {
             topCos.map(c=><CompanyCard key={c.id} company={c} onClick={()=>goTo(c)} />)
           }
         </div>
+        <Footer />
         <BottomNav />
       </div>
     )
@@ -1541,6 +1562,7 @@ export default function Home({ navigate }) {
             </div>
           </div>
         </div>
+        <Footer />
       </div>
     )
   }
@@ -1557,6 +1579,7 @@ export default function Home({ navigate }) {
         <MainContent />
         <RightPanel recentReviews={recentReviews} trending={trending} onCompanyClick={goTo} />
       </div>
+      <Footer />
     </div>
   )
 }
