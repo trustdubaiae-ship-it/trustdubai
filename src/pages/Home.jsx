@@ -252,14 +252,23 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
 
   async function fetchMatched(leadId) {
     setMatchLoading(true)
-    try {
-      await new Promise(r => setTimeout(r, 1300))
+    async function query() {
       const { data } = await supabase
         .from('lead_distributions')
         .select('rank, companies(id,name,slug,logo_url,avg_rating,total_reviews,trust_score,is_verified,category,plan)')
         .eq('lead_id', leadId)
         .order('rank', { ascending: true })
-      const cos = (data || []).map(d => d.companies).filter(Boolean)
+      return (data || []).map(d => d.companies).filter(Boolean)
+    }
+    try {
+      // wait for the after-insert trigger (fn_distribute_lead) to run
+      await new Promise(r => setTimeout(r, 1500))
+      let cos = await query()
+      // slow network/trigger — retry up to 3 times if still empty
+      for (let i = 0; i < 3 && cos.length === 0; i++) {
+        await new Promise(r => setTimeout(r, 1500))
+        cos = await query()
+      }
       setMatched(cos)
     } catch (e) { console.error(e) }
     finally { setMatchLoading(false) }
