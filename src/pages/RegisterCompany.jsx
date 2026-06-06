@@ -14,6 +14,7 @@ export default function RegisterCompany({ navigate }) {
   const [checking, setChecking] = useState(true)
   const [customer, setCustomer] = useState(null)
   const [existing, setExisting] = useState(null)
+  const [agreed, setAgreed] = useState(false)
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -64,6 +65,7 @@ export default function RegisterCompany({ navigate }) {
   async function handleSubmit() {
     if (!form.name || !form.category || !form.area || !form.phone) return setError('Please fill required fields')
     if (!form.email) return setError('Email is required so we can update you on your application.')
+    if (!agreed) return setError('Please accept the Terms of Service and Privacy Policy to continue.')
     setError(''); setLoading(true)
 
     const lower = form.email.toLowerCase().trim()
@@ -261,10 +263,21 @@ export default function RegisterCompany({ navigate }) {
             style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', boxSizing: 'border-box', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
         </div>
 
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 9, marginBottom: 16, cursor: 'pointer' }}>
+          <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
+            style={{ width: 16, height: 16, marginTop: 1, flexShrink: 0, accentColor: 'var(--primary)', cursor: 'pointer' }} />
+          <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            I confirm the information provided is accurate and I agree to the{' '}
+            <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Terms of Service</a>{' '}
+            and{' '}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'underline' }}>Privacy Policy</a>.
+          </span>
+        </label>
+
         {error && <p style={{ color: 'var(--red)', fontSize: 13, marginBottom: 10 }}>{error}</p>}
 
-        <button onClick={handleSubmit} disabled={loading}
-          style={{ width: '100%', padding: 12, background: loading ? 'var(--text-muted)' : 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, fontSize: 14, fontWeight: 500, cursor: loading ? 'not-allowed' : 'pointer' }}>
+        <button onClick={handleSubmit} disabled={loading || !agreed}
+          style={{ width: '100%', padding: 12, background: (loading || !agreed) ? 'var(--text-muted)' : 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, fontSize: 14, fontWeight: 500, cursor: (loading || !agreed) ? 'not-allowed' : 'pointer' }}>
           {loading ? 'Submitting...' : 'Submit for Free Listing'}
         </button>
       </div>
