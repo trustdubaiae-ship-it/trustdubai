@@ -125,6 +125,33 @@ export default function PublicLeadForm() {
   const inp = { width: '100%', padding: '12px 14px', border: `1px solid ${TH.line}`, borderRadius: 11, fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.soft, color: TH.t1, outline: 'none' }
   const lbl = { fontSize: 12.5, fontWeight: 600, color: TH.t2, display: 'block', marginBottom: 6 }
 
+  // normalize question type — supports text, textarea, select/dropdown, radio
+  function renderQuestion(q) {
+    const t = (q.type || 'text').toLowerCase()
+    const val = answers[q.question] || ''
+    if (t === 'textarea') {
+      return <textarea required={q.required} value={val} onChange={e => setAns(q.question, e.target.value)} style={{ ...inp, minHeight: 90, resize: 'vertical' }} />
+    }
+    if (t === 'select' || t === 'dropdown') {
+      return (
+        <select required={q.required} value={val} onChange={e => setAns(q.question, e.target.value)} style={inp}>
+          <option value="">Select an option</option>
+          {(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}
+        </select>
+      )
+    }
+    if (t === 'radio') {
+      return (q.options || []).map((o, i) => (
+        <label key={i} style={{ display: 'flex', gap: 8, fontSize: 13.5, color: TH.t2, marginBottom: 7, cursor: 'pointer', alignItems: 'center' }}>
+          <input type="radio" name={q.id} value={o} required={q.required} checked={val === o} onChange={() => setAns(q.question, o)} />
+          {o}
+        </label>
+      ))
+    }
+    // default → text
+    return <input required={q.required} value={val} onChange={e => setAns(q.question, e.target.value)} style={inp} />
+  }
+
   return (
     <div style={{ background: TH.bg, minHeight: '100vh', fontFamily: F, color: TH.t1, padding: '20px 14px 60px' }}>
       <Fonts />
@@ -189,19 +216,7 @@ export default function PublicLeadForm() {
             {questions.map(q => (
               <div key={q.id} style={{ marginBottom: 13 }}>
                 <label style={lbl}>{q.question}{q.required && <span style={{ color: TH.red }}> *</span>}</label>
-                {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAns(q.question, e.target.value)} style={inp} />}
-                {q.type === 'select' && (
-                  <select required={q.required} value={answers[q.question] || ''} onChange={e => setAns(q.question, e.target.value)} style={inp}>
-                    <option value="">Select an option</option>
-                    {(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}
-                  </select>
-                )}
-                {q.type === 'radio' && (q.options || []).map((o, i) => (
-                  <label key={i} style={{ display: 'flex', gap: 8, fontSize: 13.5, color: TH.t2, marginBottom: 7, cursor: 'pointer', alignItems: 'center' }}>
-                    <input type="radio" name={q.id} value={o} required={q.required} checked={answers[q.question] === o} onChange={() => setAns(q.question, o)} />
-                    {o}
-                  </label>
-                ))}
+                {renderQuestion(q)}
               </div>
             ))}
 
