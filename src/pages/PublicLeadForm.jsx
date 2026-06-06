@@ -45,6 +45,15 @@ export default function PublicLeadForm() {
   useEffect(() => { fetchForm() }, [formId])
   useEffect(() => { try { localStorage.setItem('td_theme', dark ? 'dark' : 'light') } catch (e) {} }, [dark])
 
+  // Inject fonts + keyframes ONCE (outside render) so typing never re-injects <style> and jumps the page
+  useEffect(() => {
+    if (document.getElementById('pfl-style')) return
+    const el = document.createElement('style')
+    el.id = 'pfl-style'
+    el.textContent = "@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');@keyframes pflspin{to{transform:rotate(360deg)}}@keyframes pflfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes pflpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}.pfl-card{animation:pflfade .5s cubic-bezier(.2,.7,.2,1) both}.pfl-pop{animation:pflpop .5s ease both}"
+    document.head.appendChild(el)
+  }, [])
+
   async function fetchForm() {
     setLoading(true); setNotFound(false)
     const { data: f, error } = await supabase.from('lead_forms').select('*').eq('id', formId).maybeSingle()
@@ -94,24 +103,15 @@ export default function PublicLeadForm() {
 
   const TH = makeTheme(dark)
   const F = "'Manrope',sans-serif"
-  const Fonts = () => <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
-    @keyframes pflspin{to{transform:rotate(360deg)}}
-    @keyframes pflfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-    @keyframes pflpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}
-    .pfl-card{animation:pflfade .5s cubic-bezier(.2,.7,.2,1) both}
-    .pfl-pop{animation:pflpop .5s ease both}
-  `}</style>
 
   if (loading) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070b15' }}>
-      <Fonts />
       <div style={{ width: 40, height: 40, border: '3px solid #4f9fe0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pflspin .8s linear infinite' }} />
     </div>
   )
 
   if (notFound) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e7ecf3', fontFamily: F }}>
-      <Fonts />
       <div style={{ textAlign: 'center', padding: 40 }}>
         <div style={{ fontSize: 52 }}>🔍</div>
         <h2 style={{ fontFamily: "'Sora',sans-serif", color: '#16233a', margin: '12px 0' }}>Form not found</h2>
@@ -154,7 +154,6 @@ export default function PublicLeadForm() {
 
   return (
     <div style={{ background: TH.bg, minHeight: '100vh', fontFamily: F, color: TH.t1, padding: '20px 14px 60px' }}>
-      <Fonts />
 
       {/* top bar */}
       <div style={{ maxWidth: 560, margin: '0 auto 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
