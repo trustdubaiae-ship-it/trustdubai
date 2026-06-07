@@ -40,10 +40,13 @@ function useDevice() {
 
 function Logo({ size = 15 }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', lineHeight: 1, flexShrink: 0 }}>
-      <span style={{ fontSize: size, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>Trust</span>
-      <span style={{ fontSize: size, fontWeight: 700, color: '#0099cc', letterSpacing: '-0.3px' }}>Dubai</span>
-      <span style={{ fontSize: size * 0.38, color: '#0099cc', marginLeft: 1, lineHeight: 1, verticalAlign: 'super' }}>●</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 5, lineHeight: 1, flexShrink: 0 }}>
+      <i className="ti ti-shield-check" style={{ fontSize: size * 1.35, color: '#0099cc', lineHeight: 1 }} />
+      <div style={{ display: 'flex', alignItems: 'center', lineHeight: 1 }}>
+        <span style={{ fontSize: size, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>Trust</span>
+        <span style={{ fontSize: size, fontWeight: 700, color: '#0099cc', letterSpacing: '-0.3px' }}>Dubai</span>
+        <span style={{ fontSize: size * 0.38, color: '#0099cc', marginLeft: 1, lineHeight: 1, verticalAlign: 'super' }}>●</span>
+      </div>
     </div>
   )
 }
@@ -395,10 +398,8 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
       return (data || []).map(d => d.companies).filter(Boolean)
     }
     try {
-      // wait for the after-insert trigger (fn_distribute_lead) to run
       await new Promise(r => setTimeout(r, 1500))
       let cos = await query()
-      // slow network/trigger — retry up to 3 times if still empty
       for (let i = 0; i < 3 && cos.length === 0; i++) {
         await new Promise(r => setTimeout(r, 1500))
         cos = await query()
@@ -1028,6 +1029,13 @@ function PlanTag({ plan }) {
   return <span style={{ fontSize:7, padding:'1px 5px', borderRadius:3, fontWeight:700, background:'#d1fae5', color:'#065f46' }}>✓</span>
 }
 
+/* New/Listed badge helper — shows star rating only when real reviews exist, else a neutral "New" pill */
+function ratingBadgeEl(c) {
+  const hasReviews = (c?.total_reviews || 0) > 0 && (parseFloat(c?.avg_rating) || 0) > 0
+  if (hasReviews) return <span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{Number(c.avg_rating).toFixed(1)}★</span>
+  return <span style={{ fontSize:7, background:'#e0f9ff', color:'#0077aa', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>New</span>
+}
+
 export default function Home({ navigate }) {
   const [topCos,        setTopCos]        = useState([])
   const [approvedCos,   setApprovedCos]   = useState([])
@@ -1040,6 +1048,7 @@ export default function Home({ navigate }) {
   const [stats,         setStats]         = useState({ companies:0, reviews:0, avgRating:'0.0', verified:0 })
   const [reviewData,    setReviewData]    = useState({ total:0, s5:0, s4:0, s3:0, s2:0, s1:0, s5_pct:0, s4_pct:0 })
   const [trustScore,    setTrustScore]    = useState(0)
+  const [thresholds,    setThresholds]    = useState({ min_companies:50, min_reviews:100, min_rating:3.5, min_rating_reviews:50, min_verified:100, trust_score_min_verified:100 })
   const [loading,       setLoading]       = useState(true)
   const [customer,      setCustomer]      = useState(null)
   const [showUserMenu,  setShowUserMenu]  = useState(false)
@@ -1083,7 +1092,6 @@ export default function Home({ navigate }) {
       }
     } catch(e) {}
     if (!intent) return
-    // clean the URL so refresh doesn't reopen
     try { window.history.replaceState({}, '', '/') } catch(e) {}
     if (profileComplete(customer)) setLeadModalOpen(true)
     else setProfileGateOpen(true)
@@ -1137,6 +1145,13 @@ export default function Home({ navigate }) {
 
   async function fetchAll() {
     try {
+      // load admin-editable thresholds first (platform_settings, single row id=1)
+      let th = thresholds
+      try {
+        const { data: s } = await supabase.from('platform_settings').select('*').eq('id', 1).maybeSingle()
+        if (s) { th = { ...thresholds, ...s }; setThresholds(th) }
+      } catch(e) { console.error(e) }
+
       const [
         { count: totalCo },
         { count: totalRev },
@@ -1160,9 +1175,12 @@ export default function Home({ navigate }) {
       setStats({ companies:totalCo||0, reviews:totalRev||0, avgRating:avg, verified:verifiedCo||0 })
       const approved = allCo||[]
       setApprovedCos(approved)
-      setTopCos([...approved].sort((a,b)=>(b.avg_rating||0)-(a.avg_rating||0)).slice(0,4))
+      // Homepage Top Rated + Trending = only verified companies rated >= min_rating (default 3.5)
+      const minR = parseFloat(th.min_rating) || 3.5
+      const verifiedRated = approved.filter(c => c.is_verified && (parseFloat(c.avg_rating)||0) >= minR)
+      setTopCos([...verifiedRated].sort((a,b)=>(b.avg_rating||0)-(a.avg_rating||0)).slice(0,4))
       setNewCos([...approved].slice(0,4))
-      setTrending([...approved].sort((a,b)=>
+      setTrending([...verifiedRated].sort((a,b)=>
         ((b.profile_views||0)+(b.total_reviews||0)*3) - ((a.profile_views||0)+(a.total_reviews||0)*3)
       ).slice(0,5))
       const counts = {}
@@ -1203,6 +1221,15 @@ export default function Home({ navigate }) {
     if (n>=100) return n+'+'
     return String(n||0)
   }
+
+  // ── Threshold-driven visibility (admin-editable via platform_settings) ──
+  const showCompanies = (stats.companies||0) >= (thresholds.min_companies ?? 50)
+  const showReviews   = (stats.reviews||0)   >= (thresholds.min_reviews ?? 100)
+  const showRating    = (parseFloat(stats.avgRating)||0) >= (thresholds.min_rating ?? 3.5) && (stats.reviews||0) >= (thresholds.min_rating_reviews ?? 50)
+  const showVerified  = (stats.verified||0)  >= (thresholds.min_verified ?? 100)
+  const statFlags     = { companies: showCompanies, reviews: showReviews, avgRating: showRating, verified: showVerified }
+  const anyStat       = showCompanies || showReviews || showRating || showVerified
+  const showTrustScore = (stats.verified||0) >= (thresholds.trust_score_min_verified ?? 100)
 
   const byAreaCompanies = areaFilter
     ? approvedCos.filter(c => (c.area||c.location||'').trim().toLowerCase() === areaFilter.toLowerCase()).slice(0,4)
@@ -1329,12 +1356,21 @@ export default function Home({ navigate }) {
             </div>
           )}
           <div style={{ display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap' }}>
-            {[['companies','Companies'],['reviews','Reviews'],['avgRating','Avg Rating'],['verified','Verified']].map(([k,l])=>(
-              <div key={k} style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, padding:'6px 12px', textAlign:'center', minWidth:65 }}>
-                <div style={{ fontSize:14, fontWeight:700, color:'#0099cc', lineHeight:1 }}>{k==='avgRating'?stats.avgRating+'★':fmt(stats[k])}</div>
-                <div style={{ fontSize:7.5, color:'var(--text-muted)', marginTop:2 }}>{l}</div>
+            {anyStat ? (
+              [['companies','Companies'],['reviews','Reviews'],['avgRating','Avg Rating'],['verified','Verified']]
+                .filter(([k]) => statFlags[k])
+                .map(([k,l])=>(
+                  <div key={k} style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, padding:'6px 12px', textAlign:'center', minWidth:65 }}>
+                    <div style={{ fontSize:14, fontWeight:700, color:'#0099cc', lineHeight:1 }}>{k==='avgRating'?stats.avgRating+'★':fmt(stats[k])}</div>
+                    <div style={{ fontSize:7.5, color:'var(--text-muted)', marginTop:2 }}>{l}</div>
+                  </div>
+                ))
+            ) : (
+              <div style={{ display:'inline-flex', alignItems:'center', gap:6, background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:99, padding:'7px 14px' }}>
+                <i className="ti ti-shield-check" style={{ fontSize:12, color:'#0099cc' }} />
+                <span style={{ fontSize:10, color:'var(--text-secondary)', fontWeight:600 }}>Trusted platform · growing daily</span>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
@@ -1399,6 +1435,15 @@ export default function Home({ navigate }) {
     )
   }
 
+  function EmptyTopRated() {
+    return (
+      <div style={{ textAlign:'center', padding:'18px 10px', fontSize:9, color:'var(--text-muted)' }}>
+        <i className="ti ti-star" style={{ fontSize:18, color:'#0099cc', display:'block', marginBottom:6, opacity:0.7 }} />
+        Top rated companies will appear here as verified reviews grow.
+      </div>
+    )
+  }
+
   function ByAreaCard() {
     const areaChips = areaList.slice(0, 6)
     return (
@@ -1424,7 +1469,7 @@ export default function Home({ navigate }) {
           <CardGrid companies={byAreaCompanies}
             renderBadge={(c)=>(
               <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                <span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>
+                {ratingBadgeEl(c)}
                 <PlanTag plan={c.plan} />
               </div>
             )}
@@ -1462,24 +1507,26 @@ export default function Home({ navigate }) {
 
   function MainContent() {
     const empty = [null,null,null,null]
-    const top  = loading ? empty : (topCos.length>0  ? topCos  : empty)
-    const novo = loading ? empty : (newCos.length>0  ? newCos  : empty)
+    const novo = loading ? empty : (newCos.length>0 ? newCos : empty)
     return (
       <div style={{ flex:1, minWidth:0, padding:'10px 14px', background:'var(--bg-secondary)', overflowX:'hidden' }}>
         <ServicesRow />
-        <TrustWave score={trustScore} />
+        {showTrustScore && <TrustWave score={trustScore} />}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-star" title="Top Rated Companies" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'rating'})} />
-            <CardGrid companies={top}
-              renderBadge={(c)=>(
-                <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-                  <span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>
-                  <PlanTag plan={c.plan} />
-                </div>
-              )}
-              renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
-            />
+            {!loading && topCos.length === 0
+              ? <EmptyTopRated />
+              : <CardGrid companies={loading ? empty : topCos}
+                  renderBadge={(c)=>(
+                    <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                      {ratingBadgeEl(c)}
+                      <PlanTag plan={c.plan} />
+                    </div>
+                  )}
+                  renderExtra={(c)=><><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
+                />
+            }
           </div>
           <ByAreaCard />
         </div>
@@ -1645,13 +1692,19 @@ export default function Home({ navigate }) {
         )}
 
         <div style={{ padding:'6px 14px' }}>
-          <TrustWave score={trustScore} />
+          {showTrustScore && <TrustWave score={trustScore} />}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
             <span style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase' }}>Top Rated</span>
             <button onClick={()=>navigate('search',{sort:'rating'})} style={{ background:'none', border:'none', fontSize:9, color:'#0099cc', cursor:'pointer', fontWeight:600 }}>View all</button>
           </div>
-          {loading ? [1,2,3].map(i=><div key={i} style={{ height:70, background:'var(--bg-tertiary)', borderRadius:10, marginBottom:6 }}/>) :
-            topCos.map(c=><CompanyCard key={c.id} company={c} onClick={()=>goTo(c)} />)
+          {loading
+            ? [1,2,3].map(i=><div key={i} style={{ height:70, background:'var(--bg-tertiary)', borderRadius:10, marginBottom:6 }}/>)
+            : topCos.length > 0
+              ? topCos.map(c=><CompanyCard key={c.id} company={c} onClick={()=>goTo(c)} />)
+              : <div style={{ textAlign:'center', padding:'16px 10px', fontSize:10, color:'var(--text-muted)' }}>
+                  <i className="ti ti-star" style={{ fontSize:18, color:'#0099cc', display:'block', marginBottom:6, opacity:0.7 }} />
+                  Top rated companies will appear here as verified reviews grow.
+                </div>
           }
         </div>
         <BottomNav />
@@ -1671,18 +1724,21 @@ export default function Home({ navigate }) {
           <Sidebar navigate={navigate} scrollToSection={scrollToSection} />
           <div style={{ flex:1, minWidth:0, padding:'10px 16px' }}>
             <ServicesRow />
-            <TrustWave score={trustScore} />
+            {showTrustScore && <TrustWave score={trustScore} />}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
               <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
                 <SecHeader icon="ti-star" title="Top Rated" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'rating'})} />
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:7 }}>
-                  {(loading ? [null,null,null,null] : topCos.slice(0,4)).map((c,i)=> c ? (
-                    <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
-                      badge={<span style={{ fontSize:9, fontWeight:700, color:'#f5a623' }}>{c.avg_rating||'—'}★</span>}
-                      extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
-                    />
-                  ) : <div key={i} style={{ height:80, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
-                </div>
+                {!loading && topCos.length === 0
+                  ? <EmptyTopRated />
+                  : <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:7 }}>
+                      {(loading ? [null,null,null,null] : topCos.slice(0,4)).map((c,i)=> c ? (
+                        <CoCard key={c.id||i} company={c} onClick={()=>goTo(c)}
+                          badge={ratingBadgeEl(c)}
+                          extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
+                        />
+                      ) : <div key={i} style={{ height:80, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
+                    </div>
+                }
               </div>
               <ByAreaCard />
             </div>
