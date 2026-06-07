@@ -10,6 +10,7 @@ import AddReview from './pages/AddReview'
 import AddEmpReview from './pages/AddEmpReview'
 import RegisterCompany from './pages/RegisterCompany'
 import RegisterEmployee from './pages/RegisterEmployee'
+import ClaimCompany from './pages/ClaimCompany'
 import PublicProfile from './pages/PublicProfile'
 import MyAccount from './pages/MyAccount'
 import ServiceArea from './pages/ServiceArea'
@@ -57,6 +58,7 @@ export default function App() {
             {screen === 'add-emp-review'    && <AddEmpReview {...screenProps} />}
             {screen === 'register-company'  && <RegisterCompany {...screenProps} />}
             {screen === 'register-employee' && <RegisterEmployee {...screenProps} />}
+            {screen === 'claim-company'     && <ClaimCompany {...screenProps} />}
             {screen === 'customer-profile'  && <MyAccount {...screenProps} />}
             {screen === 'my-requests'       && <MyAccount {...screenProps} />}
             {screen === 'my-account'        && <MyAccount {...screenProps} />}
