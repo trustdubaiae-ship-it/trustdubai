@@ -21,11 +21,6 @@ const MAP_PINS = [
   { top: '50%', left: '42%' },
 ]
 
-/* Navigate to a real react-router route (e.g. /partner, /privacy) — not an SPA screen */
-function goLink(path) {
-  window.location.href = path
-}
-
 function useDevice() {
   function getDevice() {
     if (typeof window === 'undefined') return 'desktop'
@@ -49,34 +44,6 @@ function Logo({ size = 15 }) {
       <span style={{ fontSize: size, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>Trust</span>
       <span style={{ fontSize: size, fontWeight: 700, color: '#0099cc', letterSpacing: '-0.3px' }}>Dubai</span>
       <span style={{ fontSize: size * 0.38, color: '#0099cc', marginLeft: 1, lineHeight: 1, verticalAlign: 'super' }}>●</span>
-    </div>
-  )
-}
-
-/* ============ SITE FOOTER (Partner + Legal links) ============ */
-function SiteFooter({ mobile }) {
-  const links = [
-    { l: 'Become a Partner', p: '/partner', strong: true },
-    { l: 'Terms of Service', p: '/terms' },
-    { l: 'Privacy Policy',   p: '/privacy' },
-    { l: 'Refund Policy',    p: '/refund' },
-  ]
-  return (
-    <div style={{ borderTop: '0.5px solid var(--border-default)', background: 'var(--bg-card)', padding: mobile ? '18px 16px 22px' : '20px 24px' }}>
-      <div style={{ maxWidth: 1080, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Logo size={14} />
-          <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4 }}>© 2026 · Dubai, UAE</span>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: mobile ? 12 : 20 }}>
-          {links.map(x => (
-            <span key={x.p} onClick={() => goLink(x.p)}
-              style={{ fontSize: 12, fontWeight: x.strong ? 700 : 500, color: x.strong ? '#0099cc' : 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              {x.strong && <i className="ti ti-rosette" style={{ fontSize: 12, marginRight: 4 }} />}{x.l}
-            </span>
-          ))}
-        </div>
-      </div>
     </div>
   )
 }
@@ -911,20 +878,6 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
         )}
       </div>
 
-      <div>
-        <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
-          <i className="ti ti-rosette" style={{ fontSize:11, color:'#0099cc' }}/> Earn With Us
-        </div>
-        <div onClick={()=>goLink('/partner')}
-          style={{ background:'linear-gradient(135deg,#0099cc,#0077aa)', borderRadius:10, padding:'11px 12px', cursor:'pointer' }}>
-          <div style={{ fontSize:11, fontWeight:700, color:'#fff', marginBottom:3 }}>Become a Partner</div>
-          <div style={{ fontSize:8.5, color:'rgba(255,255,255,0.8)', lineHeight:1.5, marginBottom:8 }}>Refer Dubai businesses & earn up to 30% recurring commission.</div>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:4, background:'rgba(255,255,255,0.15)', borderRadius:6, padding:'5px 9px', fontSize:9, fontWeight:700, color:'#fff' }}>
-            Learn more <i className="ti ti-arrow-right" style={{ fontSize:11 }}/>
-          </div>
-        </div>
-      </div>
-
       <div style={{ background:'#1a2744', borderRadius:10, padding:10 }}>
         <div style={{ fontSize:10, fontWeight:700, color:'#fff', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-device-mobile" style={{ fontSize:11, color:'#0099cc' }}/> Add to Home Screen
@@ -935,13 +888,6 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
           <i className="ti ti-download" style={{ fontSize:14, color:'#0099cc' }}/>
           <span style={{ fontSize:9.5, color:'#fff', fontWeight:700 }}>Add to Home Screen</span>
         </button>
-      </div>
-
-      <div style={{ borderTop:'0.5px solid var(--border-default)', paddingTop:10, display:'flex', flexWrap:'wrap', gap:'4px 10px' }}>
-        {[['Terms','/terms'],['Privacy','/privacy'],['Refund','/refund']].map(([l,p])=>(
-          <span key={p} onClick={()=>goLink(p)} style={{ fontSize:8.5, color:'var(--text-muted)', cursor:'pointer' }}>{l}</span>
-        ))}
-        <span style={{ fontSize:8.5, color:'var(--text-muted)', width:'100%', marginTop:2 }}>© 2026 TrustDubai</span>
       </div>
 
       {quoteModal && (
@@ -1023,12 +969,6 @@ function Sidebar({ navigate, scrollToSection }) {
       { icon:'ti-chart-line', name:'Review Trends', action:()=>scrollToSection('review-trends') },
       { icon:'ti-users',      name:'Community',     action:()=>navigate('search',{}) },
     ]},
-    { label:'Earn & Info', items:[
-      { icon:'ti-rosette',      name:'Become a Partner', highlight:true, action:()=>goLink('/partner') },
-      { icon:'ti-file-text',    name:'Terms',            action:()=>goLink('/terms') },
-      { icon:'ti-lock',         name:'Privacy',          action:()=>goLink('/privacy') },
-      { icon:'ti-receipt-refund',name:'Refund Policy',   action:()=>goLink('/refund') },
-    ]},
   ]
   return (
     <div style={{ width:190, flexShrink:0, background:'var(--bg-card)', borderRight:'0.5px solid var(--border-default)', padding:'10px 0' }}>
@@ -1037,7 +977,7 @@ function Sidebar({ navigate, scrollToSection }) {
           <div style={{ fontSize:8, fontWeight:700, color:'var(--text-muted)', letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 14px 3px' }}>{section.label}</div>
           {section.items.map(item => (
             <div key={item.name} onClick={item.action}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', fontSize:11, color:item.active?'#0099cc':item.highlight?'#0099cc':'var(--text-secondary)', background:item.active?'#f0faff':'transparent', borderRight:item.active?'2px solid #0099cc':'none', fontWeight:item.active||item.highlight?600:400, cursor:item.action?'pointer':'default', transition:'all 0.15s' }}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', fontSize:11, color:item.active?'#0099cc':'var(--text-secondary)', background:item.active?'#f0faff':'transparent', borderRight:item.active?'2px solid #0099cc':'none', fontWeight:item.active?600:400, cursor:item.action?'pointer':'default', transition:'all 0.15s' }}
               onMouseEnter={e=>{ if(!item.active) e.currentTarget.style.background='var(--bg-secondary)' }}
               onMouseLeave={e=>{ if(!item.active) e.currentTarget.style.background='transparent' }}
             >
@@ -1293,7 +1233,6 @@ export default function Home({ navigate }) {
       { l:'Top Rated',  action:()=>navigate('search',{sort:'rating'}) },
       { l:'By Area',    action:()=>scrollToSection('by-area') },
       { l:'City Map',   action:()=>scrollToSection('city-network') },
-      { l:'Partner',    action:()=>goLink('/partner') },
     ]
     return (
       <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 20px', height:48, background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100, width:'100%' }}>
@@ -1301,7 +1240,7 @@ export default function Home({ navigate }) {
         <nav style={{ display:'flex', gap:4, marginLeft:8 }}>
           {navItems.map((it)=>(
             <button key={it.l} onClick={it.action}
-              style={{ background:'none', border:'none', cursor:'pointer', fontSize:10, fontWeight:it.active?700:500, color:it.active?'#0099cc':it.l==='Partner'?'#0099cc':'var(--text-muted)', borderBottom:it.active?'1.5px solid #0099cc':'none', padding:'0 8px', height:48, whiteSpace:'nowrap' }}>
+              style={{ background:'none', border:'none', cursor:'pointer', fontSize:10, fontWeight:it.active?700:500, color:it.active?'#0099cc':'var(--text-muted)', borderBottom:it.active?'1.5px solid #0099cc':'none', padding:'0 8px', height:48, whiteSpace:'nowrap' }}>
               {it.l}
             </button>
           ))}
@@ -1320,7 +1259,7 @@ export default function Home({ navigate }) {
           </button>
           {customer ? (
             <div style={{ position:'relative' }}>
-              <button onClick={()=>setShowUserMenu(!showUserMenu)}
+              <button onClick={()=>navigate('my-account')}
                 style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 8px', border:'0.5px solid var(--border-default)', borderRadius:99, background:'var(--bg-card)', cursor:'pointer' }}>
                 <div style={{ width:22, height:22, borderRadius:'50%', background:'#1a2744', display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, fontWeight:700, color:'#fff' }}>
                   {(customer.full_name||customer.email||'U')[0].toUpperCase()}
@@ -1343,10 +1282,6 @@ export default function Home({ navigate }) {
     <button onClick={()=>{navigate('add-review',{});setShowUserMenu(false)}}
       style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
       <i className="ti ti-star" style={{ fontSize:12 }}/> Write a Review
-    </button>
-    <button onClick={()=>{goLink('/partner');setShowUserMenu(false)}}
-      style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'#0099cc', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2, fontWeight:600 }}>
-      <i className="ti ti-rosette" style={{ fontSize:12 }}/> Become a Partner
     </button>
     <button onClick={()=>{signOut();setCustomer(null);setShowUserMenu(false)}}
       style={{ width:'100%', padding:'7px 8px', background:'#fff0f0', color:'#dc2626', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left' }}>Sign Out</button>
@@ -1573,7 +1508,6 @@ export default function Home({ navigate }) {
         {[
           { icon:'ti-home',           label:'Home',     active:true, action:()=>scrollToSection('top') },
           { icon:'ti-search',         label:'Search',   action:()=>navigate('search',{}) },
-          { icon:'ti-rosette',        label:'Partner',  action:()=>goLink('/partner') },
           { icon:'ti-building-store', label: customer ? 'My Biz' : 'List Biz', action:()=>window.open(BIZ_URL,'_blank') },
           { icon:'ti-star',           label:'Reviews',  action:()=>{ if(customer) navigate('add-review',{}); else signInWithGoogle() } },
         ].map(item=>(
@@ -1607,7 +1541,7 @@ export default function Home({ navigate }) {
             </button>
             {customer ? (
               <div style={{ position:'relative' }}>
-                <button onClick={()=>setShowUserMenu(!showUserMenu)}
+                <button onClick={()=>navigate('my-account')}
                   style={{ display:'flex', alignItems:'center', gap:0, padding:0, border:'none', background:'none', cursor:'pointer' }}>
                   <div style={{ width:28, height:28, borderRadius:'50%', background:'#1a2744', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'#fff' }}>
                     {(customer.full_name||customer.email||'U')[0].toUpperCase()}
@@ -1627,10 +1561,6 @@ export default function Home({ navigate }) {
                     <button onClick={()=>{navigate('add-review',{});setShowUserMenu(false)}}
                       style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'var(--text-primary)', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
                       <i className="ti ti-star" style={{ fontSize:12 }}/> Write a Review
-                    </button>
-                    <button onClick={()=>{goLink('/partner');setShowUserMenu(false)}}
-                      style={{ width:'100%', padding:'7px 8px', background:'transparent', color:'#0099cc', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left', display:'flex', alignItems:'center', gap:6, marginBottom:2, fontWeight:600 }}>
-                      <i className="ti ti-rosette" style={{ fontSize:12 }}/> Become a Partner
                     </button>
                     <button onClick={()=>{signOut();setCustomer(null);setShowUserMenu(false)}}
                       style={{ width:'100%', padding:'7px 8px', background:'#fff0f0', color:'#dc2626', border:'none', borderRadius:6, fontSize:11, cursor:'pointer', textAlign:'left' }}>Sign Out</button>
@@ -1724,24 +1654,6 @@ export default function Home({ navigate }) {
             topCos.map(c=><CompanyCard key={c.id} company={c} onClick={()=>goTo(c)} />)
           }
         </div>
-
-        {/* Partner promo (mobile) */}
-        <div style={{ padding:'6px 14px 14px' }}>
-          <div onClick={()=>goLink('/partner')}
-            style={{ background:'linear-gradient(135deg,#0099cc,#0077aa)', borderRadius:12, padding:'14px 16px', cursor:'pointer' }}>
-            <div style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:4, display:'flex', alignItems:'center', gap:6 }}>
-              <i className="ti ti-rosette" style={{ fontSize:15 }}/> Become a Partner
-            </div>
-            <div style={{ fontSize:10.5, color:'rgba(255,255,255,0.85)', lineHeight:1.5, marginBottom:10 }}>
-              Refer Dubai businesses and earn up to 30% recurring commission — every month.
-            </div>
-            <div style={{ display:'inline-flex', alignItems:'center', gap:5, background:'rgba(255,255,255,0.18)', borderRadius:7, padding:'7px 12px', fontSize:10.5, fontWeight:700, color:'#fff' }}>
-              Learn more <i className="ti ti-arrow-right" style={{ fontSize:12 }}/>
-            </div>
-          </div>
-        </div>
-
-        <SiteFooter mobile />
         <BottomNav />
       </div>
     )
@@ -1793,7 +1705,6 @@ export default function Home({ navigate }) {
             </div>
           </div>
         </div>
-        <SiteFooter />
       </div>
     )
   }
@@ -1810,7 +1721,6 @@ export default function Home({ navigate }) {
         <MainContent />
         <RightPanel recentReviews={recentReviews} trending={trending} onCompanyClick={goTo} />
       </div>
-      <SiteFooter />
     </div>
   )
 }
