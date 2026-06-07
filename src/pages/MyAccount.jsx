@@ -126,11 +126,11 @@ function StatusBadge({ status, unread }) {
   )
 }
 
-function CompanyRow({ co, unread, status, onMessage }) {
+function CompanyRow({ co, unread, status, lastMsg, onMessage }) {
   const name = co?.name || 'Company'
   const initials = name.slice(0, 2).toUpperCase()
   return (
-    <div onClick={onMessage} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderTop: '0.5px solid var(--border-default)', cursor: 'pointer' }}>
+    <div onClick={onMessage} style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '12px 14px', borderTop: '0.5px solid var(--border-default)', cursor: 'pointer' }}>
       <div style={{ width: 40, height: 40, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg,#e3f6fc,#d0eef8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {co?.logo_url ? <img src={co.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 12, fontWeight: 800, color: '#0883ad' }}>{initials}</span>}
       </div>
@@ -141,8 +141,15 @@ function CompanyRow({ co, unread, status, onMessage }) {
         </div>
         <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
           <span style={{ color: '#d9a441', fontWeight: 700 }}>★ {co?.avg_rating ? Number(co.avg_rating).toFixed(1) : 'New'}</span>
+          {co?.total_reviews ? <span>{co.total_reviews} reviews</span> : null}
           {co?.trust_score != null && <span style={{ color: '#0aa2cf', fontWeight: 700 }}>Trust {Math.round(co.trust_score)}</span>}
         </div>
+        {lastMsg && (
+          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 6, display: 'flex', alignItems: 'center', gap: 5, background: 'var(--bg-secondary)', padding: '6px 9px', borderRadius: 8 }}>
+            <i className={lastMsg.mine ? 'ti ti-clock' : 'ti ti-corner-down-right'} style={{ fontSize: 12, color: '#0883ad', flexShrink: 0 }} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lastMsg.mine ? 'You: ' : ''}{lastMsg.body}</span>
+          </div>
+        )}
       </div>
       <StatusBadge status={status} unread={unread} />
     </div>
@@ -218,10 +225,10 @@ export default function MyAccount({ navigate }) {
         .select('lead_id, rank, companies(id,name,slug,logo_url,avg_rating,total_reviews,trust_score,is_verified,category,plan)')
         .in('lead_id', leadIds).order('rank', { ascending: true })
       const { data: chats } = await supabase
-        .from('lead_chat').select('lead_id, company_id, sender_type, read_by_customer').in('lead_id', leadIds)
+        .from('lead_chat').select('lead_id, company_id, sender_type, body, created_at, read_by_customer').order('created_at', { ascending: true }).in('lead_id', leadIds)
       const built = leadRows.map(l => {
         const cos = (dists || []).filter(d => d.lead_id === l.id).map(d => d.companies).filter(Boolean)
-        const unreadByCompany = {}, statusByCompany = {}
+        const unreadByCompany = {}, statusByCompany = {}, lastMsgByCompany = {}
         cos.forEach(co => {
           const msgs = (chats || []).filter(m => m.lead_id === l.id && m.company_id === co.id)
           const hasCustomer = msgs.some(m => m.sender_type === 'customer')
@@ -229,11 +236,15 @@ export default function MyAccount({ navigate }) {
           statusByCompany[co.id] = hasCompany ? 'chatting' : hasCustomer ? 'awaiting' : 'new'
           const u = msgs.filter(m => m.sender_type === 'company' && !m.read_by_customer).length
           if (u) unreadByCompany[co.id] = u
+          if (msgs.length) {
+            const last = msgs[msgs.length - 1]
+            lastMsgByCompany[co.id] = { body: last.body, mine: last.sender_type === 'customer' }
+          }
         })
         const service = l.answers?.['Service Category'] || l.answers?.category || l.answers?.['Project Type'] || 'Service request'
         const area = l.answers?._area || l.answers?.['Area'] || l.answers?.area || ''
         const hasAnyChat = (chats || []).some(m => m.lead_id === l.id)
-        return { id: l.id, created_at: l.created_at, service, area, companies: cos, unreadByCompany, statusByCompany, hasAnyChat }
+        return { id: l.id, created_at: l.created_at, service, area, companies: cos, unreadByCompany, statusByCompany, lastMsgByCompany, hasAnyChat }
       })
       setRequests(built)
     } catch (e) { console.error(e) }
@@ -329,7 +340,7 @@ export default function MyAccount({ navigate }) {
               {r.companies.length === 0 ? (
                 <div style={{ padding: '0 14px 14px', fontSize: 12, color: t3 }}>Matching you with companies — check back shortly.</div>
               ) : r.companies.map(co => (
-                <CompanyRow key={co.id} co={co} unread={r.unreadByCompany[co.id] || 0} status={r.statusByCompany?.[co.id] || 'new'} onMessage={() => openChat(r.id, co)} />
+                <CompanyRow key={co.id} co={co} unread={r.unreadByCompany[co.id] || 0} status={r.statusByCompany?.[co.id] || 'new'} lastMsg={r.lastMsgByCompany?.[co.id]} onMessage={() => openChat(r.id, co)} />
               ))}
             </div>
           ))}
@@ -346,7 +357,7 @@ export default function MyAccount({ navigate }) {
         <div key={r.id} style={{ background: card, border: `1px solid ${line}`, borderRadius: 14, marginBottom: 12, overflow: 'hidden' }}>
           <div style={{ padding: '11px 14px', fontSize: 12, fontWeight: 600, color: t2, background: soft }}>{r.service}{r.area ? ` · ${r.area}` : ''}</div>
           {r.companies.map(co => (
-            <CompanyRow key={co.id} co={co} unread={r.unreadByCompany[co.id] || 0} status={r.statusByCompany?.[co.id] || 'new'} onMessage={() => openChat(r.id, co)} />
+            <CompanyRow key={co.id} co={co} unread={r.unreadByCompany[co.id] || 0} status={r.statusByCompany?.[co.id] || 'new'} lastMsg={r.lastMsgByCompany?.[co.id]} onMessage={() => openChat(r.id, co)} />
           ))}
         </div>
       ))
@@ -450,7 +461,7 @@ export default function MyAccount({ navigate }) {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');`}</style>
 
       {/* Elegant gradient header */}
-      <div style={{ background: 'linear-gradient(135deg,#0aa2cf 0%,#0883ad 100%)', padding: '16px 16px 18px', position: 'sticky', top: 0, zIndex: 50 }}>
+      <div style={{ background: 'linear-gradient(135deg,#0aa2cf 0%,#0883ad 100%)', padding: '16px 16px 18px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
           <button onClick={() => navigate('home')} style={{ width: 34, height: 34, borderRadius: 11, background: 'rgba(255,255,255,.18)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: 'none' }}>
             <i className="ti ti-arrow-left" style={{ fontSize: 17 }} />
@@ -475,49 +486,24 @@ export default function MyAccount({ navigate }) {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: mobile ? '12px 12px 70px' : '20px 16px 40px', display: 'flex', gap: 18, alignItems: 'flex-start' }}>
-
-        {/* Sidebar (desktop) */}
-        {!mobile && (
-          <div style={{ width: 210, flexShrink: 0, background: card, border: `1px solid ${line}`, borderRadius: 14, padding: 8, position: 'sticky', top: 80 }}>
-            {NAV.map(n => (
+      {/* Top scrollable tabs — NO bottom tabs (App BottomNav handles bottom) */}
+      <div style={{ background: card, borderBottom: `0.5px solid ${line}`, position: 'sticky', top: 0, zIndex: 40 }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', gap: 6, padding: '12px 14px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          {NAV.map(n => {
+            const on = section === n.id
+            return (
               <button key={n.id} onClick={() => setSection(n.id)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 11, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: section === n.id ? 700 : 500, fontFamily: 'inherit', textAlign: 'left', marginBottom: 2, background: section === n.id ? '#e3f6fc' : 'transparent', color: section === n.id ? '#0883ad' : t2 }}>
-                <i className={`ti ${n.icon}`} style={{ fontSize: 17 }} />
-                <span style={{ flex: 1 }}>{n.label}</span>
-                {n.badge > 0 && <span style={{ minWidth: 18, height: 18, borderRadius: 99, background: '#ef5a6f', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>{n.badge}</span>}
+                style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px', fontSize: 12.5, fontWeight: on ? 700 : 600, fontFamily: 'inherit', whiteSpace: 'nowrap', borderRadius: 99, border: 'none', cursor: 'pointer', flexShrink: 0, background: on ? 'linear-gradient(135deg,#0aa2cf,#0883ad)' : soft, color: on ? '#fff' : t2 }}>
+                <i className={`ti ${n.icon}`} style={{ fontSize: 15 }} /> {n.label.replace('My ', '')}
+                {n.badge > 0 && <span style={{ minWidth: 16, height: 16, borderRadius: 99, background: on ? 'rgba(255,255,255,.25)' : '#ef5a6f', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{n.badge}</span>}
               </button>
-            ))}
-          </div>
-        )}
-
-        {/* Mobile bottom tabs — elegant */}
-        {mobile && (
-          <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: card, borderTop: `0.5px solid ${line}`, display: 'flex', justifyContent: 'space-around', padding: '9px 4px 13px', zIndex: 60, boxShadow: '0 -4px 20px rgba(13,27,42,.04)' }}>
-            {NAV.filter(n => ['requests', 'messages', 'reviews', 'profile', 'settings'].includes(n.id)).map(n => {
-              const on = section === n.id
-              return (
-                <button key={n.id} onClick={() => setSection(n.id)}
-                  style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 6px' }}>
-                  {on && <span style={{ position: 'absolute', top: -9, width: 22, height: 3, borderRadius: 99, background: '#0aa2cf' }} />}
-                  <i className={`ti ${n.icon}`} style={{ fontSize: 21, color: on ? '#0aa2cf' : t3 }} />
-                  <span style={{ fontSize: 9, fontWeight: on ? 700 : 600, color: on ? '#0aa2cf' : t3 }}>{n.label.replace('My ', '')}</span>
-                  {n.badge > 0 && <span style={{ position: 'absolute', top: -2, right: 3, minWidth: 14, height: 14, borderRadius: 99, background: '#ef5a6f', color: '#fff', fontSize: 8, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>{n.badge}</span>}
-                </button>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {mobile && (
-            <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 16, fontWeight: 700, color: t1, marginBottom: 12 }}>
-              {NAV.find(n => n.id === section)?.label}
-            </div>
-          )}
-          <Content />
+            )
+          })}
         </div>
+      </div>
+
+      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '14px 14px 30px' }}>
+        <Content />
       </div>
 
       <ChatDrawer open={!!chat} onClose={() => { setChat(null); if (customer) loadRequests(customer) }} company={chat?.company} leadId={chat?.leadId} customer={customer} mobile={mobile} />
