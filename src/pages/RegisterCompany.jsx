@@ -180,6 +180,15 @@ export default function RegisterCompany({ navigate }) {
         <p style={{ fontSize: 12, opacity: 0.85 }}>100% free — no credit card required</p>
       </div>
 
+      <div onClick={() => navigate('claim-company')} style={{ margin: '14px auto 0', maxWidth: 520, marginLeft: 16, marginRight: 16, padding: '11px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+        <i className="ti ti-discount-check" style={{ fontSize: 18, color: 'var(--primary)' }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>Already listed on TrustDubai?</div>
+          <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 1 }}>Claim your company instead of creating a new one.</div>
+        </div>
+        <i className="ti ti-arrow-right" style={{ fontSize: 16, color: 'var(--primary)' }} />
+      </div>
+
       {!customer && (
         <div style={{ margin: '14px 16px 0', padding: '12px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <i className="ti ti-info-circle" style={{ fontSize: 18, color: 'var(--primary)' }} />
