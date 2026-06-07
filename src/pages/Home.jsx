@@ -792,7 +792,15 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-ad-2" style={{ fontSize:11, color:'#0099cc' }}/> Sponsored
         </div>
-        {displaySponsored.map((slot,i) => {
+        {sponsoredCos.length === 0 ? (
+          <div onClick={()=>window.open('https://business.trustdubai.ae','_blank')}
+            style={{ background:'#f0faff', border:'0.5px dashed #b3d9f0', borderRadius:8, padding:'12px 10px', cursor:'pointer', textAlign:'center' }}>
+            <i className="ti ti-speakerphone" style={{ fontSize:18, color:'#0099cc', display:'block', marginBottom:5 }} />
+            <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', marginBottom:2 }}>Advertise here</div>
+            <div style={{ fontSize:8, color:'var(--text-muted)', marginBottom:8, lineHeight:1.5 }}>Promote your business to Dubai customers</div>
+            <span style={{ display:'inline-block', background:'#0099cc', color:'#fff', borderRadius:5, padding:'5px 12px', fontSize:9, fontWeight:700 }}>List your business →</span>
+          </div>
+        ) : displaySponsored.map((slot,i) => {
           const co = slot.companies||{}
           const av = avColors[i%avColors.length]
           return (
@@ -860,23 +868,6 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
             </div>
           </div>
         ))}
-      </div>
-
-      <div style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:10 }}>
-        <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
-          <i className="ti ti-mail" style={{ fontSize:11, color:'#0099cc' }}/> Service Deals
-        </div>
-        <div style={{ fontSize:8, color:'var(--text-muted)', marginBottom:8, lineHeight:1.5 }}>Weekly deals & top-rated alerts in Dubai.</div>
-        {subscribed ? (
-          <div style={{ background:'#f0fdf4', border:'0.5px solid #a7f3d0', borderRadius:6, padding:'5px 8px', fontSize:9, color:'#065f46', fontWeight:600, textAlign:'center' }}>✓ Subscribed!</div>
-        ) : (
-          <div style={{ display:'flex', gap:5 }}>
-            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com"
-              style={{ flex:1, padding:'5px 8px', border:'0.5px solid var(--border-default)', borderRadius:6, fontSize:9, background:'var(--bg-card)', color:'var(--text-primary)', outline:'none' }}/>
-            <button onClick={()=>{ if(email.includes('@')) setSubscribed(true) }}
-              style={{ padding:'5px 9px', background:'#0099cc', border:'none', borderRadius:6, fontSize:9, color:'#fff', fontWeight:600, cursor:'pointer' }}>Join</button>
-          </div>
-        )}
       </div>
 
       <div style={{ background:'#1a2744', borderRadius:10, padding:10 }}>
@@ -1036,6 +1027,22 @@ function ratingBadgeEl(c) {
   return <span style={{ fontSize:7, background:'#e0f9ff', color:'#0077aa', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>New</span>
 }
 
+function SiteFooter() {
+  const linkStyle = { fontSize:10.5, fontWeight:600, color:'var(--text-secondary)', textDecoration:'none', cursor:'pointer' }
+  return (
+    <div style={{ background:'var(--bg-card)', borderTop:'0.5px solid var(--border-default)', padding:'14px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:18, flexWrap:'wrap' }}>
+        <a href="/terms" style={linkStyle}>Terms of Service</a>
+        <a href="/privacy" style={linkStyle}>Privacy Policy</a>
+        <a href="/refund" style={linkStyle}>Refund Policy</a>
+      </div>
+      <div style={{ fontSize:9.5, color:'var(--text-muted)', textAlign:'right' }}>
+        © 2026 RenoFix Plus Technical Contracting L.L.C · operating TrustDubai
+      </div>
+    </div>
+  )
+}
+
 export default function Home({ navigate }) {
   const [topCos,        setTopCos]        = useState([])
   const [approvedCos,   setApprovedCos]   = useState([])
@@ -1145,14 +1152,9 @@ export default function Home({ navigate }) {
 
   async function fetchAll() {
     try {
-      // load admin-editable thresholds first (platform_settings, single row id=1)
-      let th = thresholds
-      try {
-        const { data: s } = await supabase.from('platform_settings').select('*').eq('id', 1).maybeSingle()
-        if (s) { th = { ...thresholds, ...s }; setThresholds(th) }
-      } catch(e) { console.error(e) }
-
+      // all reads (incl. admin thresholds) fire in parallel for speed
       const [
+        { data: settingsRow },
         { count: totalCo },
         { count: totalRev },
         { count: verifiedCo },
@@ -1162,6 +1164,7 @@ export default function Home({ navigate }) {
         { data: recentRev },
         { data: areaRows },
       ] = await Promise.all([
+        supabase.from('platform_settings').select('*').eq('id', 1).maybeSingle(),
         supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved'),
         supabase.from('reviews').select('*',{count:'exact',head:true}).eq('is_approved',true),
         supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved').eq('is_verified',true),
@@ -1171,6 +1174,8 @@ export default function Home({ navigate }) {
         supabase.from('reviews').select('id,reviewer_name,rating,review_text,created_at').eq('is_approved',true).order('created_at',{ascending:false}).limit(5),
         supabase.from('companies').select('area').eq('status','approved'),
       ])
+      let th = thresholds
+      if (settingsRow) { th = { ...thresholds, ...settingsRow }; setThresholds(th) }
       const avg = ratData?.length>0 ? (ratData.reduce((s,r)=>s+r.rating,0)/ratData.length).toFixed(1) : '0.0'
       setStats({ companies:totalCo||0, reviews:totalRev||0, avgRating:avg, verified:verifiedCo||0 })
       const approved = allCo||[]
@@ -1761,6 +1766,7 @@ export default function Home({ navigate }) {
             </div>
           </div>
         </div>
+        <SiteFooter />
       </div>
     )
   }
@@ -1777,6 +1783,7 @@ export default function Home({ navigate }) {
         <MainContent />
         <RightPanel recentReviews={recentReviews} trending={trending} onCompanyClick={goTo} />
       </div>
+      <SiteFooter />
     </div>
   )
 }
