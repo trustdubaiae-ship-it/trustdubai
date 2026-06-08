@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import './index.css'
 import './styles/theme.css'
@@ -15,7 +15,9 @@ import PublicProfile from './pages/PublicProfile'
 import MyAccount from './pages/MyAccount'
 import ServiceArea from './pages/ServiceArea'
 import Legal from './pages/Legal'
+import Partner from './pages/Partner'
 import BottomNav from './components/BottomNav'
+import { startSessionTracking } from './sessionTracker'
 function useIsMobile() {
   const [mobile, setMobile] = useState(
     () => document.documentElement.clientWidth < 481
@@ -33,6 +35,10 @@ export default function App() {
   const [screen, setScreen] = useState('home')
   const [params, setParams] = useState({})
   const isMobile = useIsMobile()
+
+  // Visitor session tracking (Avg Time / Pages-per-visit / Bounce Rate)
+  useEffect(() => { startSessionTracking() }, [])
+
   function navigate(to, p = {}) {
     setScreen(to)
     setParams(p)
@@ -46,6 +52,7 @@ export default function App() {
         <Route path="/terms"   element={<Legal page="terms" />} />
         <Route path="/privacy" element={<Legal page="privacy" />} />
         <Route path="/refund"  element={<Legal page="refund" />} />
+        <Route path="/partner" element={<Partner />} />
         <Route path="/services/:serviceArea" element={<ServiceArea />} />
         <Route path="/:slug" element={<PublicProfile />} />
         <Route path="/" element={
