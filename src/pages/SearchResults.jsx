@@ -96,11 +96,11 @@ export default function SearchResults({ navigate, params }) {
         })}
       </div>
 
-      <div style={{ padding: '8px 16px' }}>
+      <div style={{ padding: '8px 16px', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{companies.length} companies found</span>
       </div>
 
-      <div style={{ padding: '0 16px 100px' }}>
+      <div style={{ padding: '0 16px 100px', maxWidth: 1200, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         {loading ? (
           <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: 24 }}>Searching...</p>
         ) : companies.length === 0 ? (
@@ -111,9 +111,16 @@ export default function SearchResults({ navigate, params }) {
             </span>
           </div>
         ) : (
-          companies.map(c => (
-            <CompanyCard key={c.id} company={c} onClick={() => goToCompany(c)} />
-          ))
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
+            gap: 12,
+            alignItems: 'start'
+          }}>
+            {companies.map(c => (
+              <CompanyCard key={c.id} company={c} onClick={() => goToCompany(c)} />
+            ))}
+          </div>
         )}
       </div>
     </div>
