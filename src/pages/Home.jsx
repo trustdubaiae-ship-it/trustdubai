@@ -1258,7 +1258,7 @@ export default function Home({ navigate }) {
     </div>
   ) : null
 
-  function Topbar() {
+  function Topbar({ fixed }) {
     const navItems = [
       { l:'Home',       action:()=>scrollToSection('top'), active:true },
       { l:'Categories', action:()=>scrollToSection('services-row') },
@@ -1267,7 +1267,7 @@ export default function Home({ navigate }) {
       { l:'City Map',   action:()=>scrollToSection('city-network') },
     ]
     return (
-      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 20px', height:48, background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position:'sticky', top:0, zIndex:100, width:'100%' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'0 20px', height:48, background:'var(--bg-card)', borderBottom:'0.5px solid var(--border-default)', position: fixed ? 'fixed' : 'sticky', top:0, left:0, right:0, zIndex:200, width:'100%', boxSizing:'border-box' }}>
         <Logo size={15} />
         <nav style={{ display:'flex', gap:4, marginLeft:8 }}>
           {navItems.map((it)=>(
@@ -1285,6 +1285,10 @@ export default function Home({ navigate }) {
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:7, marginLeft:'auto' }}>
           <ThemeToggle />
+          <button onClick={()=>navigate('claim-company')}
+            style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', border:'0.5px solid var(--border-default)', borderRadius:99, background:'var(--bg-secondary)', color:'var(--text-secondary)', fontSize:10, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' }}>
+            <i className="ti ti-discount-check" style={{ fontSize:10 }} /> Claim your company
+          </button>
           <button onClick={()=>window.open(BIZ_URL,'_blank')}
             style={{ display:'flex', alignItems:'center', gap:4, padding:'5px 10px', border:'0.5px solid #b3d9f0', borderRadius:99, background:'#f0faff', color:'#0099cc', fontSize:10, fontWeight:600, cursor:'pointer', whiteSpace:'nowrap' }}>
             <i className="ti ti-briefcase" style={{ fontSize:9 }} /> {customer ? 'My Business' : 'List Business'}
@@ -1432,7 +1436,7 @@ export default function Home({ navigate }) {
             extra={renderExtra ? renderExtra(c,i) : null}
           />
         ) : (
-          <div key={i} style={{ height:80, background:'linear-gradient(90deg,var(--bg-tertiary) 25%,var(--bg-secondary) 50%,var(--bg-tertiary) 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.5s infinite', borderRadius:10 }}>
+          <div key={i} style={{ height:94, background:'linear-gradient(90deg,var(--bg-tertiary) 25%,var(--bg-secondary) 50%,var(--bg-tertiary) 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.5s infinite', borderRadius:10 }}>
             <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}`}</style>
           </div>
         ))}
@@ -1517,7 +1521,7 @@ export default function Home({ navigate }) {
       <div style={{ flex:1, minWidth:0, padding:'10px 14px', background:'var(--bg-secondary)', overflowX:'hidden' }}>
         <ServicesRow />
         {showTrustScore && <TrustWave score={trustScore} />}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8, alignItems:'stretch' }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-star" title="Top Rated Companies" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'rating'})} />
             {!loading && topCos.length === 0
@@ -1535,7 +1539,7 @@ export default function Home({ navigate }) {
           </div>
           <ByAreaCard />
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8, alignItems:'stretch' }}>
           <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
             <SecHeader icon="ti-clock" title="Recently Added" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'recent'})} />
             <CardGrid companies={novo}
@@ -1730,7 +1734,7 @@ export default function Home({ navigate }) {
           <div style={{ flex:1, minWidth:0, padding:'10px 16px' }}>
             <ServicesRow />
             {showTrustScore && <TrustWave score={trustScore} />}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8, alignItems:'stretch' }}>
               <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
                 <SecHeader icon="ti-star" title="Top Rated" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'rating'})} />
                 {!loading && topCos.length === 0
@@ -1741,13 +1745,13 @@ export default function Home({ navigate }) {
                           badge={ratingBadgeEl(c)}
                           extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
                         />
-                      ) : <div key={i} style={{ height:80, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
+                      ) : <div key={i} style={{ height:94, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
                     </div>
                 }
               </div>
               <ByAreaCard />
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8, alignItems:'stretch' }}>
               <div style={{ background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:10, padding:'9px 11px' }}>
                 <SecHeader icon="ti-clock" title="Recently Added" viewAll="View all →" onViewAll={()=>navigate('search',{sort:'recent'})} />
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:7 }}>
@@ -1756,7 +1760,7 @@ export default function Home({ navigate }) {
                       badge={<span style={{ fontSize:7, background:'#e0f9ff', color:'#0077aa', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>New</span>}
                       extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
                     />
-                  ) : <div key={i} style={{ height:80, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
+                  ) : <div key={i} style={{ height:94, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
                 </div>
               </div>
               <CityNetworkCard height={120} />
@@ -1772,11 +1776,12 @@ export default function Home({ navigate }) {
   }
 
   return (
-    <div style={{ background:'var(--bg-primary)', minHeight:'100vh', overflowX:'hidden' }}>
+    <div style={{ background:'var(--bg-primary)', minHeight:'100vh' }}>
       {BlockedBanner}
       {LeadModal}
       {ProfileGate}
-      <Topbar />
+      <Topbar fixed />
+      <div style={{ height:48 }} />
       <Hero />
       <div style={{ display:'flex', alignItems:'stretch' }}>
         <Sidebar navigate={navigate} scrollToSection={scrollToSection} />
