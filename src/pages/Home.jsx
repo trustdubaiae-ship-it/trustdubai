@@ -997,19 +997,21 @@ function CoCard({ company, badge, extra, onClick }) {
   const av = avColors[(name.charCodeAt(0)||0) % avColors.length]
   return (
     <div onClick={onClick}
-      style={{ background:plan==='gold'?'#fffef8':plan==='platinum'?'#fdfbff':'var(--bg-card)', border:`0.5px solid ${plan==='gold'?'rgba(232,184,75,0.5)':plan==='platinum'?'rgba(139,92,246,0.35)':'var(--border-default)'}`, borderRadius:10, padding:'9px 10px', cursor:'pointer', transition:'all 0.15s' }}
+      style={{ background:plan==='gold'?'#fffef8':plan==='platinum'?'#fdfbff':'var(--bg-card)', border:`0.5px solid ${plan==='gold'?'rgba(232,184,75,0.5)':plan==='platinum'?'rgba(139,92,246,0.35)':'var(--border-default)'}`, borderRadius:10, padding:'9px 10px', cursor:'pointer', transition:'all 0.15s', height:92, boxSizing:'border-box', display:'flex', flexDirection:'column', justifyContent:'space-between', overflow:'hidden' }}
       onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.boxShadow='0 4px 12px rgba(0,153,204,0.12)' }}
       onMouseLeave={e=>{ e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow='none' }}
     >
-      <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
         <div style={{ width:28, height:28, borderRadius:7, background:av.bg, color:av.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, flexShrink:0 }}>{initials}</div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</div>
           <div style={{ fontSize:7.5, color:'var(--text-muted)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{company?.category||company?.categories?.[0]||'—'}</div>
         </div>
       </div>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>{badge}</div>
-      {extra && <div style={{ fontSize:7.5, color:'var(--text-muted)', marginTop:3, display:'flex', alignItems:'center', gap:2 }}>{extra}</div>}
+      <div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', minHeight:18 }}>{badge}</div>
+        <div style={{ fontSize:7.5, color:'var(--text-muted)', marginTop:3, display:'flex', alignItems:'center', gap:2, minHeight:11 }}>{extra}</div>
+      </div>
     </div>
   )
 }
@@ -1436,7 +1438,7 @@ export default function Home({ navigate }) {
             extra={renderExtra ? renderExtra(c,i) : null}
           />
         ) : (
-          <div key={i} style={{ height:94, background:'linear-gradient(90deg,var(--bg-tertiary) 25%,var(--bg-secondary) 50%,var(--bg-tertiary) 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.5s infinite', borderRadius:10 }}>
+          <div key={i} style={{ height:92, background:'linear-gradient(90deg,var(--bg-tertiary) 25%,var(--bg-secondary) 50%,var(--bg-tertiary) 75%)', backgroundSize:'200% 100%', animation:'shimmer 1.5s infinite', borderRadius:10 }}>
             <style>{`@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}`}</style>
           </div>
         ))}
@@ -1745,7 +1747,7 @@ export default function Home({ navigate }) {
                           badge={ratingBadgeEl(c)}
                           extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
                         />
-                      ) : <div key={i} style={{ height:94, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
+                      ) : <div key={i} style={{ height:92, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
                     </div>
                 }
               </div>
@@ -1760,7 +1762,7 @@ export default function Home({ navigate }) {
                       badge={<span style={{ fontSize:7, background:'#e0f9ff', color:'#0077aa', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>New</span>}
                       extra={<><i className="ti ti-map-pin" style={{ fontSize:7 }}/> {c.area||c.location||'Dubai'}</>}
                     />
-                  ) : <div key={i} style={{ height:94, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
+                  ) : <div key={i} style={{ height:92, background:'var(--bg-tertiary)', borderRadius:10 }} />)}
                 </div>
               </div>
               <CityNetworkCard height={120} />
