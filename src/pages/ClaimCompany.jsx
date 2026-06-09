@@ -7,7 +7,7 @@ import { getCustomer } from '../customerAuth'
 function digits(s) { return (s || '').replace(/\D/g, '') }
 function last4(s) { return digits(s).slice(-4) }
 
-export default function ClaimCompany({ navigate }) {
+export default function ClaimCompany({ navigate, prefillSlug }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -36,6 +36,24 @@ export default function ClaimCompany({ navigate }) {
     const cust = await getCustomer()
     if (cust?.email) setCEmail(cust.email)
   })() }, [])
+
+  // Auto-select a company when arriving via /claim-company?slug=...
+  useEffect(() => {
+    const s = (prefillSlug || '').trim()
+    if (!s) return
+    let active = true
+    ;(async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('id, name, slug, location, phone')
+        .eq('slug', s)
+        .eq('is_imported', true)
+        .eq('claimed', false)
+        .maybeSingle()
+      if (active && data) pick(data)
+    })()
+    return () => { active = false }
+  }, [prefillSlug])
 
   useEffect(() => {
     if (selected) return
