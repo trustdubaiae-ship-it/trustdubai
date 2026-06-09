@@ -31,14 +31,29 @@ function useIsMobile() {
   })
   return mobile
 }
+
+// Standalone /claim-company route wrapper.
+// Provides a navigate() that maps internal "screen" names to URL navigation,
+// and reads ?slug= so the claim form auto-selects the listed company.
+function ClaimCompanyPage() {
+  let slug = ''
+  try { slug = new URLSearchParams(window.location.search).get('slug') || '' } catch (e) {}
+  function navigate(to) {
+    if (to === 'home') window.location.href = '/'
+    else window.location.href = '/?screen=' + encodeURIComponent(to)
+  }
+  return <ClaimCompany navigate={navigate} prefillSlug={slug} />
+}
+
 export default function App() {
-  const [screen, setScreen] = useState('home')
+  // Initial screen can be deep-linked via /?screen=register-company etc.
+  const [screen, setScreen] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get('screen') || 'home' } catch (e) { return 'home' }
+  })
   const [params, setParams] = useState({})
   const isMobile = useIsMobile()
-
   // Visitor session tracking (Avg Time / Pages-per-visit / Bounce Rate)
   useEffect(() => { startSessionTracking() }, [])
-
   function navigate(to, p = {}) {
     setScreen(to)
     setParams(p)
@@ -53,6 +68,7 @@ export default function App() {
         <Route path="/privacy" element={<Legal page="privacy" />} />
         <Route path="/refund"  element={<Legal page="refund" />} />
         <Route path="/partner" element={<Partner />} />
+        <Route path="/claim-company" element={<ClaimCompanyPage />} />
         <Route path="/services/:serviceArea" element={<ServiceArea />} />
         <Route path="/:slug" element={<PublicProfile />} />
         <Route path="/" element={
