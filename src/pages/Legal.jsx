@@ -17,7 +17,7 @@ const LEGAL = {
   email:     'support@trustdubai.ae',                      // official platform support email
   phone:     '+971 54 446 0966',                           // support phone / WhatsApp
   site:      'trustdubai.ae',
-  effective: '7 June 2026',
+  effective: '9 June 2026',
 }
 
 function makeTheme(dark) {
@@ -139,7 +139,7 @@ export default function Legal({ page = 'terms' }) {
                 <UL>
                   <LI><B>Accurate information.</B> Businesses must provide truthful company details, documents and credentials. Misrepresentation may result in suspension or removal.</LI>
                   <LI><B>Verification.</B> Verification is performed against the documents and records provided. {LEGAL.brand} may approve, reject, request more information, or revoke verification at its discretion.</LI>
-                  <LI><B>Subscriptions.</B> Paid plans grant access to additional profile features. Plan features, limits and pricing are described at the point of purchase and may change with notice.</LI>
+                  <LI><B>Free trial &amp; subscriptions.</B> A free trial / demo period may be offered so you can evaluate the paid features before any payment. Paid plans grant access to additional profile features. Plan features, limits and pricing are described at the point of purchase and may change with notice.</LI>
                   <LI><B>Responsibilities.</B> Businesses are solely responsible for the services they offer, their dealings with customers, and compliance with all applicable UAE laws and licences.</LI>
                   <LI><B>Suspension.</B> We may suspend or remove any listing that violates these Terms, receives substantiated complaints, or harms the integrity of the Platform.</LI>
                 </UL>
@@ -162,7 +162,7 @@ export default function Legal({ page = 'terms' }) {
               </Section>
 
               <Section n="10" title="Governing Law">
-                <P>These Terms are governed by the laws of the United Arab Emirates. Any dispute shall be subject to the exclusive jurisdiction of the courts of the Emirate of Dubai.</P>
+                <P>These Terms are governed by the laws of the United Arab Emirates. Any dispute shall be subject to the exclusive jurisdiction of the courts of the Emirate of Dubai, UAE.</P>
               </Section>
 
               <Section n="11" title="Changes & Contact">
@@ -233,42 +233,46 @@ export default function Legal({ page = 'terms' }) {
           {page === 'refund' && (
             <>
               <Section title="Overview">
-                <P>This Refund Policy applies to paid subscription plans purchased by businesses on the <B>{LEGAL.brand}</B> platform ({LEGAL.site}), operated by <B>{LEGAL.entity}</B>. Please read it carefully before subscribing.</P>
+                <P>This Refund Policy applies to paid subscription plans purchased by businesses on the <B>{LEGAL.brand}</B> platform ({LEGAL.site}), operated by <B>{LEGAL.entity}</B>. Because we provide a <B>free trial / demo period</B> that lets you fully evaluate the paid features <B>before</B> any payment is made, subscription fees are <B>non-refundable</B> once a plan is purchased. Please read this policy carefully before subscribing.</P>
               </Section>
 
-              <Section n="1" title="Subscription Plans">
+              <Section n="1" title="Free Trial Before You Pay">
+                <P>{LEGAL.brand} offers a free trial / demo period so that businesses can experience the platform and its paid features at no cost before deciding to subscribe. We strongly encourage you to use this trial period to confirm the Platform meets your needs, as <B>no refunds are provided after a paid plan is activated</B>.</P>
+              </Section>
+
+              <Section n="2" title="Subscription Plans">
                 <P>{LEGAL.brand} offers paid plans (e.g. Silver, Gold, Platinum) that unlock additional profile and listing features. Plan inclusions, limits and prices are shown at the point of purchase.</P>
               </Section>
 
-              <Section n="2" title="Billing">
+              <Section n="3" title="Billing">
                 <P>Subscription fees are billed in advance for the selected period. By subscribing, you authorise us (or our payment processor) to charge the applicable fees. All fees are stated in UAE Dirhams (AED) and, where applicable, are inclusive of 5% VAT.</P>
               </Section>
 
-              <Section n="3" title="Refund Eligibility">
+              <Section n="4" title="No Refunds">
                 <UL>
-                  <LI>Subscription fees are <B>generally non-refundable</B> once a plan has been activated and its features made available.</LI>
-                  <LI>If a plan was charged in error, or a technical issue on our side prevented you from accessing the paid features, contact us within <B>7 days</B> and we will investigate and, where appropriate, issue a refund or credit.</LI>
-                  <LI>Partial or pro-rata refunds are not provided for unused time after activation, unless required by applicable law.</LI>
+                  <LI>Subscription fees are <B>non-refundable</B> once a plan has been purchased and its features made available, since a free trial is provided beforehand to evaluate the service.</LI>
+                  <LI>Partial or pro-rata refunds are <B>not</B> provided for unused time after activation, unless required by applicable law.</LI>
+                  <LI><B>Exception — billing errors.</B> If you were charged in error, charged twice, or a technical issue on our side prevented you from accessing the paid features you purchased, contact us within <B>7 days</B> and we will investigate and, where appropriate, issue a correction, refund or credit.</LI>
                 </UL>
               </Section>
 
-              <Section n="4" title="Cancellation">
-                <P>You may cancel your subscription at any time. Cancellation stops future renewals; it does not retroactively refund the current period. Your paid features remain active until the end of the paid period.</P>
+              <Section n="5" title="Cancellation">
+                <P>You may cancel your subscription at any time. Cancellation stops future renewals; it does not refund the current period. Your paid features remain active until the end of the paid period.</P>
               </Section>
 
-              <Section n="5" title="Plan Changes">
+              <Section n="6" title="Plan Changes">
                 <P>Upgrades take effect immediately and may be charged on a pro-rata basis. Downgrades take effect at the next renewal.</P>
               </Section>
 
-              <Section n="6" title="Failed Verification">
+              <Section n="7" title="Failed Verification">
                 <P>Purchasing a plan does not guarantee verification. If your business fails verification due to inaccurate or insufficient documents, fees already paid for the subscription period are non-refundable; you may re-submit corrected documents.</P>
               </Section>
 
-              <Section n="7" title="Chargebacks">
+              <Section n="8" title="Chargebacks">
                 <P>If you have a billing concern, please contact us first at <B>{LEGAL.email}</B>. Initiating a chargeback without contacting us may result in suspension of your account.</P>
               </Section>
 
-              <Section n="8" title="Contact">
+              <Section n="9" title="Contact">
                 <P>For any refund or billing question, contact <B>{LEGAL.email}</B> · {LEGAL.phone} · {LEGAL.entity}, {LEGAL.address}.</P>
               </Section>
             </>
