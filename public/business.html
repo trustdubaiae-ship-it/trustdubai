@@ -198,7 +198,7 @@
       <a href="#plans">Plans</a>
       <a href="#claim">Claim profile</a>
     </nav>
-    <a class="btn btn-gold nav-cta" href="#claim">List your company</a>
+    <a class="btn btn-gold nav-cta" href="https://business.trustdubai.ae/?action=list">List your company</a>
   </div>
 </header>
 
@@ -226,11 +226,13 @@
         </div>
       </div>
       <p class="lead">Claim your free profile and send professional quotations on WhatsApp in minutes.</p>
+      <div id="claimBanner" style="display:none;max-width:560px;margin:0 auto 16px;background:rgba(201,162,75,.12);border:1px solid var(--gold);border-radius:12px;padding:12px 16px;font-size:.95rem"></div>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
-        <input type="text" placeholder="Enter your business name…" aria-label="Search your business name">
-        <a class="btn btn-gold" href="#claim">Find</a>
+        <input id="bizSearch" type="text" placeholder="Enter your business name…" aria-label="Search your business name" autocomplete="off">
+        <button class="btn btn-gold" id="findBtn" type="button">Find</button>
       </div>
+      <div id="searchResults" style="max-width:560px;margin:6px auto 0;text-align:left"></div>
       <p class="reassure"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg> Free forever · No payment required</p>
     </div>
   </section>
@@ -292,6 +294,7 @@
         <span class="eyebrow" style="display:block;margin-bottom:10px">🚀 Limited launch offer</span>
         <h2>30 days. All features. Free.</h2>
         <p>Claim your business now and unlock the <b style="color:#fff">complete toolkit</b> — Quotations, Leads, full CRM, Lead Engine and advanced analytics — <b style="color:var(--gold-bright)">free for 30 days</b>. No card required to start.</p>
+        <a class="btn btn-gold" href="https://business.trustdubai.ae/?action=claim" style="margin-top:20px">Claim now — start free</a>
       </div>
     </div>
   </section>
@@ -353,7 +356,7 @@
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Free QR code · default profile link</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>30-day all-features launch trial</li>
           </ul>
-          <a class="btn btn-ghost" href="#claim">Claim free</a>
+          <a class="btn btn-ghost" href="https://business.trustdubai.ae/?plan=free">Claim free</a>
         </div>
 
         <div class="plan reveal">
@@ -368,7 +371,7 @@
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Custom profile link · basic analytics</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>3 team members</li>
           </ul>
-          <a class="btn btn-ghost" href="#claim">Choose Silver</a>
+          <a class="btn btn-ghost" href="https://business.trustdubai.ae/?plan=silver">Choose Silver</a>
         </div>
 
         <div class="plan pop reveal">
@@ -384,7 +387,7 @@
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Advanced analytics · Team-Verified shield</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>6 team members</li>
           </ul>
-          <a class="btn btn-gold" href="#claim">Choose Gold</a>
+          <a class="btn btn-gold" href="https://business.trustdubai.ae/?plan=gold">Choose Gold</a>
         </div>
 
         <div class="plan reveal">
@@ -398,7 +401,7 @@
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>AI tools (auto-responder &amp; smart replies)</li>
             <li><svg viewBox="0 0 24 24" fill="none" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>Unlimited team · dedicated support</li>
           </ul>
-          <a class="btn btn-ghost" href="#claim">Choose Platinum</a>
+          <a class="btn btn-ghost" href="https://business.trustdubai.ae/?plan=platinum">Choose Platinum</a>
         </div>
 
       </div>
@@ -412,8 +415,8 @@
       <h2>Find your business in 10 seconds</h2>
       <p>Claim it free, or list a new company.</p>
       <div class="ctas">
-        <a class="btn btn-gold" href="#top">Claim my business — free</a>
-        <a class="btn btn-ghost" href="#top">List a new company</a>
+        <a class="btn btn-gold" href="https://business.trustdubai.ae/?action=claim">Claim my business — free</a>
+        <a class="btn btn-ghost" href="https://business.trustdubai.ae/?action=list">List a new company</a>
       </div>
       <p style="margin-top:20px;font-size:.92rem;color:var(--muted)">Questions, feedback, or facing an issue with any feature? Email us at <a href="mailto:trustdubai.ae@gmail.com" style="color:var(--gold-bright);font-weight:600">trustdubai.ae@gmail.com</a> — we're here to help.</p>
     </div>
@@ -438,10 +441,73 @@
 </footer>
 
 <script>
+  /* ============================================================
+     TrustDubai — business landing wiring
+     -> To enable LIVE company search in the hero box, paste your
+        Supabase public (anon) key below. It's safe to expose —
+        it's already embedded in your public site.
+        Leave it blank and "Find" will simply send the visitor to
+        the claim flow (still works, just no live results).
+     ============================================================ */
+  const PORTAL = 'https://business.trustdubai.ae';
+  const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpYmRvcnJheHhoZmJma2pocGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTkzNDUsImV4cCI6MjA5NTM3NTM0NX0.w5EMvd47CtWTc-8NgTlsM44EYmbGSQHc79wgjXTQlHE';
+
+  const $ = (s)=>document.querySelector(s);
+  const enc = encodeURIComponent;
+
+  /* scroll-reveal */
   const io = new IntersectionObserver((entries)=>{
     entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
   },{threshold:0.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  /* ---- hero search ---- */
+  const input = $('#bizSearch');
+  const results = $('#searchResults');
+  const findBtn = $('#findBtn');
+
+  function row(html){ return '<div style="background:var(--navy-card);border:1px solid var(--navy-line);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px">'+html+'</div>'; }
+
+  async function runSearch(){
+    const q = (input.value||'').trim();
+    if(q.length < 2){ results.innerHTML=''; return; }
+    if(!SUPABASE_ANON_KEY){
+      window.location.href = PORTAL + '/?action=claim&q=' + enc(q);
+      return;
+    }
+    results.innerHTML = '<p style="color:var(--muted);font-size:.9rem;padding:4px 2px">Searching…</p>';
+    try{
+      const url = SUPABASE_URL + '/rest/v1/companies?select=name,slug,area&status=eq.approved&name=ilike.*' + enc(q) + '*&limit=6';
+      const r = await fetch(url, { headers:{ apikey:SUPABASE_ANON_KEY, Authorization:'Bearer '+SUPABASE_ANON_KEY } });
+      const data = await r.json();
+      if(!Array.isArray(data) || data.length===0){
+        results.innerHTML = row('<span style="color:var(--muted)">No match for “'+q+'”.</span><a class="btn btn-gold" style="padding:9px 16px;font-size:.85rem" href="'+PORTAL+'/?action=list&q='+enc(q)+'">List it as new</a>');
+        return;
+      }
+      results.innerHTML = data.map(c=>{
+        const sub = c.area ? '<span style="color:var(--muted);font-size:.85rem">'+c.area+'</span>' : '';
+        return row('<span><b style="font-family:var(--display)">'+c.name+'</b><br>'+sub+'</span><a class="btn btn-gold" style="padding:9px 16px;font-size:.85rem" href="'+PORTAL+'/?action=claim&company='+enc(c.slug||'')+'">This is mine — claim</a>');
+      }).join('') + row('<span style="color:var(--muted)">Not your business?</span><a class="btn btn-ghost" style="padding:9px 16px;font-size:.85rem" href="'+PORTAL+'/?action=list">List a new company</a>');
+    }catch(err){
+      window.location.href = PORTAL + '/?action=claim&q=' + enc(q);
+    }
+  }
+
+  if(findBtn){ findBtn.addEventListener('click', runSearch); }
+  if(input){ input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); runSearch(); } }); }
+
+  /* ---- personalised deep link: /business.html?company=<id|slug> ---- */
+  const params = new URLSearchParams(window.location.search);
+  const deepCompany = params.get('company');
+  if(deepCompany){
+    const banner = $('#claimBanner');
+    if(banner){
+      banner.style.display = 'block';
+      banner.innerHTML = 'Is this your business? <a href="'+PORTAL+'/?action=claim&company='+enc(deepCompany)+'" style="color:var(--gold-bright);font-weight:600;text-decoration:underline">Claim it free →</a>';
+    }
+    if(input){ input.value = deepCompany.replace(/-/g,' '); }
+  }
 </script>
 
 </body>
