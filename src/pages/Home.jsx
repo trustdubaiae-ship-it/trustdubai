@@ -704,12 +704,7 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
   const [quoteDone,       setQuoteDone]        = useState(false)
   const [installPrompt,   setInstallPrompt]    = useState(null)
 
-  const fallbackReviews = [
-    { id:1, reviewer_name:'M. Ahmed',     rating:5, review_text:'Incredible job! Highly recommend.' },
-    { id:2, reviewer_name:'S. Hassan',    rating:4, review_text:'Amazing design, professional team.' },
-    { id:3, reviewer_name:'F. Al Rashid', rating:5, review_text:'Fast service, great response time!' },
-  ]
-  const reviews = recentReviews.length>0 ? recentReviews : fallbackReviews
+  const reviews = recentReviews || []
 
   useEffect(() => {
     fetchSponsoredSlots()
@@ -772,12 +767,7 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
     finally { setQuoteSubmitting(false) }
   }
 
-  const fallbackSponsors = [
-    { id:'f1', slot_number:1, company_id:'f1', companies:{ name:'Jaguar Interiors',  category:'Luxury Interior Design',   avg_rating:'4.9' }},
-    { id:'f2', slot_number:2, company_id:'f2', companies:{ name:'RenoFix Plus',      category:'Construction & Renovation', avg_rating:'4.8' }},
-    { id:'f3', slot_number:3, company_id:'f3', companies:{ name:'AirCool Dubai',     category:'AC Service & Maintenance',  avg_rating:'4.6' }},
-  ]
-  const displaySponsored = sponsoredCos.length>0 ? sponsoredCos : fallbackSponsors
+  const displaySponsored = sponsoredCos
   const isRealData       = sponsoredCos.length>0
   const avColors = [
     { bg:'#ede9fe', color:'#5b21b6' },
@@ -856,9 +846,11 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
         <div style={{ fontSize:9, fontWeight:700, color:'var(--text-primary)', letterSpacing:'0.05em', textTransform:'uppercase', marginBottom:8, display:'flex', alignItems:'center', gap:4 }}>
           <i className="ti ti-message-circle" style={{ fontSize:11, color:'#0099cc' }}/> Recent Reviews
         </div>
-        {reviews.slice(0,3).map((r,i) => (
-          <div key={r.id||i} style={{ display:'flex', gap:7, padding:'5px 0', borderBottom:i<2?'0.5px solid var(--border-default)':'none' }}>
-            <div style={{ width:22, height:22, borderRadius:'50%', background:['#0099cc','#7c3aed','#059669'][i], display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, fontWeight:700, color:'#fff', flexShrink:0 }}>
+        {reviews.length === 0 ? (
+          <div style={{ fontSize:8.5, color:'var(--text-muted)', padding:'6px 0', lineHeight:1.5 }}>No reviews yet — be the first to review a company you've worked with.</div>
+        ) : reviews.slice(0,3).map((r,i) => (
+          <div key={r.id||i} style={{ display:'flex', gap:7, padding:'5px 0', borderBottom:i<Math.min(reviews.length,3)-1?'0.5px solid var(--border-default)':'none' }}>
+            <div style={{ width:22, height:22, borderRadius:'50%', background:['#0099cc','#7c3aed','#059669'][i%3], display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, fontWeight:700, color:'#fff', flexShrink:0 }}>
               {(r.reviewer_name||'A')[0].toUpperCase()}
             </div>
             <div style={{ flex:1, minWidth:0 }}>
@@ -1154,28 +1146,30 @@ export default function Home({ navigate }) {
 
   async function fetchAll() {
     try {
-      // all reads (incl. admin thresholds) fire in parallel for speed
-      const [
-        { data: settingsRow },
-        { count: totalCo },
-        { count: totalRev },
-        { count: verifiedCo },
-        { data: ratData },
-        { data: allCo },
-        { data: revData },
-        { data: recentRev },
-        { data: areaRows },
-      ] = await Promise.all([
+      // all reads (incl. admin thresholds) fire in parallel for speed.
+      // allSettled = one failing/slow query never blanks the whole homepage.
+      const results = await Promise.allSettled([
         supabase.from('platform_settings').select('*').eq('id', 1).maybeSingle(),
         supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved'),
         supabase.from('reviews').select('*',{count:'exact',head:true}).eq('is_approved',true),
         supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved').eq('is_verified',true),
-        supabase.from('reviews').select('rating').eq('is_approved',true),
         supabase.from('companies').select('*').eq('status','approved').order('created_at',{ascending:false}).limit(50),
         supabase.from('reviews').select('rating,created_at').eq('is_approved',true),
         supabase.from('reviews').select('id,reviewer_name,rating,review_text,created_at').eq('is_approved',true).order('created_at',{ascending:false}).limit(5),
         supabase.from('companies').select('area').eq('status','approved'),
       ])
+      const val = (i) => (results[i] && results[i].status === 'fulfilled') ? results[i].value : {}
+      const settingsRow = val(0).data
+      const totalCo     = val(1).count
+      const totalRev    = val(2).count
+      const verifiedCo  = val(3).count
+      const allCo       = val(4).data
+      const revAll      = val(5).data       // one fetch reused for avg + monthly graph
+      const recentRev   = val(6).data
+      const areaRows    = val(7).data
+      const ratData     = revAll
+      const revData     = revAll
+
       let th = thresholds
       if (settingsRow) { th = { ...thresholds, ...settingsRow }; setThresholds(th) }
       const avg = ratData?.length>0 ? (ratData.reduce((s,r)=>s+r.rating,0)/ratData.length).toFixed(1) : '0.0'
@@ -1202,7 +1196,7 @@ export default function Home({ navigate }) {
       const s3=tm.filter(r=>r.rating===3).length, s2=tm.filter(r=>r.rating===2).length
       const s1=tm.filter(r=>r.rating===1).length, total=tm.length
       setReviewData({ total,s5,s4,s3,s2,s1, s5_pct:total>0?Math.round(s5/total*100):0, s4_pct:total>0?Math.round(s4/total*100):0 })
-      setTrustScore(Math.min(100,Math.round((verifiedCo/Math.max(totalCo,1))*40+(parseFloat(avg)/5)*40+Math.min((totalRev||0)/100,1)*20)))
+      setTrustScore(Math.min(100,Math.round(((verifiedCo||0)/Math.max(totalCo||1,1))*40+(parseFloat(avg)/5)*40+Math.min((totalRev||0)/100,1)*20)))
     } catch(e) { console.error(e) }
     finally { setLoading(false) }
   }
@@ -1223,17 +1217,16 @@ export default function Home({ navigate }) {
     else navigate('company',{company:c})
   }
 
-  function fmt(n) {
-    if (n>=1000) return Math.floor(n/1000)+'K+'
-    if (n>=100) return n+'+'
-    return String(n||0)
+  // exact numbers with thousands separators (e.g. 1,095) — no "1K+" rounding
+  function fmtExact(n) {
+    return Number(n || 0).toLocaleString('en-US')
   }
 
-  // ── Threshold-driven visibility (admin-editable via platform_settings) ──
-  const showCompanies = (stats.companies||0) >= (thresholds.min_companies ?? 50)
-  const showReviews   = (stats.reviews||0)   >= (thresholds.min_reviews ?? 100)
-  const showRating    = (parseFloat(stats.avgRating)||0) >= (thresholds.min_rating ?? 3.5) && (stats.reviews||0) >= (thresholds.min_rating_reviews ?? 50)
-  const showVerified  = (stats.verified||0)  >= (thresholds.min_verified ?? 100)
+  // ── Live stat visibility — show real numbers as soon as they exist ──
+  const showCompanies = (stats.companies||0) > 0
+  const showReviews   = (stats.reviews||0)   > 0
+  const showRating    = (parseFloat(stats.avgRating)||0) > 0 && (stats.reviews||0) > 0
+  const showVerified  = (stats.verified||0)  > 0
   const statFlags     = { companies: showCompanies, reviews: showReviews, avgRating: showRating, verified: showVerified }
   const anyStat       = showCompanies || showReviews || showRating || showVerified
   const showTrustScore = (stats.verified||0) >= (thresholds.trust_score_min_verified ?? 100)
@@ -1372,7 +1365,7 @@ export default function Home({ navigate }) {
                 .filter(([k]) => statFlags[k])
                 .map(([k,l])=>(
                   <div key={k} style={{ background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, padding:'6px 12px', textAlign:'center', minWidth:65 }}>
-                    <div style={{ fontSize:14, fontWeight:700, color:'#0099cc', lineHeight:1 }}>{k==='avgRating'?stats.avgRating+'★':fmt(stats[k])}</div>
+                    <div style={{ fontSize:14, fontWeight:700, color:'#0099cc', lineHeight:1 }}>{k==='avgRating'?stats.avgRating+'★':fmtExact(stats[k])}</div>
                     <div style={{ fontSize:7.5, color:'var(--text-muted)', marginTop:2 }}>{l}</div>
                   </div>
                 ))
