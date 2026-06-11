@@ -66,6 +66,7 @@
   .search input{flex:1;min-width:200px;padding:13px 14px;border-radius:11px;border:none;background:transparent;color:#fff;font-size:15.5px;font-family:inherit;outline:none}
   .search input::placeholder{color:#9fb0cc}
   .search .btn{white-space:nowrap}
+  .hcta{display:flex;gap:12px;flex-wrap:wrap;max-width:540px}
   .hero-note{font-size:13px;color:#aebed8;margin-top:13px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
   .hero-note b{color:#fff}
   .hero-pop{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
@@ -164,7 +165,7 @@
   @media(max-width:900px){
     .hero-in{grid-template-columns:1fr;text-align:center}
     .hero p.lead{margin-left:auto;margin-right:auto}
-    .search{margin:0 auto}.hero-note,.hero-pop{justify-content:center}
+    .search{margin:0 auto}.hcta{margin:0 auto;justify-content:center}.hero-note,.hero-pop{justify-content:center}
     .fs-stage{height:320px;margin-top:6px}
     .band-in{grid-template-columns:repeat(2,1fr);gap:18px}
     .g3,.prob-grid,.sd-grid,.steps{grid-template-columns:1fr}
@@ -191,7 +192,7 @@
     </div>
     <div class="nav-cta">
       <a href="/" class="btn btn-ghost dark ghost">Browse</a>
-      <a href="/" class="btn btn-gold">Get free quotes</a>
+      <a href="/?quote=1" class="btn btn-gold">Get free quotes</a>
       <button class="burger" onclick="document.getElementById('msheet').classList.add('show')">☰</button>
     </div>
   </div>
@@ -203,7 +204,7 @@
   <a href="/how-we-verify.html">How we verify</a>
   <a href="#why" onclick="closeM()">Why TrustDubai</a>
   <a href="/for-business.html">For Business</a>
-  <a href="/" style="color:var(--gold2)">Get free quotes →</a>
+  <a href="/?quote=1" style="color:var(--gold2)">Get free quotes →</a>
 </div>
 
 <header class="hero">
@@ -212,9 +213,9 @@
       <span class="eyebrow">For customers</span>
       <h1>Get free quotes from <span class="g">verified businesses.</span></h1>
       <p class="lead">Tell us what you need once, and get quotes from trade-licence verified Dubai businesses — with real trust scores, verified teams and genuine reviews. No guesswork, no spam.</p>
-      <div class="search">
-        <input id="q" type="text" placeholder="What do you need? e.g. renovation, AC repair, interior design" aria-label="What do you need" />
-        <button class="btn btn-gold" onclick="goSearch()">Get free quotes →</button>
+      <div class="hcta">
+        <a href="/?quote=1" class="btn btn-gold">Get free quotes →</a>
+        <a href="/" class="btn btn-ghost">Browse verified businesses</a>
       </div>
       <div class="hero-note">🛡️ <b>Verified</b> companies only · ⭐ <b>real</b> reviews · 🆓 <b>free</b> to use</div>
       <div class="hero-pop">
@@ -376,7 +377,7 @@
     <div class="final">
       <h2>Get free quotes from businesses you can trust</h2>
       <p>Tell us what you need and compare verified Dubai businesses by trust score, real reviews and verified teams — all in one place, free.</p>
-      <a href="/" class="btn btn-gold">Get free quotes now →</a>
+      <a href="/?quote=1" class="btn btn-gold">Get free quotes now →</a>
     </div>
   </div>
 </section>
@@ -389,7 +390,7 @@
         <p style="font-size:14px;max-width:280px">Get free quotes from verified Dubai businesses — real trust scores, verified teams and genuine reviews.</p>
       </div>
       <div><h4>Explore</h4>
-        <a href="/">Get free quotes</a>
+        <a href="/?quote=1">Get free quotes</a>
         <a href="/how-we-verify.html">How we verify</a>
         <a href="#how">How it works</a>
         <a href="/for-business.html">For Business</a>
