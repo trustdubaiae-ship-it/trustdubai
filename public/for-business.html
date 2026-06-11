@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TrustDubai for Business — Become a verified, trusted business in Dubai</title>
+<meta name="description" content="Get verified with TrustDubai's 3-Shield system, build real trust, and receive qualified customer leads. Free verified listing + 30-day Launch Plan with every feature unlocked." />
+<meta property="og:title" content="TrustDubai for Business — Real trust wins more work" />
+<meta property="og:description" content="3-Shield verification, a verified public profile, qualified leads, built-in CRM & quotes. Start free with a 30-day Launch Plan." />
+<meta property="og:image" content="https://www.trustdubai.ae/og-business.png" />
+<meta property="og:url" content="https://www.trustdubai.ae/for-business.html" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://www.trustdubai.ae/og-business.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0e2545; --navy2:#13294b; --ink:#0f1830; --t2:#54627a; --t3:#8a97ad;
+    --gold:#c9a227; --gold2:#e7c860; --green:#1e9e63; --blue:#2563eb; --violet:#7c3aed;
+    --bg:#f3f6fb; --card:#ffffff; --line:#e4eaf2; --soft:#f6f9fd;
+    --shadow:0 1px 2px rgba(16,40,80,.04), 0 14px 40px rgba(16,40,80,.07);
+    --shadow-lg:0 30px 70px rgba(14,37,69,.18);
+    --r:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Outfit',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.dsp{font-family:'Sora',sans-serif;letter-spacing:-.02em;line-height:1.08}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;border-radius:12px;padding:13px 22px;cursor:pointer;border:1px solid transparent;transition:transform .15s,box-shadow .2s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#2a2000;box-shadow:0 10px 28px rgba(201,162,39,.36)}
+  .btn-navy{background:var(--navy);color:#fff}
+  .btn-ghost{background:transparent;border-color:rgba(255,255,255,.28);color:#fff}
+  .btn-ghost.dark{border-color:var(--line);color:var(--ink)}
+  .sec{padding:84px 0}
+  .sec-h{text-align:center;max-width:720px;margin:0 auto 50px}
+  .sec-h h2{font-size:clamp(27px,4.4vw,40px);font-weight:800;margin:12px 0}
+  .sec-h p{color:var(--t2);font-size:17px}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:60;background:rgba(243,246,251,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .logo{display:flex;align-items:center;gap:10px;font-family:'Sora';font-weight:800;font-size:19px}
+  .logo .sh{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--gold));display:grid;place-items:center;font-size:17px}
+  .logo .gold{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .nav-links{display:flex;align-items:center;gap:28px;font-size:14.5px;font-weight:600;color:var(--t2)}
+  .nav-links a:hover{color:var(--navy)}
+  .nav-cta{display:flex;align-items:center;gap:10px}
+  .nav-cta .btn{padding:9px 16px;font-size:14px}
+  .burger{display:none;background:none;border:1px solid var(--line);border-radius:10px;width:42px;height:42px;font-size:18px;cursor:pointer}
+  @media(max-width:900px){.nav-links{display:none}.nav-cta .ghost{display:none}.burger{display:block}}
+
+  /* HERO */
+  .hero{position:relative;overflow:hidden;background:
+     radial-gradient(900px 500px at 88% -10%, rgba(201,162,39,.18), transparent 60%),
+     radial-gradient(800px 520px at -5% 10%, rgba(124,58,237,.16), transparent 55%),
+     linear-gradient(160deg,#0b1f3c,#0e2545 60%,#10182b)}
+  .hero,.hero h1{color:#fff}
+  .hero-in{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:74px 0 84px}
+  .hero h1{font-size:clamp(34px,5.6vw,56px);font-weight:800}
+  .hero h1 .g{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p.lead{font-size:18.5px;color:#c4d2e8;margin:18px 0 28px;max-width:540px}
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero-trust{display:flex;gap:22px;flex-wrap:wrap;margin-top:28px;color:#aebed8;font-size:13.5px}
+  .hero-trust b{color:#fff}
+  .hero-trust span{display:flex;align-items:center;gap:7px}
+  .hero-form{display:flex;gap:10px;flex-wrap:wrap;max-width:540px}
+  .hero-form input{flex:1;min-width:220px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font-size:15px;font-family:inherit;outline:none}
+  .hero-form input::placeholder{color:#9fb0cc}
+  .hero-form input:focus{border-color:var(--gold2)}
+  .hero-form .btn{white-space:nowrap}
+  .hero-note{font-size:13.5px;color:#aebed8;margin-top:13px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .hero-note b{color:#fff}
+  .lst{background:var(--card);border-bottom:1px solid var(--line)}
+  .lst-in{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:26px 0}
+  .lst .s{display:flex;gap:13px;align-items:flex-start}
+  .lst .num{flex-shrink:0;width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;font-family:'Sora';font-weight:800;display:grid;place-items:center}
+  .lst .s b{font-family:'Sora';font-size:15px;display:block;margin-bottom:1px}
+  .lst .s span{font-size:13.5px;color:var(--t2)}
+  @media(max-width:900px){.lst-in{grid-template-columns:1fr}}
+  /* shield cluster signature */
+  .shields{position:relative;display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap}
+  .shield-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:18px 14px;text-align:center;width:128px;backdrop-filter:blur(6px)}
+  .shield-card .ic{font-size:30px}
+  .shield-card .val{font-family:'Sora';font-weight:800;font-size:22px;margin-top:6px}
+  .shield-card .cap{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+  .sc-trust .cap{color:var(--violet)} .sc-trust .val{color:#c9b6ff}
+  .sc-team .cap{color:var(--gold2)} .sc-team .val{color:var(--gold2)}
+  .sc-ver .cap{color:#5ee0a0} .sc-ver .val{color:#5ee0a0}
+  .float{animation:fl 5s ease-in-out infinite}
+  .float.d1{animation-delay:.4s} .float.d2{animation-delay:.8s}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+  /* STAT BAND */
+  .band{background:var(--navy);color:#fff}
+  .band-in{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:26px 0}
+  .band .it{text-align:center;padding:8px}
+  .band .n{font-family:'Sora';font-weight:800;font-size:26px;color:var(--gold2)}
+  .band .l{font-size:12.5px;color:#aebed8;margin-top:2px}
+
+  /* generic card grid */
+  .grid{display:grid;gap:18px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+  .card .ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:22px;background:var(--soft);border:1px solid var(--line);margin-bottom:14px}
+  .card h3{font-size:18px;font-weight:700;margin-bottom:6px}
+  .card p{color:var(--t2);font-size:14.5px}
+
+  /* problem */
+  .prob{background:var(--card)}
+  .prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .prob .x{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .prob .x .e{font-size:22px}
+  .prob .x b{display:block;font-family:'Sora';font-size:15.5px;margin-bottom:2px}
+  .prob .x span{color:var(--t2);font-size:14px}
+
+  /* 3-shield deep */
+  .shield-deep{background:linear-gradient(180deg,#0e2545,#0b1d39);color:#fff}
+  .shield-deep .sec-h h2,.shield-deep .sec-h{color:#fff}
+  .shield-deep .sec-h p{color:#b9c7df}
+  .sd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .sd{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:26px;position:relative;overflow:hidden}
+  .sd .ring{font-size:40px}
+  .sd h3{font-size:20px;margin:12px 0 4px;color:#fff}
+  .sd .tag{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .sd ul{list-style:none;margin-top:14px;display:flex;flex-direction:column;gap:9px}
+  .sd li{display:flex;gap:9px;align-items:flex-start;font-size:14px;color:#cdd9ee}
+  .sd li .ck{color:#5ee0a0;font-weight:800;flex-shrink:0}
+  .sd1 .tag{color:#c9b6ff} .sd2 .tag{color:var(--gold2)} .sd3 .tag{color:#5ee0a0}
+
+  /* how */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:s}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;position:relative;box-shadow:var(--shadow)}
+  .step .no{font-family:'Sora';font-weight:800;font-size:14px;color:#2a2000;background:linear-gradient(135deg,var(--gold),var(--gold2));width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:12px}
+  .step h3{font-size:16.5px;margin-bottom:5px}
+  .step p{color:var(--t2);font-size:14px}
+
+  /* pricing */
+  .launch-banner{background:linear-gradient(135deg,#0e2545,#13294b);color:#fff;border:1px solid rgba(201,162,39,.4);border-radius:18px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:30px;box-shadow:var(--shadow-lg)}
+  .launch-banner .bt{font-family:'Sora';font-weight:800;font-size:20px}
+  .launch-banner .bs{color:#c4d2e8;font-size:14px;margin-top:3px}
+  .plans{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+  .plan.pop{border:2px solid var(--gold);box-shadow:var(--shadow-lg);position:relative}
+  .plan.pop .pop-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold),var(--gold2));color:#2a2000;font-size:11px;font-weight:800;padding:4px 13px;border-radius:99px;white-space:nowrap}
+  .plan .pn{font-family:'Sora';font-weight:800;font-size:18px}
+  .plan .pp{font-family:'Sora';font-weight:800;font-size:30px;margin:8px 0 2px}
+  .plan .pp small{font-size:13px;color:var(--t3);font-weight:600}
+  .plan .was{font-size:13px;color:var(--t3);text-decoration:line-through}
+  .plan ul{list-style:none;margin:16px 0 20px;display:flex;flex-direction:column;gap:9px;flex:1}
+  .plan li{display:flex;gap:8px;font-size:13.5px;color:var(--t2)}
+  .plan li .ck{color:var(--green);font-weight:800;flex-shrink:0}
+  .plan .btn{justify-content:center;width:100%}
+
+  /* compare */
+  .cmp{overflow-x:auto}
+  table.cmp-t{width:100%;border-collapse:collapse;min-width:620px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .cmp-t th,.cmp-t td{padding:14px 16px;text-align:center;border-bottom:1px solid var(--line);font-size:14px}
+  .cmp-t th{background:var(--soft);font-family:'Sora';font-weight:700}
+  .cmp-t td:first-child,.cmp-t th:first-child{text-align:left;color:var(--ink);font-weight:600}
+  .cmp-t .td-col{background:linear-gradient(180deg,rgba(201,162,39,.08),transparent);font-weight:700}
+  .cmp-t .yes{color:var(--green);font-weight:800}
+  .cmp-t .no{color:var(--t3)}
+
+  /* faq */
+  .faq{max-width:780px;margin:0 auto}
+  .qa{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
+  .qa q{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 20px;cursor:pointer;font-family:'Sora';font-weight:600;font-size:15.5px}
+  .qa q::before{content:none}
+  .qa .a{max-height:0;overflow:hidden;transition:max-height .35s ease;color:var(--t2);font-size:14.5px}
+  .qa .a div{padding:0 20px 18px}
+  .qa.open .a{max-height:240px}
+  .qa .pl{color:var(--gold);font-size:20px;transition:transform .3s}
+  .qa.open .pl{transform:rotate(45deg)}
+
+  /* final cta */
+  .final{background:
+     radial-gradient(700px 400px at 80% 0%, rgba(201,162,39,.2), transparent 60%),
+     linear-gradient(160deg,#0b1f3c,#0e2545);color:#fff;text-align:center;border-radius:26px;padding:60px 28px;box-shadow:var(--shadow-lg)}
+  .final h2{font-size:clamp(26px,4vw,40px);font-weight:800;margin-bottom:12px}
+  .final p{color:#c4d2e8;font-size:17px;max-width:560px;margin:0 auto 26px}
+
+  footer{background:var(--navy);color:#aebed8;padding:50px 0 30px;margin-top:70px}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:24px}
+  footer h4{color:#fff;font-family:'Sora';font-size:14px;margin-bottom:12px}
+  footer a{display:block;color:#aebed8;font-size:14px;padding:4px 0}
+  footer a:hover{color:var(--gold2)}
+  .foot-bot{border-top:1px solid rgba(255,255,255,.1);margin-top:30px;padding-top:20px;font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media(max-width:900px){
+    .hero-in{grid-template-columns:1fr;text-align:center}
+    .hero p.lead{margin-left:auto;margin-right:auto}
+    .hero-cta,.hero-trust{justify-content:center}
+    .hero-form{margin-left:auto;margin-right:auto}
+    .hero-note{justify-content:center}
+    .shields{margin-top:10px}
+    .band-in{grid-template-columns:repeat(2,1fr);gap:18px}
+    .g3,.prob-grid,.sd-grid,.steps,.plans{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:560px){.sec{padding:60px 0}.band-in{grid-template-columns:repeat(2,1fr)}}
+  /* mobile menu */
+  .msheet{position:fixed;inset:0;background:rgba(11,31,60,.96);backdrop-filter:blur(8px);z-index:90;display:none;flex-direction:column;padding:26px 22px;gap:6px}
+  .msheet.show{display:flex}
+  .msheet a{color:#fff;font-size:18px;font-weight:600;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+  .msheet .close{align-self:flex-end;background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;width:42px;height:42px;font-size:20px;cursor:pointer;margin-bottom:10px}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap nav-in">
+    <a href="/" class="logo"><span class="sh">🛡️</span>Trust<span class="gold">Dubai</span></a>
+    <div class="nav-links">
+      <a href="#trust">3-Shield</a>
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#plans">Plans</a>
+      <a href="/for-customers.html">For Customers</a>
+    </div>
+    <div class="nav-cta">
+      <a href="https://business.trustdubai.ae/" class="btn btn-ghost dark ghost">Sign in</a>
+      <a href="https://business.trustdubai.ae/?action=register" class="btn btn-gold">Register Free</a>
+      <button class="burger" onclick="document.getElementById('msheet').classList.add('show')">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="msheet" id="msheet">
+  <button class="close" onclick="document.getElementById('msheet').classList.remove('show')">✕</button>
+  <a href="#trust" onclick="closeM()">3-Shield Verification</a>
+  <a href="#features" onclick="closeM()">Features</a>
+  <a href="#how" onclick="closeM()">How it works</a>
+  <a href="#plans" onclick="closeM()">Plans &amp; Pricing</a>
+  <a href="/for-customers.html">For Customers</a>
+  <a href="https://business.trustdubai.ae/?action=register" style="color:var(--gold2)">Register Free →</a>
+</div>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-in">
+    <div>
+      <span class="eyebrow">For Dubai businesses</span>
+      <h1>Real trust wins<br>more work. <span class="g">Prove yours.</span></h1>
+      <p class="lead">TrustDubai verifies your business with a 3-Shield system customers can actually check — then sends you qualified leads, with a built-in CRM and quotes to close them. Stop competing on price. Start winning on trust.</p>
+      <div class="hero-form">
+        <input id="bizEmail" type="email" placeholder="Your business email" aria-label="Your business email" />
+        <button class="btn btn-gold" onclick="goRegister()">Get listed free →</button>
+      </div>
+      <div class="hero-note">🪪 Free verified listing · <b>upload your valid trade licence to get verified</b> · then start receiving leads</div>
+      <div class="hero-cta" style="margin-top:16px">
+        <a href="#how" class="btn btn-ghost">See the 3 steps</a>
+        <a href="#trust" class="btn btn-ghost">How trust works</a>
+      </div>
+      <div class="hero-trust">
+        <span>🛡️ <b>3-Shield</b> verified trust</span>
+        <span>📩 Qualified <b>leads</b>, not clicks</span>
+        <span>🎁 <b>30 days</b> all features free</span>
+      </div>
+    </div>
+    <div class="shields">
+      <div class="shield-card sc-trust float"><div class="ic">🛡️</div><div class="val">Trust</div><div class="cap">Score</div></div>
+      <div class="shield-card sc-team float d1"><div class="ic">🛡️</div><div class="val">Team</div><div class="cap">EID Verified</div></div>
+      <div class="shield-card sc-ver float d2"><div class="ic">🛡️</div><div class="val">Verified</div><div class="cap">Documents</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- STAT BAND -->
+<div class="band">
+  <div class="wrap band-in">
+    <div class="it"><div class="n">1,000+</div><div class="l">Dubai businesses listed</div></div>
+    <div class="it"><div class="n">3-Shield</div><div class="l">Verification customers can check</div></div>
+    <div class="it"><div class="n">30 days</div><div class="l">Every feature, free</div></div>
+    <div class="it"><div class="n">AED 0</div><div class="l">To get your verified listing</div></div>
+  </div>
+</div>
+
+<!-- GET LISTED STRIP -->
+<section class="lst">
+  <div class="wrap lst-in">
+    <div class="s"><div class="num">1</div><div><b>List your business</b><span>Add your name, email &amp; phone — claim your profile in minutes, free.</span></div></div>
+    <div class="s"><div class="num">2</div><div><b>Upload your trade licence</b><span>A valid trade licence is required to get verified and earn your shields.</span></div></div>
+    <div class="s"><div class="num">3</div><div><b>Get verified &amp; receive leads</b><span>Go live with a verified profile and start getting qualified customer leads.</span></div></div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="sec prob">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">The trust gap</span>
+      <h2>In Dubai, good work isn't enough — customers can't tell who to trust</h2>
+      <p>Listings are full of unverified names, recycled photos, and reviews nobody can confirm. Honest businesses get lumped in with the rest, and customers default to whoever is cheapest. TrustDubai fixes the signal.</p>
+    </div>
+    <div class="prob-grid">
+      <div class="x"><span class="e">🎭</span><div><b>Anyone can claim anything</b><span>No licence check, no team verification — a fake profile looks the same as a real, licensed company.</span></div></div>
+      <div class="x"><span class="e">⭐</span><div><b>Reviews you can't trust</b><span>Bought ratings and anonymous reviews make star counts almost meaningless to a serious buyer.</span></div></div>
+      <div class="x"><span class="e">💸</span><div><b>A race to the bottom</b><span>With no way to prove quality, customers pick on price — and quality businesses lose work they earned.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3-SHIELD DEEP (signature) -->
+<section class="sec shield-deep" id="trust">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">The difference</span>
+      <h2>The 3-Shield Verification System</h2>
+      <p>Three independent layers of proof — not a self-declared badge. Each shield is checked against real documents and shown on your public profile for customers to see.</p>
+    </div>
+    <div class="sd-grid">
+      <div class="sd sd1">
+        <div class="ring">🛡️</div>
+        <span class="tag">Shield 1</span>
+        <h3>Trust Score</h3>
+        <ul>
+          <li><span class="ck">✓</span> A single 0–100 score built from verification, reviews, ratings and profile completeness</li>
+          <li><span class="ck">✓</span> Tier ladder: Building → Verified → Trusted → Elite</li>
+          <li><span class="ck">✓</span> Earned over time — it can't be bought</li>
+        </ul>
+      </div>
+      <div class="sd sd2">
+        <div class="ring">🛡️</div>
+        <span class="tag">Shield 2</span>
+        <h3>Team — EID Verified</h3>
+        <ul>
+          <li><span class="ck">✓</span> Your real team members verified against Emirates ID</li>
+          <li><span class="ck">✓</span> Customers see exactly who they're dealing with</li>
+          <li><span class="ck">✓</span> Expiry-aware — verification stays current, not one-time</li>
+        </ul>
+      </div>
+      <div class="sd sd3">
+        <div class="ring">🛡️</div>
+        <span class="tag">Shield 3</span>
+        <h3>Verified Documents</h3>
+        <ul>
+          <li><span class="ck">✓</span> Trade Licence, owner ID, and an 8-document verification layer</li>
+          <li><span class="ck">✓</span> Reviewed by the TrustDubai team against official records</li>
+          <li><span class="ck">✓</span> A live verification % customers can read at a glance</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="sec" id="features">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">Everything you get</span>
+      <h2>A complete business platform — not just a listing</h2>
+      <p>From the profile customers see, to the tools you use to win and deliver the job. All in one place.</p>
+    </div>
+    <div class="grid g3">
+      <div class="card"><div class="ic">🪪</div><h3>Verified public profile</h3><p>A premium profile with your trust score, badges, portfolio, verified team and documents — built to convert visitors into enquiries.</p></div>
+      <div class="card"><div class="ic">📩</div><h3>Qualified leads</h3><p>Customers send enquiries with their phone, area and budget. You receive real leads by email and WhatsApp — not just profile clicks.</p></div>
+      <div class="card"><div class="ic">🗂️</div><h3>Built-in CRM — Lead Hub</h3><p>Track every lead, chat with customers in-app, and manage projects from first message to handover, without leaving the platform.</p></div>
+      <div class="card"><div class="ic">🧾</div><h3>Quotation &amp; BOQ builder</h3><p>Create professional quotes and BOQs, export a branded PDF, and send to the customer on WhatsApp in a couple of clicks.</p></div>
+      <div class="card"><div class="ic">⭐</div><h3>Reviews that count</h3><p>Collect verified customer reviews, reply as the owner, and turn genuine happy clients into trust that's visible to the next buyer.</p></div>
+      <div class="card"><div class="ic">📊</div><h3>Visitor analytics</h3><p>See who's viewing your profile, where they're from, and which work gets attention — so you market what actually lands.</p></div>
+      <div class="card"><div class="ic">👥</div><h3>Verified team (EID)</h3><p>Add and verify your staff so customers know real, identified people stand behind your name.</p></div>
+      <div class="card"><div class="ic">📁</div><h3>Document vault</h3><p>Upload your licence and documents once; verification, expiry reminders and your shields update automatically.</p></div>
+      <div class="card"><div class="ic">👑</div><h3>Launch Plan trial</h3><p>Every feature unlocked free for 30 days — experience the full platform before you choose a plan.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="sec prob" id="how">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">How it works</span>
+      <h2>Verified and getting leads in four steps</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="no">1</div><h3>List your business</h3><p>Add your business with email &amp; phone and claim your profile. Free, no card.</p></div>
+      <div class="step"><div class="no">2</div><h3>Upload trade licence</h3><p>Upload your valid trade licence and documents — required for verification — and verify your team.</p></div>
+      <div class="step"><div class="no">3</div><h3>Get verified</h3><p>Earn your three shields. Your verified profile goes live with trust score, portfolio and reviews.</p></div>
+      <div class="step"><div class="no">4</div><h3>Start getting leads</h3><p>Receive qualified leads, quote with the built-in tools, and grow your trusted presence.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">Why register</span>
+      <h2>Build a presence the market believes</h2>
+    </div>
+    <div class="grid g3">
+      <div class="card"><div class="ic">🔎</div><h3>Be found by ready buyers</h3><p>Show up where Dubai customers search for verified, trustworthy businesses — not buried in a sea of unverified names.</p></div>
+      <div class="card"><div class="ic">🤝</div><h3>Win on trust, not price</h3><p>Verified shields and a real trust score let you justify your quality, so you stop discounting to compete.</p></div>
+      <div class="card"><div class="ic">📈</div><h3>Stand out from the crowd</h3><p>Premium profiles, badges and verified team put you visibly ahead of unclaimed, unverified listings.</p></div>
+      <div class="card"><div class="ic">⏱️</div><h3>Save time, close faster</h3><p>Leads, chat, quotes and projects in one place — no juggling WhatsApp, spreadsheets and email.</p></div>
+      <div class="card"><div class="ic">🛡️</div><h3>Protect your name</h3><p>Claim and verify your profile so no one can misrepresent your business in the market.</p></div>
+      <div class="card"><div class="ic">🌟</div><h3>Compound your reputation</h3><p>Every verified review and completed project raises your score — trust that keeps working for you.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section class="sec prob" id="plans">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">Plans &amp; pricing</span>
+      <h2>Start free. Upgrade when it pays for itself.</h2>
+      <p>Every paid plan starts with the 30-day Launch Plan — all features unlocked, free.</p>
+    </div>
+
+    <div class="launch-banner">
+      <div>
+        <div class="bt">👑 Launch Plan — 30 days of everything, free</div>
+        <div class="bs">Try every premium feature with no commitment. No card required to start.</div>
+      </div>
+      <a href="https://business.trustdubai.ae/?action=register" class="btn btn-gold">Start free now</a>
+    </div>
+
+    <div class="plans">
+      <div class="plan">
+        <div class="pn">Free</div>
+        <div class="pp">AED 0</div>
+        <div style="font-size:13px;color:var(--t3);margin-bottom:4px">Verified listing</div>
+        <ul>
+          <li><span class="ck">✓</span> Licence-verified badge</li>
+          <li><span class="ck">✓</span> 1 category · 3 photos</li>
+          <li><span class="ck">✓</span> Receive reviews</li>
+          <li><span class="ck">✓</span> Up to 3 leads / month</li>
+          <li><span class="ck">✓</span> QR code + profile</li>
+        </ul>
+        <a href="https://business.trustdubai.ae/?action=register&plan=free" class="btn btn-ghost dark">Get listed free</a>
+      </div>
+      <div class="plan">
+        <div class="pn">Silver</div>
+        <div class="was">AED 399</div>
+        <div class="pp">199<small>/mo</small></div>
+        <ul>
+          <li><span class="ck">✓</span> Everything in Free</li>
+          <li><span class="ck">✓</span> Social links + portfolio</li>
+          <li><span class="ck">✓</span> Verified badges</li>
+          <li><span class="ck">✓</span> Lead Hub + reviews reply</li>
+          <li><span class="ck">✓</span> More categories &amp; photos</li>
+        </ul>
+        <a href="https://business.trustdubai.ae/?action=register&plan=silver" class="btn btn-ghost dark">Choose Silver</a>
+      </div>
+      <div class="plan pop">
+        <div class="pop-tag">MOST POPULAR</div>
+        <div class="pn">Gold</div>
+        <div class="was">AED 799</div>
+        <div class="pp">399<small>/mo</small></div>
+        <ul>
+          <li><span class="ck">✓</span> Everything in Silver</li>
+          <li><span class="ck">✓</span> Trust gauges + AI summary</li>
+          <li><span class="ck">✓</span> Analytics command centre</li>
+          <li><span class="ck">✓</span> FAQ + business insights</li>
+          <li><span class="ck">✓</span> Priority in matching</li>
+        </ul>
+        <a href="https://business.trustdubai.ae/?action=register&plan=gold" class="btn btn-gold">Choose Gold</a>
+      </div>
+      <div class="plan">
+        <div class="pn">Platinum</div>
+        <div class="was">AED 1,400</div>
+        <div class="pp">799<small>/mo</small></div>
+        <ul>
+          <li><span class="ck">✓</span> Everything in Gold</li>
+          <li><span class="ck">✓</span> AI quote + assistant</li>
+          <li><span class="ck">✓</span> Projects, materials, expenses</li>
+          <li><span class="ck">✓</span> Custom subdomain</li>
+          <li><span class="ck">✓</span> Top placement</li>
+        </ul>
+        <a href="https://business.trustdubai.ae/?action=register&plan=platinum" class="btn btn-ghost dark">Choose Platinum</a>
+      </div>
+    </div>
+    <p style="text-align:center;color:var(--t3);font-size:13px;margin-top:18px">Launch pricing shown. Prices in AED, billed per month.</p>
+  </div>
+</section>
+
+<!-- COMPARE -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">Why not just a directory</span>
+      <h2>TrustDubai vs ordinary listings</h2>
+    </div>
+    <div class="cmp">
+      <table class="cmp-t">
+        <thead>
+          <tr><th>What you get</th><th class="td-col">TrustDubai</th><th>Search &amp; map listings</th><th>Classified directories</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Document-verified business</td><td class="td-col yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+          <tr><td>EID-verified team</td><td class="td-col yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+          <tr><td>Earned trust score</td><td class="td-col yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+          <tr><td>Qualified leads (phone + budget + area)</td><td class="td-col yes">✓</td><td class="no">Clicks only</td><td class="no">Mixed</td></tr>
+          <tr><td>Built-in CRM, chat &amp; projects</td><td class="td-col yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+          <tr><td>Quotation / BOQ builder</td><td class="td-col yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+          <tr><td>Verified reviews + owner reply</td><td class="td-col yes">✓</td><td class="no">Partial</td><td class="no">Partial</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec prob">
+  <div class="wrap">
+    <div class="sec-h"><span class="eyebrow">Questions</span><h2>Good to know</h2></div>
+    <div class="faq">
+      <div class="qa"><q>Is it really free to start?<span class="pl">+</span></q><div class="a"><div>Yes. A Free Verified Listing costs AED 0, and every paid plan begins with a 30-day Launch Plan that unlocks all features — no card required to start.</div></div></div>
+      <div class="qa"><q>What does "verified" actually mean?<span class="pl">+</span></q><div class="a"><div>Your trade licence and documents are reviewed by the TrustDubai team against official records, and your team is verified against Emirates ID. Customers see the result as your three shields — they're not self-declared badges.</div></div></div>
+      <div class="qa"><q>How do leads reach me?<span class="pl">+</span></q><div class="a"><div>When a customer submits an enquiry on your profile, you receive their name, phone, area and budget by email and WhatsApp, and the lead appears in your Lead Hub to manage and reply.</div></div></div>
+      <div class="qa"><q>Can I keep my existing reviews and reputation?<span class="pl">+</span></q><div class="a"><div>Your TrustDubai reputation is built here through verified reviews and completed work. The more you do on the platform, the stronger your trust score becomes over time.</div></div></div>
+      <div class="qa"><q>What happens after the 30-day Launch Plan?<span class="pl">+</span></q><div class="a"><div>You choose the plan that fits — including staying on the Free Verified Listing. Nothing is charged automatically without you selecting a paid plan.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="sec">
+  <div class="wrap">
+    <div class="final">
+      <h2>Become a business Dubai can trust</h2>
+      <p>Claim your profile, earn your three shields, and start receiving qualified leads. Free to begin — every feature unlocked for 30 days.</p>
+      <a href="https://business.trustdubai.ae/?action=register" class="btn btn-gold">Start 30-Day Launch Plan — Free</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="/" class="logo" style="color:#fff;margin-bottom:10px">🛡️ Trust<span class="gold">Dubai</span></a>
+        <p style="font-size:14px;max-width:280px">The verified-business platform for Dubai. Real trust, qualified leads, and the tools to win and deliver the work.</p>
+      </div>
+      <div><h4>Platform</h4>
+        <a href="#trust">3-Shield Verification</a>
+        <a href="#features">Features</a>
+        <a href="#plans">Plans &amp; Pricing</a>
+        <a href="/for-customers.html">For Customers</a>
+      </div>
+      <div><h4>Get started</h4>
+        <a href="https://business.trustdubai.ae/?action=register">Register Free</a>
+        <a href="https://business.trustdubai.ae/">Business Sign in</a>
+        <a href="/">Find a business</a>
+      </div>
+      <div><h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/refund">Refund Policy</a>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© 2026 TrustDubai. All rights reserved.</span>
+      <span>Dubai, United Arab Emirates</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function closeM(){document.getElementById('msheet').classList.remove('show')}
+  function goRegister(){
+    var el=document.getElementById('bizEmail');
+    var e=el?el.value.trim():'';
+    var base='https://business.trustdubai.ae/?action=register';
+    window.location.href = e ? base+'&email='+encodeURIComponent(e) : base;
+  }
+  // submit on Enter
+  document.addEventListener('DOMContentLoaded',function(){
+    var el=document.getElementById('bizEmail');
+    if(el) el.addEventListener('keydown',function(ev){ if(ev.key==='Enter') goRegister(); });
+  });
+  document.querySelectorAll('.qa q').forEach(function(q){
+    q.addEventListener('click',function(){ q.parentElement.classList.toggle('open'); });
+  });
+</script>
+</body>
+</html>
