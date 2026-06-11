@@ -513,6 +513,10 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
               </div>
             ) : (
               <>
+                <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'9px 11px', fontSize:11, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'flex-start', gap:7, lineHeight:1.45 }}>
+                  <i className="ti ti-bulb" style={{ fontSize:14, flexShrink:0, marginTop:1 }} />
+                  <span>Describe your requirement clearly and in detail — the more you explain, the better we match you with the right company for the job.</span>
+                </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:13, marginBottom:14 }}>
                   {questions.map(q => {
                     const opts = optionsFor(q)
@@ -1055,6 +1059,7 @@ export default function Home({ navigate }) {
   const [showUserMenu,  setShowUserMenu]  = useState(false)
   const [blockedMsg,    setBlockedMsg]    = useState(null)
   const [hasActiveForm, setHasActiveForm] = useState(false)
+  const [authChecked,   setAuthChecked]   = useState(false)
   const [leadModalOpen, setLeadModalOpen] = useState(false)
   const [profileGateOpen, setProfileGateOpen] = useState(false)
   const device    = useDevice()
@@ -1080,23 +1085,38 @@ export default function Home({ navigate }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Auto-open quote modal when arriving from a service page (?quote=1) or after login intent
+  // Auto-open quote modal from ?quote=1 (landing/service pages) or a saved intent after login.
+  // Logged OUT + ?quote=1 → save intent, send to Google login, then re-open the form on return.
   useEffect(() => {
-    if (!customer || !hasActiveForm) return
-    let intent = ''
+    if (!authChecked || !hasActiveForm) return
+
+    let urlIntent = false
+    let savedIntent = false
     try {
       const sp = new URLSearchParams(window.location.search)
-      if (sp.get('quote') === '1') intent = sp.toString()
-      if (!intent) {
-        const saved = sessionStorage.getItem('td_quote_intent')
-        if (saved) { intent = saved; sessionStorage.removeItem('td_quote_intent') }
-      }
+      urlIntent = sp.get('quote') === '1'
+      savedIntent = sessionStorage.getItem('td_quote_intent') === '1'
     } catch(e) {}
-    if (!intent) return
-    try { window.history.replaceState({}, '', '/') } catch(e) {}
-    if (profileComplete(customer)) setLeadModalOpen(true)
-    else setProfileGateOpen(true)
-  }, [customer, hasActiveForm])
+
+    if (!urlIntent && !savedIntent) return
+
+    // Logged in → clear intent, clean the URL, open form (or profile gate)
+    if (customer) {
+      try { sessionStorage.removeItem('td_quote_intent') } catch(e) {}
+      try { window.history.replaceState({}, '', '/') } catch(e) {}
+      if (profileComplete(customer)) setLeadModalOpen(true)
+      else setProfileGateOpen(true)
+      return
+    }
+
+    // Logged OUT — only auto-start login when it came from the URL (avoids a login loop
+    // if the user cancels Google and returns with just the saved intent).
+    if (urlIntent) {
+      try { sessionStorage.setItem('td_quote_intent', '1') } catch(e) {}
+      try { window.history.replaceState({}, '', '/') } catch(e) {}
+      signInWithGoogle()
+    }
+  }, [authChecked, customer, hasActiveForm])
 
   function scrollToSection(id) {
     if (id === 'top') { window.scrollTo({ top:0, behavior:'smooth' }); return }
@@ -1122,7 +1142,10 @@ export default function Home({ navigate }) {
   }
 
   function openQuotes() {
-    if (!customer) { signInWithGoogle(); return }
+    if (!customer) {
+      try { sessionStorage.setItem('td_quote_intent', '1') } catch(e) {}
+      signInWithGoogle(); return
+    }
     if (!profileComplete(customer)) { setProfileGateOpen(true); return }
     setLeadModalOpen(true)
   }
@@ -1202,13 +1225,17 @@ export default function Home({ navigate }) {
   }
 
   async function checkCustomer() {
-    const cust = await getCustomer()
-    if (cust && cust.blocked) {
-      setCustomer(null)
-      setBlockedMsg(cust.companyName || 'your business')
-      return
+    try {
+      const cust = await getCustomer()
+      if (cust && cust.blocked) {
+        setCustomer(null)
+        setBlockedMsg(cust.companyName || 'your business')
+        return
+      }
+      setCustomer(cust)
+    } finally {
+      setAuthChecked(true)
     }
-    setCustomer(cust)
   }
 
   function goTo(c) {
