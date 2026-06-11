@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TrustDubai — Get free quotes from verified businesses in Dubai</title>
+<meta name="description" content="Get free quotes from trade-licence verified Dubai businesses. Check real trust scores, EID-verified teams and genuine reviews before you hire. Free to use." />
+<meta property="og:title" content="Get free quotes from verified Dubai businesses — TrustDubai" />
+<meta property="og:description" content="Verified licences, EID-verified teams, real reviews and trust scores. Send one request, get free quotes from businesses you can trust." />
+<meta property="og:image" content="https://www.trustdubai.ae/og-customers.png" />
+<meta property="og:url" content="https://www.trustdubai.ae/for-customers.html" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://www.trustdubai.ae/og-customers.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0e2545; --navy2:#13294b; --ink:#0f1830; --t2:#54627a; --t3:#8a97ad;
+    --gold:#c9a227; --gold2:#e7c860; --green:#1e9e63; --green2:#5ee0a0; --blue:#2563eb; --violet:#7c3aed; --violet2:#a98bff;
+    --bg:#f3f6fb; --card:#ffffff; --line:#e4eaf2; --soft:#f6f9fd;
+    --shadow:0 1px 2px rgba(16,40,80,.04), 0 14px 40px rgba(16,40,80,.07);
+    --shadow-lg:0 30px 70px rgba(14,37,69,.18);
+    --r:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Outfit',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:'Sora',sans-serif;letter-spacing:-.02em;line-height:1.08}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  .btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:15px;border-radius:12px;padding:13px 22px;cursor:pointer;border:1px solid transparent;transition:transform .15s,box-shadow .2s}
+  .btn:hover{transform:translateY(-2px)}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#2a2000;box-shadow:0 10px 28px rgba(201,162,39,.36)}
+  .btn-ghost{background:transparent;border-color:rgba(255,255,255,.28);color:#fff}
+  .btn-ghost.dark{border-color:var(--line);color:var(--ink)}
+  .sec{padding:84px 0}
+  .sec-h{text-align:center;max-width:720px;margin:0 auto 50px}
+  .sec-h h2{font-size:clamp(27px,4.4vw,40px);font-weight:800;margin:12px 0}
+  .sec-h p{color:var(--t2);font-size:17px}
+
+  nav{position:sticky;top:0;z-index:60;background:rgba(243,246,251,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .logo{display:flex;align-items:center;gap:10px;font-family:'Sora';font-weight:800;font-size:19px}
+  .logo .sh{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--navy),var(--gold));display:grid;place-items:center;font-size:17px}
+  .logo .gold{background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .nav-links{display:flex;align-items:center;gap:26px;font-size:14.5px;font-weight:600;color:var(--t2)}
+  .nav-links a:hover{color:var(--navy)}
+  .nav-cta{display:flex;align-items:center;gap:10px}
+  .nav-cta .btn{padding:9px 16px;font-size:14px}
+  .burger{display:none;background:none;border:1px solid var(--line);border-radius:10px;width:42px;height:42px;font-size:18px;cursor:pointer}
+  @media(max-width:900px){.nav-links{display:none}.nav-cta .ghost{display:none}.burger{display:block}}
+
+  .hero{position:relative;overflow:hidden;background:
+     radial-gradient(820px 460px at 86% -8%, rgba(94,224,160,.16), transparent 60%),
+     radial-gradient(760px 500px at -4% 10%, rgba(124,58,237,.16), transparent 55%),
+     linear-gradient(160deg,#0b1f3c,#0e2545 60%,#080f1f)}
+  .hero,.hero h1{color:#fff}
+  .hero-in{display:grid;grid-template-columns:1.04fr .96fr;gap:30px;align-items:center;padding:64px 0 74px}
+  .hero h1{font-size:clamp(33px,5.3vw,53px);font-weight:800}
+  .hero h1 .g{background:linear-gradient(135deg,var(--green2),#39c98a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p.lead{font-size:18px;color:#c4d2e8;margin:16px 0 22px;max-width:520px}
+  .search{display:flex;gap:10px;flex-wrap:wrap;max-width:540px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:10px}
+  .search input{flex:1;min-width:200px;padding:13px 14px;border-radius:11px;border:none;background:transparent;color:#fff;font-size:15.5px;font-family:inherit;outline:none}
+  .search input::placeholder{color:#9fb0cc}
+  .search .btn{white-space:nowrap}
+  .hero-note{font-size:13px;color:#aebed8;margin-top:13px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .hero-note b{color:#fff}
+  .hero-pop{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .hero-pop a{font-size:13px;color:#c4d2e8;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:99px;padding:6px 13px}
+  .hero-pop a:hover{border-color:var(--green2);color:#fff}
+
+  .fs-stage{position:relative;height:380px;display:flex;align-items:center;justify-content:center}
+  .fs-orbit{position:absolute;left:50%;top:48%;translate:-50% -50%;border-radius:50%;border:1px solid;animation:fspin linear infinite}
+  .fs-o1{width:300px;height:300px;border-color:rgba(169,139,255,.22);animation-duration:24s;color:#a98bff}
+  .fs-o2{width:380px;height:380px;border-color:rgba(231,200,96,.16);border-style:dashed;animation-duration:38s;animation-direction:reverse;color:#e7c860}
+  .fs-o3{width:230px;height:230px;border-color:rgba(94,224,160,.22);animation-duration:16s;color:#5ee0a0}
+  .fs-orbit::after{content:'';position:absolute;width:6px;height:6px;border-radius:50%;top:-3px;left:50%;translate:-50% 0;background:currentColor;box-shadow:0 0 10px 2px currentColor}
+  @keyframes fspin{to{transform:rotate(360deg)}}
+  .fs-pt{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.5;animation:fsrise linear infinite}
+  @keyframes fsrise{0%{transform:translateY(16px);opacity:0}20%{opacity:.6}100%{transform:translateY(-90px);opacity:0}}
+  .fs-cluster{position:relative;z-index:3;display:flex;align-items:flex-end;gap:clamp(4px,2vw,18px)}
+  .fs-sh{position:relative;display:flex;flex-direction:column;align-items:center;animation:fsfloat 5.5s ease-in-out infinite}
+  .fs-sh.mid{animation-delay:.3s}.fs-sh.r{animation-delay:.6s}
+  @keyframes fsfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  .fs-badge{position:relative;width:clamp(70px,9vw,104px);filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))}
+  .fs-sh.mid .fs-badge{width:clamp(86px,11vw,126px)}
+  .fs-badge svg{display:block;width:100%;height:auto;overflow:visible}
+  .fs-glow{animation:fsg 3.2s ease-in-out infinite}
+  @keyframes fsg{0%,100%{opacity:.55}50%{opacity:1}}
+  .fs-scan{position:absolute;left:8%;right:8%;height:2px;border-radius:2px;top:14%;opacity:0;animation:fsscan 3.4s ease-in-out infinite}
+  .v .fs-scan{background:linear-gradient(90deg,transparent,var(--violet2),transparent);box-shadow:0 0 10px var(--violet2)}
+  .g .fs-scan{background:linear-gradient(90deg,transparent,var(--gold2),transparent);box-shadow:0 0 10px var(--gold2)}
+  .e .fs-scan{background:linear-gradient(90deg,transparent,var(--green2),transparent);box-shadow:0 0 10px var(--green2)}
+  @keyframes fsscan{0%{top:14%;opacity:0}10%{opacity:1}50%{top:78%;opacity:1}60%{opacity:0}100%{opacity:0}}
+  .fs-sh.mid .fs-scan{animation-delay:.4s}.fs-sh.r .fs-scan{animation-delay:.8s}
+  .fs-lbl{margin-top:12px;text-align:center}
+  .fs-lbl .t{font-family:'Sora';font-weight:800;font-size:clamp(12px,1.5vw,15px)}
+  .fs-lbl .s{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:2px;opacity:.85}
+  .v .t,.v .s{color:var(--violet2)}.g .t,.g .s{color:var(--gold2)}.e .t,.e .s{color:var(--green2)}
+
+  .band{background:var(--navy);color:#fff}
+  .band-in{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:26px 0}
+  .band .it{text-align:center;padding:8px}
+  .band .n{font-family:'Sora';font-weight:800;font-size:26px;color:var(--gold2)}
+  .band .l{font-size:12.5px;color:#aebed8;margin-top:2px}
+
+  .grid{display:grid;gap:18px}.g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+  .card .ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:22px;background:var(--soft);border:1px solid var(--line);margin-bottom:14px}
+  .card h3{font-size:18px;font-weight:700;margin-bottom:6px}
+  .card p{color:var(--t2);font-size:14.5px}
+
+  .alt{background:var(--card)}
+  .prob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .x{display:flex;gap:12px;align-items:flex-start;background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .x .e{font-size:22px}.x b{display:block;font-family:'Sora';font-size:15.5px;margin-bottom:2px}.x span{color:var(--t2);font-size:14px}
+
+  .shield-deep{background:linear-gradient(180deg,#0e2545,#0b1d39);color:#fff}
+  .shield-deep .sec-h h2,.shield-deep .sec-h{color:#fff}.shield-deep .sec-h p{color:#b9c7df}
+  .sd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .sd{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.13);border-radius:18px;padding:26px}
+  .sd .ring{font-size:40px}.sd h3{font-size:20px;margin:12px 0 4px;color:#fff}
+  .sd .tag{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .sd ul{list-style:none;margin-top:14px;display:flex;flex-direction:column;gap:9px}
+  .sd li{display:flex;gap:9px;align-items:flex-start;font-size:14px;color:#cdd9ee}
+  .sd li .ck{color:var(--green2);font-weight:800;flex-shrink:0}
+  .sd1 .tag{color:var(--violet2)}.sd2 .tag{color:var(--gold2)}.sd3 .tag{color:var(--green2)}
+  .sd-cta{text-align:center;margin-top:30px}
+  .sd-cta a{color:var(--gold2);font-weight:700;font-size:15px;border-bottom:1px solid rgba(201,162,39,.4);padding-bottom:2px}
+
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+  .step .no{font-family:'Sora';font-weight:800;font-size:14px;color:#2a2000;background:linear-gradient(135deg,var(--gold),var(--gold2));width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:12px}
+  .step h3{font-size:16.5px;margin-bottom:5px}.step p{color:var(--t2);font-size:14px}
+
+  .cmp{overflow-x:auto}
+  table.cmp-t{width:100%;border-collapse:collapse;min-width:560px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .cmp-t th,.cmp-t td{padding:14px 16px;text-align:center;border-bottom:1px solid var(--line);font-size:14px}
+  .cmp-t th{background:var(--soft);font-family:'Sora';font-weight:700}
+  .cmp-t td:first-child,.cmp-t th:first-child{text-align:left;font-weight:600}
+  .cmp-t .td-col{background:linear-gradient(180deg,rgba(94,224,160,.1),transparent);font-weight:700}
+  .cmp-t .yes{color:var(--green);font-weight:800}.cmp-t .no{color:var(--t3)}
+
+  .faq{max-width:780px;margin:0 auto}
+  .qa{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
+  .qa q{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 20px;cursor:pointer;font-family:'Sora';font-weight:600;font-size:15.5px}
+  .qa .a{max-height:0;overflow:hidden;transition:max-height .35s ease;color:var(--t2);font-size:14.5px}
+  .qa .a div{padding:0 20px 18px}.qa.open .a{max-height:260px}
+  .qa .pl{color:var(--gold);font-size:20px;transition:transform .3s}.qa.open .pl{transform:rotate(45deg)}
+
+  .final{background:radial-gradient(700px 400px at 80% 0%, rgba(94,224,160,.18), transparent 60%),linear-gradient(160deg,#0b1f3c,#0e2545);color:#fff;text-align:center;border-radius:26px;padding:60px 28px;box-shadow:var(--shadow-lg)}
+  .final h2{font-size:clamp(26px,4vw,40px);font-weight:800;margin-bottom:12px}
+  .final p{color:#c4d2e8;font-size:17px;max-width:560px;margin:0 auto 26px}
+
+  footer{background:var(--navy);color:#aebed8;padding:50px 0 30px;margin-top:70px}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:24px}
+  footer h4{color:#fff;font-family:'Sora';font-size:14px;margin-bottom:12px}
+  footer a{display:block;color:#aebed8;font-size:14px;padding:4px 0}footer a:hover{color:var(--gold2)}
+  .foot-bot{border-top:1px solid rgba(255,255,255,.1);margin-top:30px;padding-top:20px;font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media(max-width:900px){
+    .hero-in{grid-template-columns:1fr;text-align:center}
+    .hero p.lead{margin-left:auto;margin-right:auto}
+    .search{margin:0 auto}.hero-note,.hero-pop{justify-content:center}
+    .fs-stage{height:320px;margin-top:6px}
+    .band-in{grid-template-columns:repeat(2,1fr);gap:18px}
+    .g3,.prob-grid,.sd-grid,.steps{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:560px){.sec{padding:60px 0}.fs-stage{height:280px}}
+  .msheet{position:fixed;inset:0;background:rgba(11,31,60,.96);backdrop-filter:blur(8px);z-index:90;display:none;flex-direction:column;padding:26px 22px;gap:6px}
+  .msheet.show{display:flex}
+  .msheet a{color:#fff;font-size:18px;font-weight:600;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+  .msheet .close{align-self:flex-end;background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;width:42px;height:42px;font-size:20px;cursor:pointer;margin-bottom:10px}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a href="/" class="logo"><span class="sh">🛡️</span>Trust<span class="gold">Dubai</span></a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="/how-we-verify.html">How we verify</a>
+      <a href="#why">Why TrustDubai</a>
+      <a href="/for-business.html">For Business</a>
+    </div>
+    <div class="nav-cta">
+      <a href="/" class="btn btn-ghost dark ghost">Browse</a>
+      <a href="/" class="btn btn-gold">Get free quotes</a>
+      <button class="burger" onclick="document.getElementById('msheet').classList.add('show')">☰</button>
+    </div>
+  </div>
+</nav>
+
+<div class="msheet" id="msheet">
+  <button class="close" onclick="document.getElementById('msheet').classList.remove('show')">✕</button>
+  <a href="#how" onclick="closeM()">How it works</a>
+  <a href="/how-we-verify.html">How we verify</a>
+  <a href="#why" onclick="closeM()">Why TrustDubai</a>
+  <a href="/for-business.html">For Business</a>
+  <a href="/" style="color:var(--gold2)">Get free quotes →</a>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-in">
+    <div>
+      <span class="eyebrow">For customers</span>
+      <h1>Get free quotes from <span class="g">verified businesses.</span></h1>
+      <p class="lead">Tell us what you need once, and get quotes from trade-licence verified Dubai businesses — with real trust scores, verified teams and genuine reviews. No guesswork, no spam.</p>
+      <div class="search">
+        <input id="q" type="text" placeholder="What do you need? e.g. renovation, AC repair, interior design" aria-label="What do you need" />
+        <button class="btn btn-gold" onclick="goSearch()">Get free quotes →</button>
+      </div>
+      <div class="hero-note">🛡️ <b>Verified</b> companies only · ⭐ <b>real</b> reviews · 🆓 <b>free</b> to use</div>
+      <div class="hero-pop">
+        <a href="/?category=Renovation">Renovation</a>
+        <a href="/?category=Interior%20Design">Interior Design</a>
+        <a href="/?category=AC%20Service">AC Service</a>
+        <a href="/?category=Plumbing">Plumbing</a>
+        <a href="/?category=Painting">Painting</a>
+      </div>
+    </div>
+
+    <div class="fs-stage" aria-hidden="true">
+      <div class="fs-orbit fs-o1"></div>
+      <div class="fs-orbit fs-o2"></div>
+      <div class="fs-orbit fs-o3"></div>
+      <span class="fs-pt" style="left:30%;top:62%;animation-duration:6s"></span>
+      <span class="fs-pt" style="left:46%;top:68%;animation-duration:7.5s;animation-delay:1s"></span>
+      <span class="fs-pt" style="left:60%;top:60%;animation-duration:5.5s;animation-delay:.6s"></span>
+      <span class="fs-pt" style="left:70%;top:66%;animation-duration:8s;animation-delay:1.6s"></span>
+      <div class="fs-cluster">
+        <div class="fs-sh v">
+          <div class="fs-badge">
+            <svg viewBox="0 0 100 120"><defs><linearGradient id="gv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a55"/><stop offset="1" stop-color="#150e2c"/></linearGradient></defs>
+              <path d="M50 4 L92 20 V58 C92 86 73 104 50 116 C27 104 8 86 8 58 V20 Z" fill="url(#gv)" stroke="#a98bff" stroke-width="2.5" class="fs-glow"/>
+              <path d="M50 12 L85 25 V57 C85 80 70 95 50 106 C30 95 15 80 15 57 V25 Z" fill="none" stroke="rgba(169,139,255,.35)" stroke-width="1"/>
+              <text x="50" y="66" text-anchor="middle" font-family="Sora" font-weight="800" font-size="34" fill="#c9b6ff">★</text></svg>
+            <span class="fs-scan"></span>
+          </div>
+          <div class="fs-lbl"><div class="t">Trust</div><div class="s">Score</div></div>
+        </div>
+        <div class="fs-sh mid g">
+          <div class="fs-badge">
+            <svg viewBox="0 0 100 120"><defs><linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a3a12"/><stop offset="1" stop-color="#221a08"/></linearGradient></defs>
+              <path d="M50 4 L92 20 V58 C92 86 73 104 50 116 C27 104 8 86 8 58 V20 Z" fill="url(#gg)" stroke="#e7c860" stroke-width="2.5" class="fs-glow"/>
+              <path d="M50 12 L85 25 V57 C85 80 70 95 50 106 C30 95 15 80 15 57 V25 Z" fill="none" stroke="rgba(231,200,96,.35)" stroke-width="1"/>
+              <circle cx="50" cy="48" r="9" fill="none" stroke="#e7c860" stroke-width="3"/><path d="M34 78 C34 64 66 64 66 78" fill="none" stroke="#e7c860" stroke-width="3" stroke-linecap="round"/></svg>
+            <span class="fs-scan"></span>
+          </div>
+          <div class="fs-lbl"><div class="t">Team</div><div class="s">EID Verified</div></div>
+        </div>
+        <div class="fs-sh r e">
+          <div class="fs-badge">
+            <svg viewBox="0 0 100 120"><defs><linearGradient id="ge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#103a28"/><stop offset="1" stop-color="#082018"/></linearGradient></defs>
+              <path d="M50 4 L92 20 V58 C92 86 73 104 50 116 C27 104 8 86 8 58 V20 Z" fill="url(#ge)" stroke="#5ee0a0" stroke-width="2.5" class="fs-glow"/>
+              <path d="M50 12 L85 25 V57 C85 80 70 95 50 106 C30 95 15 80 15 57 V25 Z" fill="none" stroke="rgba(94,224,160,.35)" stroke-width="1"/>
+              <path d="M33 60 L45 73 L69 45" fill="none" stroke="#5ee0a0" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="fs-scan"></span>
+          </div>
+          <div class="fs-lbl"><div class="t">Verified</div><div class="s">Documents</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="band">
+  <div class="wrap band-in">
+    <div class="it"><div class="n">1,000+</div><div class="l">Dubai businesses to choose from</div></div>
+    <div class="it"><div class="n">3-Shield</div><div class="l">Verification you can check</div></div>
+    <div class="it"><div class="n">Free</div><div class="l">To search &amp; get quotes</div></div>
+    <div class="it"><div class="n">Real</div><div class="l">Reviews from real customers</div></div>
+  </div>
+</div>
+
+<section class="sec alt">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">Why it's hard</span>
+      <h2>Hiring in Dubai shouldn't feel like a gamble</h2>
+      <p>You call a number from a listing and hope for the best. No way to know if the licence is real, who'll show up, or whether those five-star reviews mean anything. TrustDubai removes the guesswork.</p>
+    </div>
+    <div class="prob-grid">
+      <div class="x"><span class="e">❓</span><div><b>Is this business even real?</b><span>Most listings show no licence and no proof — anyone can post a polished profile.</span></div></div>
+      <div class="x"><span class="e">⭐</span><div><b>Are these reviews genuine?</b><span>Bought ratings make it impossible to tell a great company from a clever one.</span></div></div>
+      <div class="x"><span class="e">😟</span><div><b>Who's actually coming?</b><span>You rarely know if the team is qualified, identified, or trustworthy until they're at your door.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec shield-deep" id="trust">
+  <div class="wrap">
+    <div class="sec-h">
+      <span class="eyebrow">How you know they're real</span>
+      <h2>Every business carries 3 Shields you can check</h2>
+      <p>Before you hire, you see exactly how a business is verified — not a self-declared badge, but real proof on their profile.</p>
+    </div>
+    <div class="sd-grid">
+      <div class="sd sd1"><div class="ring">🛡️</div><span class="tag">Shield 1</span><h3>Trust Score</h3>
+        <ul><li><span class="ck">✓</span> One clear 0–100 score from verification, reviews and ratings</li><li><span class="ck">✓</span> Tiers from Building to Elite — earned, never bought</li><li><span class="ck">✓</span> Compare businesses fairly, at a glance</li></ul></div>
+      <div class="sd sd2"><div class="ring">🛡️</div><span class="tag">Shield 2</span><h3>Team — EID Verified</h3>
+        <ul><li><span class="ck">✓</span> See the real people behind the business, verified by Emirates ID</li><li><span class="ck">✓</span> Know who you're dealing with before they arrive</li><li><span class="ck">✓</span> Identity you can rely on, not just a name</li></ul></div>
+      <div class="sd sd3"><div class="ring">🛡️</div><span class="tag">Shield 3</span><h3>Verified Documents</h3>
+        <ul><li><span class="ck">✓</span> Trade licence and key documents checked against official records</li><li><span class="ck">✓</span> A live verification % you can read instantly</li><li><span class="ck">✓</span> Real, licensed businesses — not fakes</li></ul></div>
+    </div>
+    <div class="sd-cta"><a href="/how-we-verify.html">See exactly how we verify →</a></div>
+  </div>
+</section>
+
+<section class="sec" id="how">
+  <div class="wrap">
+    <div class="sec-h"><span class="eyebrow">How it works</span><h2>From request to hired in four simple steps</h2></div>
+    <div class="steps">
+      <div class="step"><div class="no">1</div><h3>Tell us what you need</h3><p>Renovation, AC, interiors, plumbing and more — describe the job once.</p></div>
+      <div class="step"><div class="no">2</div><h3>Get free quotes</h3><p>Verified businesses that match send you quotes — no endless calls, no spam.</p></div>
+      <div class="step"><div class="no">3</div><h3>Compare with confidence</h3><p>Check trust scores, real reviews and verified teams side by side.</p></div>
+      <div class="step"><div class="no">4</div><h3>Hire &amp; review</h3><p>Pick the business you trust most, then leave an honest review for the next person.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="why">
+  <div class="wrap">
+    <div class="sec-h"><span class="eyebrow">Why TrustDubai</span><h2>Built to protect your decision</h2></div>
+    <div class="grid g3">
+      <div class="card"><div class="ic">🛡️</div><h3>Verified, not just listed</h3><p>Every featured business is checked for licence, team and documents — so you're not gambling on a stranger.</p></div>
+      <div class="card"><div class="ic">⭐</div><h3>Reviews that mean something</h3><p>Genuine customer reviews and a real trust score help you tell true quality from clever marketing.</p></div>
+      <div class="card"><div class="ic">📩</div><h3>Free quotes, fast</h3><p>One request reaches the right businesses. Compare quotes without endless calls — completely free.</p></div>
+      <div class="card"><div class="ic">💬</div><h3>Talk before you commit</h3><p>Message businesses directly, ask questions, and share details before anyone shows up.</p></div>
+      <div class="card"><div class="ic">👀</div><h3>See who's coming</h3><p>EID-verified teams mean you know the real, identified people behind the work.</p></div>
+      <div class="card"><div class="ic">🆓</div><h3>Always free for you</h3><p>Searching, comparing and requesting quotes costs you nothing. You only pay the business you choose.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-h"><span class="eyebrow">The difference</span><h2>TrustDubai vs searching on your own</h2></div>
+    <div class="cmp">
+      <table class="cmp-t">
+        <thead><tr><th>When you hire</th><th class="td-col">With TrustDubai</th><th>Random search / ads</th></tr></thead>
+        <tbody>
+          <tr><td>Licence verified before you call</td><td class="td-col yes">✓</td><td class="no">—</td></tr>
+          <tr><td>See the team's verified identity</td><td class="td-col yes">✓</td><td class="no">—</td></tr>
+          <tr><td>Trust score to compare fairly</td><td class="td-col yes">✓</td><td class="no">Star guesswork</td></tr>
+          <tr><td>Reviews you can actually trust</td><td class="td-col yes">✓</td><td class="no">Mixed / bought</td></tr>
+          <tr><td>One request → multiple free quotes</td><td class="td-col yes">✓</td><td class="no">Call each one</td></tr>
+          <tr><td>Chat &amp; records in one place</td><td class="td-col yes">✓</td><td class="no">Scattered</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt">
+  <div class="wrap">
+    <div class="sec-h"><span class="eyebrow">Questions</span><h2>Good to know</h2></div>
+    <div class="faq">
+      <div class="qa"><q>Is TrustDubai free for me?<span class="pl">+</span></q><div class="a"><div>Yes. Searching, comparing and requesting quotes is completely free. You only pay the business you decide to hire.</div></div></div>
+      <div class="qa"><q>What does "verified" mean here?<span class="pl">+</span></q><div class="a"><div>A business has had its trade licence and documents checked against official records, and its team verified against Emirates ID. You see the result as three shields on their profile.</div></div></div>
+      <div class="qa"><q>How do I get quotes?<span class="pl">+</span></q><div class="a"><div>Tell us what you need or open a business profile and send a request with a few details. Verified businesses respond with a quote — and on a matched request, you can receive quotes from more than one trusted option.</div></div></div>
+      <div class="qa"><q>Can I trust the reviews?<span class="pl">+</span></q><div class="a"><div>Reviews come from real customers, businesses can reply openly, and fakes are detected and removed. Combined with the trust score, you get a far clearer picture than star counts alone.</div></div></div>
+      <div class="qa"><q>Do I have to create an account?<span class="pl">+</span></q><div class="a"><div>You can browse freely. A quick sign-in is asked when you send a request or leave a review, so businesses can reach you back.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="final">
+      <h2>Get free quotes from businesses you can trust</h2>
+      <p>Tell us what you need and compare verified Dubai businesses by trust score, real reviews and verified teams — all in one place, free.</p>
+      <a href="/" class="btn btn-gold">Get free quotes now →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="/" class="logo" style="color:#fff;margin-bottom:10px">🛡️ Trust<span class="gold">Dubai</span></a>
+        <p style="font-size:14px;max-width:280px">Get free quotes from verified Dubai businesses — real trust scores, verified teams and genuine reviews.</p>
+      </div>
+      <div><h4>Explore</h4>
+        <a href="/">Get free quotes</a>
+        <a href="/how-we-verify.html">How we verify</a>
+        <a href="#how">How it works</a>
+        <a href="/for-business.html">For Business</a>
+      </div>
+      <div><h4>Popular</h4>
+        <a href="/?category=Renovation">Renovation</a>
+        <a href="/?category=Interior%20Design">Interior Design</a>
+        <a href="/?category=AC%20Service">AC Service</a>
+        <a href="/?category=Plumbing">Plumbing</a>
+      </div>
+      <div><h4>Legal</h4>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/refund">Refund Policy</a>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <span>© 2026 TrustDubai. All rights reserved.</span>
+      <span>Dubai, United Arab Emirates</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function closeM(){document.getElementById('msheet').classList.remove('show')}
+  function goSearch(){
+    var el=document.getElementById('q');var q=el?el.value.trim():'';
+    window.location.href = q ? '/?q='+encodeURIComponent(q) : '/';
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    var el=document.getElementById('q');
+    if(el) el.addEventListener('keydown',function(ev){ if(ev.key==='Enter') goSearch(); });
+  });
+  document.querySelectorAll('.qa q').forEach(function(q){
+    q.addEventListener('click',function(){ q.parentElement.classList.toggle('open'); });
+  });
+</script>
+</body>
+</html>
