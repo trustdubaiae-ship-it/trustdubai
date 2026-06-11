@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
-import { signInWithGoogle, signOut, getCustomer, upsertCustomer } from '../customerAuth'
+import { signInWithGoogle, signOut, getCustomer, upsertCustomer, updateCustomerProfile } from '../customerAuth'
 
 /* ===================== PLAN FEATURE MATRIX ===================== */
 const FEATURES = {
@@ -24,6 +24,9 @@ const limitOf = (f, plan) => (FEATURES[f] ? (FEATURES[f][plan] ?? 0) : 0)
 
 const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpYmRvcnJheHhoZmJma2pocGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTkzNDUsImV4cCI6MjA5NTM3NTM0NX0.w5EMvd47CtWTc-8NgTlsM44EYmbGSQHc79wgjXTQlHE'
+
+// Dubai areas for the lead-profile "Area" field
+const DUBAI_AREAS = ['Downtown Dubai', 'Business Bay', 'Dubai Marina', 'JLT', 'JBR', 'Palm Jumeirah', 'Jumeirah', 'Umm Suqeim', 'Al Barsha', 'Dubai Hills', 'Arabian Ranches', 'Emirates Hills', 'The Springs', 'The Meadows', 'JVC', 'JVT', 'Dubai Silicon Oasis', 'International City', 'Discovery Gardens', 'Al Furjan', 'Mirdif', 'Deira', 'Bur Dubai', 'Al Quoz', 'Dubai Investment Park', 'Motor City', 'Sports City', 'Town Square', 'Damac Hills', 'Tilal Al Ghaf', 'Other']
 
 function makeTheme(dark) {
   if (dark) return {
@@ -192,6 +195,8 @@ export default function PublicProfile() {
   const [customer, setCustomer] = useState(undefined)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [showQuote, setShowQuote] = useState(false)
+  const [pfPhone, setPfPhone] = useState('')   // lead profile: phone
+  const [pfArea, setPfArea] = useState('')     // lead profile: area
   const [loginFor, setLoginFor] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
@@ -232,6 +237,14 @@ export default function PublicProfile() {
   useEffect(() => {
     try { localStorage.setItem('td_theme', dark ? 'dark' : 'light') } catch (e) {}
   }, [dark])
+
+  // Prefill the lead-profile fields from the signed-in customer
+  useEffect(() => {
+    if (customer && typeof customer === 'object') {
+      setPfPhone(customer.phone || '')
+      setPfArea(customer.area || '')
+    }
+  }, [customer])
 
   async function checkCustomer() { setCustomer((await getCustomer()) || null) }
   async function fetchAiSetting() { const { data } = await supabase.from('app_settings').select('value').eq('key', 'feature.ai_analysis').maybeSingle(); setAiAnalysisOn(data?.value?.enabled === true); const { data: g } = await supabase.from('app_settings').select('value').eq('key', 'feature.google_reviews').maybeSingle(); setGoogleOn(g?.value?.enabled === true) }
@@ -338,12 +351,24 @@ export default function PublicProfile() {
     setSubmittingMemberRating(false)
     if (!error) { setMemberComment(''); setMemberRating(0); await refreshTeam() }
   }
-  async function sendLeadEmail(name, phone, email) { try { const ce = company.email || company.business_email || company.owner_email; if (!ce) return; await fetch(`${SUPABASE_URL}/functions/v1/send-lead-email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ company_name: company.name, company_email: ce, company_whatsapp: company.whatsapp || '', lead_name: name, lead_phone: phone, lead_email: email, answers, slug }) }) } catch (e) {} }
+  async function sendLeadEmail(name, phone, email, ans) { try { const ce = company.email || company.business_email || company.owner_email; if (!ce) return; await fetch(`${SUPABASE_URL}/functions/v1/send-lead-email`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ company_name: company.name, company_email: ce, company_whatsapp: company.whatsapp || '', lead_name: name, lead_phone: phone, lead_email: email, answers: ans, slug }) }) } catch (e) {} }
   async function submitLead(e) {
-    e.preventDefault(); if (!requireLogin('lead')) return; setSubmitting(true)
-    const name = customer?.full_name || answers['Your name'] || ''; const phone = answers['Your phone number'] || answers['phone'] || ''; const email = customer?.email || answers['Email'] || ''
-    const { data: leadRow } = await supabase.from('lead_submissions').insert({ form_id: leadForm.id, company_id: company.id, customer_id: customer?.id || null, name, phone, email, answers, source_url: window.location.href }).select('id').single()
-    await supabase.rpc('increment_leads', { p_company_id: company.id }); await sendLeadEmail(name, phone, email)
+    e.preventDefault(); if (!requireLogin('lead')) return
+    // Lead gate: profile must be complete (phone + area mandatory).
+    const phone = (customer?.phone || pfPhone || '').trim()
+    const area = (customer?.area || pfArea || '').trim()
+    if (!phone || !area) return // the required fields enforce this in the UI
+    setSubmitting(true)
+    // If the profile was incomplete, save phone + area to the customer first.
+    let cust = customer
+    if (!cust?.phone || !cust?.area) {
+      const updated = await updateCustomerProfile(cust.id, { phone, area })
+      if (updated) { cust = updated; setCustomer(updated) }
+    }
+    const name = cust?.full_name || ''; const email = cust?.email || ''
+    const fullAnswers = { ...answers, Location: area }
+    const { data: leadRow } = await supabase.from('lead_submissions').insert({ form_id: leadForm.id, company_id: company.id, customer_id: cust?.id || null, name, phone, email, answers: fullAnswers, source_url: window.location.href }).select('id').single()
+    await supabase.rpc('increment_leads', { p_company_id: company.id }); await sendLeadEmail(name, phone, email, fullAnswers)
     // Confirmation email to the customer (fire-and-forget)
     if (leadRow?.id && email) {
       try {
@@ -354,7 +379,7 @@ export default function PublicProfile() {
         })
       } catch (e) {}
     }
-    if (company.whatsapp) { const msg = ['🏢 *New Lead from TrustDubai*', '', '👤 Name: ' + (name || 'Not provided'), '📞 Phone: ' + (phone || 'Not provided'), '✉️ Email: ' + (email || 'Not provided'), '', '📋 *Answers:*', ...Object.entries(answers).map(([q, a]) => '• ' + q + ': ' + a), '', '🔗 Via: trustdubai.ae/' + slug].join('\n'); window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank') }
+    if (company.whatsapp) { const msg = ['🏢 *New Lead from TrustDubai*', '', '👤 Name: ' + (name || 'Not provided'), '📞 Phone: ' + (phone || 'Not provided'), '✉️ Email: ' + (email || 'Not provided'), '📍 Area: ' + (area || 'Not provided'), '', '📋 *Answers:*', ...Object.entries(fullAnswers).map(([q, a]) => '• ' + q + ': ' + a), '', '🔗 Via: trustdubai.ae/' + slug].join('\n'); window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank') }
     setSubmitting(false); setSubmitted(true)
   }
   async function submitReview(e) { e.preventDefault(); if (!requireLogin('review')) return; if (!reviewText.trim()) return; setSubmittingReview(true); await supabase.from('reviews').insert({ company_id: company.id, reviewer_name: customer.full_name || customer.email, reviewer_email: customer.email, customer_id: customer.id, rating: reviewRating, review_text: reviewText, is_approved: true }); setSubmittingReview(false); setReviewSubmitted(true); setShowReviewForm(false); setReviewText(''); await refreshReviews() }
@@ -463,6 +488,23 @@ export default function PublicProfile() {
           <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16, color: TH.t1 }}>{leadForm?.title || 'Get a Quote'}</span>
         </div>
         {customer && <div style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '7px 11px', marginBottom: 12, fontSize: 11.5, color: TH.green }}>✓ Submitting as {customer.full_name || customer.email}</div>}
+        {customer && (!customer.phone || !customer.area) && (() => {
+          const inp = { width: '100%', padding: '10px 12px', border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.soft, color: TH.t1, outline: 'none' }
+          return (
+            <div style={{ border: `1px solid ${TH.accent}40`, background: TH.accent + '0d', borderRadius: 10, padding: 12, marginBottom: 12 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 800, color: TH.accent, marginBottom: 9, textTransform: 'uppercase', letterSpacing: '0.03em' }}>Your contact details</div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 5, color: TH.t1 }}>Phone / WhatsApp<span style={{ color: TH.red }}> *</span></label>
+                <input required type="tel" value={pfPhone} onChange={e => setPfPhone(e.target.value)} placeholder="+971 50 000 0000" style={inp} />
+              </div>
+              <div style={{ marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 5, color: TH.t1 }}>Area / Location<span style={{ color: TH.red }}> *</span></label>
+                <select required value={pfArea} onChange={e => setPfArea(e.target.value)} style={inp}><option value="">Select your area</option>{DUBAI_AREAS.map(a => <option key={a} value={a}>{a}</option>)}</select>
+              </div>
+              <div style={{ fontSize: 10.5, color: TH.t3, marginTop: 8, lineHeight: 1.5 }}>We share these with the company so they can send you a quote. Saved to your profile for next time.</div>
+            </div>
+          )
+        })()}
         {questions.map(q => {
           const inp = { width: '100%', padding: '10px 12px', border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.soft, color: TH.t1, outline: 'none' }
           return (
