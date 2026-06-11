@@ -1,3 +1,4 @@
+// trustdubai/src/pages/PublicProfile.jsx
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
@@ -440,6 +441,42 @@ export default function PublicProfile() {
   const chip = (t, k) => <span key={k} style={{ fontSize: 10.5, padding: '4px 11px', borderRadius: 7, background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, fontWeight: 600 }}>{t}</span>
   const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
 
+  /* ---- Get-a-Quote lead form (rendered inside the hero, next to WhatsApp) ---- */
+  const QuoteBox = () => {
+    if (!leadForm) return null
+    return (
+      <div id="getquote" className="td-quotebox" style={{ marginTop: 14, background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 12, padding: 14, maxWidth: 460, boxSizing: 'border-box' }}>
+        {submitted ? (
+          <div style={{ textAlign: 'center', padding: '14px 0' }}>
+            <div style={{ fontSize: 36 }}>✅</div>
+            <h3 style={{ fontFamily: "'Sora',sans-serif", marginTop: 6, fontSize: 15, color: TH.t1 }}>Request Submitted!</h3>
+            <p style={{ fontSize: 11.5, color: TH.t2, marginTop: 4 }}>{company.name} will contact you shortly.</p>
+          </div>
+        ) : (
+          <form onSubmit={submitLead}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 11 }}>
+              <span style={{ fontSize: 15 }}>📩</span>
+              <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 13.5, color: TH.t1, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{leadForm.title || 'Get a Quote'}</span>
+            </div>
+            {customer && <div style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '7px 11px', marginBottom: 11, fontSize: 11, color: TH.green }}>✓ {customer.full_name || customer.email}</div>}
+            {questions.map(q => {
+              const inp = { width: '100%', padding: '9px 11px', border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.cardSolid, color: TH.t1, outline: 'none' }
+              return (
+                <div key={q.id} style={{ marginBottom: 10 }}>
+                  <label style={{ fontSize: 11.5, fontWeight: 600, display: 'block', marginBottom: 5, color: TH.t2 }}>{q.question}{q.required && <span style={{ color: TH.red }}> *</span>}</label>
+                  {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp} />}
+                  {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp}><option value="">Select</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
+                  {q.type === 'radio' && (q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', gap: 7, fontSize: 12, color: TH.t2, marginBottom: 6, cursor: 'pointer' }}><input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(p => ({ ...p, [q.question]: o }))} />{o}</label>)}
+                </div>
+              )
+            })}
+            <button type="submit" disabled={submitting} style={{ width: '100%', padding: 11, background: submitting ? '#94a3b8' : TH.grad, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: TH.glow }}>{submitting ? '...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}</button>
+          </form>
+        )}
+      </div>
+    )
+  }
+
   const PortCard = ({ p }) => {
     const liked = likedSet.has(p.id)
     return (
@@ -497,7 +534,7 @@ export default function PublicProfile() {
           </div>
         ) : (
           <>
-            <p style={{ fontSize: 11.5, color: TH.t2, lineHeight: 1.5, margin: '0 0 10px', flex: 1, overflowY: 'auto', minHeight: 0 }}>{r.review_text}</p>
+            <p style={{ fontSize: 11.5, color: TH.t2, lineHeight: 1.5, margin: '0 0 10px', flex: 1, overflowY: 'auto', minHeight: 0, overflowWrap: 'anywhere' }}>{r.review_text}</p>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTop: `1px solid ${TH.line}` }}>
               <button onClick={() => markHelpful(r.id)} style={{ fontSize: 10, color: TH.t3, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>👍 Helpful ({helpful[r.id] || 0})</button>
               {aiAnalysisOn && can('aiReviewAnalysis', plan) && r.review_text && r.review_text.length > 5 && (
@@ -507,7 +544,7 @@ export default function PublicProfile() {
                 </div>
               )}
             </div>
-            {r.owner_reply && <div style={{ background: TH.accent + '14', border: `1px solid ${TH.accent}44`, borderRadius: 7, padding: '7px 10px', marginTop: 8 }}><div style={{ fontSize: 9.5, fontWeight: 700, color: TH.accent, marginBottom: 3 }}>💬 Owner Reply</div><p style={{ fontSize: 10.5, color: TH.t2, margin: 0, lineHeight: 1.4 }}>{r.owner_reply}</p></div>}
+            {r.owner_reply && <div style={{ background: TH.accent + '14', border: `1px solid ${TH.accent}44`, borderRadius: 7, padding: '7px 10px', marginTop: 8 }}><div style={{ fontSize: 9.5, fontWeight: 700, color: TH.accent, marginBottom: 3 }}>💬 Owner Reply</div><p style={{ fontSize: 10.5, color: TH.t2, margin: 0, lineHeight: 1.4, overflowWrap: 'anywhere' }}>{r.owner_reply}</p></div>}
           </>
         )}
       </div>
@@ -515,7 +552,7 @@ export default function PublicProfile() {
   }
 
   return (
-    <div style={{ background: TH.bg, minHeight: '100vh', fontFamily: F, color: TH.t1, fontSize: 13 }}>
+    <div className="td-root" style={{ background: TH.bg, minHeight: '100vh', fontFamily: F, color: TH.t1, fontSize: 13, overflowX: 'hidden' }}>
       <Fonts />
 
       {/* STICKY GLASS NAV */}
@@ -551,16 +588,16 @@ export default function PublicProfile() {
         {/* HERO */}
         <Card TH={TH} id="overview" style={{ padding: 0, overflow: 'hidden', ...(isPremium ? { border: `1px solid ${TH.gold}66`, boxShadow: TH.glowGold } : {}) }}>
           {isPremium && <div className="td-shine" style={{ height: 4, background: TH.gradGold }} />}
-          <div style={{ background: isPremium ? (TH.dark ? 'linear-gradient(120deg,rgba(224,181,62,0.16),rgba(167,139,250,0.10))' : 'linear-gradient(120deg,rgba(201,162,39,0.10),rgba(139,92,246,0.06))') : (TH.dark ? 'linear-gradient(120deg,rgba(79,159,224,0.16),rgba(167,139,250,0.12))' : 'linear-gradient(120deg,rgba(29,111,184,0.08),rgba(139,92,246,0.07))'), padding: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 20, flexWrap: 'wrap' }} className="td-hero">
-            <div style={{ flex: 1, minWidth: 240 }}>
-              <div className="td-bizname" style={{ fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05 }}>{company.name}</div>
+          <div style={{ background: isPremium ? (TH.dark ? 'linear-gradient(120deg,rgba(224,181,62,0.16),rgba(167,139,250,0.10))' : 'linear-gradient(120deg,rgba(201,162,39,0.10),rgba(139,92,246,0.06))') : (TH.dark ? 'linear-gradient(120deg,rgba(79,159,224,0.16),rgba(167,139,250,0.12))' : 'linear-gradient(120deg,rgba(29,111,184,0.08),rgba(139,92,246,0.07))'), padding: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }} className="td-hero">
+            <div className="td-hero-main" style={{ flex: 1, minWidth: 0 }}>
+              <div className="td-bizname" style={{ fontFamily: "'Sora',sans-serif", fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.05, overflowWrap: 'anywhere' }}>{company.name}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '8px 0 14px' }}>
                 {company.is_verified && <span className="td-shine" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: 'linear-gradient(135deg,#1e9e63,#22c55e)', padding: '4px 11px', borderRadius: 20 }}>✓ Verified Business</span>}
                 {plan !== 'free' && <span className={isPremium ? 'td-shine' : ''} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: TH.gradGold, color: '#3a2c00', padding: '4px 11px', borderRadius: 20, boxShadow: isPremium ? TH.glowGold : 'none' }}>{isPlatinum ? '💎' : '★'} {isPremium ? 'Premium · ' : ''}{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>}
                 {isListed && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, padding: '4px 11px', borderRadius: 20 }}>📍 Listed on TrustDubai</span>}
               </div>
               {gRating > 0 && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginBottom: 14, background: TH.soft, border: `1px solid ${TH.line}`, padding: '6px 12px', borderRadius: 20 }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginBottom: 14, background: TH.soft, border: `1px solid ${TH.line}`, padding: '6px 12px', borderRadius: 20, maxWidth: '100%', flexWrap: 'wrap' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                   <span style={{ fontSize: 13, fontWeight: 800, color: TH.t1 }}>{gRating.toFixed(1)}</span>
                   <span style={{ color: TH.gold, fontSize: 12 }}>{'★'.repeat(Math.round(gRating))}</span>
@@ -577,13 +614,18 @@ export default function PublicProfile() {
               </div>
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 14 }}>{cats.map(c => chip(c, c))}{company.location && chip('📍 ' + company.location, 'loc')}</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {(company.whatsapp || company.phone) && <button onClick={() => window.open('https://wa.me/' + (company.whatsapp || company.phone).replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent("Hi, I saw your profile on TrustDubai and I'm interested in your services."), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#25D366', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 18px rgba(37,211,102,0.32)' }}>💬 WhatsApp</button>}
-                <button onClick={() => { scrollTo('reviews'); if (requireLogin('review')) setShowReviewForm(true) }} style={{ padding: '8px 16px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: TH.glow }}>★ Write Review</button>
+                {company.whatsapp && <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent("Hi, I saw your profile on TrustDubai and I'm interested in your services."), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#25D366', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 18px rgba(37,211,102,0.32)' }}>💬 WhatsApp</button>}
+                {company.phone && <a href={'tel:' + company.phone.replace(/\s/g, '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: TH.soft, color: TH.t1, border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}>📞 Call</a>}
+                {leadForm && <button onClick={() => scrollTo('getquote')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: TH.glow }}>📩 Get a Quote</button>}
+                <button onClick={() => { scrollTo('reviews'); if (requireLogin('review')) setShowReviewForm(true) }} style={{ padding: '8px 16px', background: TH.soft, color: TH.t1, border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>★ Write Review</button>
                 {can('socialLinks', plan) && socialLinks.map(s => <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 13px', background: TH.soft, color: TH.t1, borderRadius: 9, fontSize: 12, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.line}` }}>{s.icon} {s.label}</a>)}
               </div>
+
+              {/* GET A QUOTE — right next to the WhatsApp / Call buttons */}
+              <QuoteBox />
             </div>
             {/* 3 SHIELD RINGS */}
-            <div className="td-hero-rings" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'nowrap' }}>
+            <div className="td-hero-rings" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'nowrap', maxWidth: '100%' }}>
               <div style={{ animation: 'tdfloat 5s ease-in-out infinite' }}>
                 <ShieldRing TH={TH} value={cred} fillPct={cred / 100} ringColor={TH.violet} gradId="grTrust" gradTo={TH.accent} caption="Trust" sub={tier.l} />
               </div>
@@ -618,10 +660,10 @@ export default function PublicProfile() {
         )}
 
         {/* 3-COLUMN */}
-        <div className="td-cols" style={{ display: 'grid', gridTemplateColumns: '1fr 1.28fr 0.86fr', gap: 14, alignItems: 'start' }}>
+        <div className="td-cols" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.28fr) minmax(0,0.86fr)', gap: 14, alignItems: 'start' }}>
 
           {/* LEFT */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             {can('trustGauges', plan) && (
               <Card TH={TH} id="trust">
                 <H2 TH={TH}>🛡️ Trust Overview</H2>
@@ -653,7 +695,7 @@ export default function PublicProfile() {
             <Card TH={TH}>
               <H2 TH={TH}>📋 About</H2>
               <h4 style={{ fontFamily: "'Sora',sans-serif", fontSize: 11, fontWeight: 800, margin: '0 0 4px' }}>Story</h4>
-              <p style={{ fontSize: 11.5, color: TH.t2, lineHeight: 1.6, margin: '0 0 10px' }}>{company.description || 'No description added yet.'}</p>
+              <p style={{ fontSize: 11.5, color: TH.t2, lineHeight: 1.6, margin: '0 0 10px', overflowWrap: 'anywhere' }}>{company.description || 'No description added yet.'}</p>
               <h4 style={{ fontFamily: "'Sora',sans-serif", fontSize: 11, fontWeight: 800, margin: '0 0 6px' }}>Services</h4>
               {cats.length ? cats.map(c => <div key={c} style={{ fontSize: 11.5, color: TH.t2, padding: '3px 0' }}>• {c}</div>) : <div style={{ fontSize: 11, color: TH.t3 }}>No services listed</div>}
             </Card>
@@ -674,7 +716,7 @@ export default function PublicProfile() {
           </div>
 
           {/* CENTER */}
-          <div id="reviews">
+          <div id="reviews" style={{ minWidth: 0 }}>
             {can('portfolio', plan) && (
               <Card TH={TH} id="portfolio">
                 <H2 TH={TH} right={portfolio.length > 6 ? <button onClick={() => setShowAllGallery(true)} style={{ fontSize: 11, fontWeight: 700, color: TH.accent, background: 'none', border: 'none', cursor: 'pointer' }}>View All ({portfolio.length}) →</button> : null}>🖼️ Portfolio</H2>
@@ -738,7 +780,7 @@ export default function PublicProfile() {
                   const tot = reviews.length || 1
                   return (
                     <div>
-                      <div style={{ display: 'flex', gap: 22, marginBottom: 12 }}>
+                      <div style={{ display: 'flex', gap: 22, marginBottom: 12, flexWrap: 'wrap' }}>
                         <div><div style={{ fontSize: 11, color: TH.green, fontWeight: 700 }}>● Positive</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800, color: TH.green }}><Counter to={Math.round(pos / tot * 100)} suffix="%" /></div></div>
                         <div><div style={{ fontSize: 11, color: TH.t2, fontWeight: 700 }}>● Neutral</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800 }}><Counter to={Math.round(neu / tot * 100)} suffix="%" /></div></div>
                         <div><div style={{ fontSize: 11, color: TH.red, fontWeight: 700 }}>● Negative</div><div style={{ fontFamily: "'Sora',sans-serif", fontSize: 24, fontWeight: 800, color: TH.red }}><Counter to={Math.round(neg / tot * 100)} suffix="%" /></div></div>
@@ -758,35 +800,10 @@ export default function PublicProfile() {
                 })()}
               </Card>
             )}
-
-            {leadForm && (
-              <Card TH={TH}>
-                {submitted ? (
-                  <div style={{ textAlign: 'center', padding: '18px 0' }}><div style={{ fontSize: 40 }}>✅</div><h3 style={{ fontFamily: "'Sora',sans-serif", marginTop: 8, fontSize: 16 }}>Request Submitted!</h3><p style={{ fontSize: 12, color: TH.t2, marginTop: 4 }}>{company.name} will contact you shortly.</p></div>
-                ) : (
-                  <form onSubmit={submitLead}>
-                    <H2 TH={TH}>📩 {leadForm.title || 'Get a Quote'}</H2>
-                    {customer && <div style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '7px 11px', marginBottom: 12, fontSize: 11, color: TH.green }}>✓ {customer.full_name || customer.email}</div>}
-                    {questions.map(q => {
-                      const inp = { width: '100%', padding: '10px 12px', border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.soft, color: TH.t1, outline: 'none' }
-                      return (
-                        <div key={q.id} style={{ marginBottom: 12 }}>
-                          <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 5 }}>{q.question}{q.required && <span style={{ color: TH.red }}> *</span>}</label>
-                          {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp} />}
-                          {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp}><option value="">Select</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
-                          {q.type === 'radio' && (q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', gap: 7, fontSize: 12, color: TH.t2, marginBottom: 6, cursor: 'pointer' }}><input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(p => ({ ...p, [q.question]: o }))} />{o}</label>)}
-                        </div>
-                      )
-                    })}
-                    <button type="submit" disabled={submitting} style={{ width: '100%', padding: 12, background: submitting ? '#94a3b8' : TH.grad, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: TH.glow }}>{submitting ? '...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}</button>
-                  </form>
-                )}
-              </Card>
-            )}
           </div>
 
           {/* RIGHT */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             {can('badges', plan) && badges.length > 0 && (
               <Card TH={TH}>
                 <H2 TH={TH}>🏅 Achievements</H2>
@@ -862,7 +879,7 @@ export default function PublicProfile() {
                 {faqs.map((f, i) => (
                   <div key={f.id} onClick={() => setOpenFaq(openFaq === i ? -1 : i)} style={{ borderBottom: i < faqs.length - 1 ? `1px solid ${TH.line}` : 'none', padding: '10px 2px', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600 }}>{f.question}<span style={{ color: TH.t3 }}>{openFaq === i ? '▴' : '▾'}</span></div>
-                    {openFaq === i && <div style={{ fontSize: 11, color: TH.t2, marginTop: 7, lineHeight: 1.5 }}>{f.answer}</div>}
+                    {openFaq === i && <div style={{ fontSize: 11, color: TH.t2, marginTop: 7, lineHeight: 1.5, overflowWrap: 'anywhere' }}>{f.answer}</div>}
                   </div>
                 ))}
               </Card>
@@ -984,7 +1001,7 @@ export default function PublicProfile() {
                   : <span style={{ fontSize: 12, color: TH.t3 }}>No ratings yet</span>}
               </div>
 
-              {activeMember.bio && <p style={{ fontSize: 12, color: TH.t2, lineHeight: 1.6, marginTop: 12, textAlign: 'left' }}>{activeMember.bio}</p>}
+              {activeMember.bio && <p style={{ fontSize: 12, color: TH.t2, lineHeight: 1.6, marginTop: 12, textAlign: 'left', overflowWrap: 'anywhere' }}>{activeMember.bio}</p>}
             </div>
 
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${TH.line}` }}>
@@ -1011,7 +1028,7 @@ export default function PublicProfile() {
             </div>
             <div className="td-lightbox-info" style={{ padding: 18, display: 'flex', flexDirection: 'column', overflowY: 'auto', maxHeight: '90vh' }}>
               {lightboxImg.title && <div style={{ fontFamily: "'Sora',sans-serif", fontSize: 17, fontWeight: 800, color: TH.t1, marginBottom: 8, paddingRight: 34 }}>{lightboxImg.title}</div>}
-              <p style={{ fontSize: 13, color: TH.t2, lineHeight: 1.6, flex: 1, margin: 0 }}>{lightboxImg.description || 'No description.'}</p>
+              <p style={{ fontSize: 13, color: TH.t2, lineHeight: 1.6, flex: 1, margin: 0, overflowWrap: 'anywhere' }}>{lightboxImg.description || 'No description.'}</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${TH.line}` }}>
                 <button onClick={() => likePortfolio(lightboxImg.id)} style={{ display: 'flex', alignItems: 'center', gap: 6, background: likedSet.has(lightboxImg.id) ? TH.red + '22' : TH.soft, border: `1px solid ${TH.line}`, borderRadius: 20, padding: '8px 16px', cursor: 'pointer', fontWeight: 700, color: TH.t1, fontSize: 13 }}>
                   <span style={{ fontSize: 15 }}>{likedSet.has(lightboxImg.id) ? '❤️' : '🤍'}</span> {portLikes[lightboxImg.id] || 0} Likes
@@ -1040,9 +1057,13 @@ export default function PublicProfile() {
       )}
 
       <style>{`
+        .td-root, .td-root *{ box-sizing: border-box; }
+        .td-root img{ max-width: 100%; }
         @media (max-width: 1050px){
           .td-cols{ grid-template-columns: 1fr !important; }
-          .td-hero{ flex-direction: column-reverse !important; align-items: flex-start !important; }
+          .td-hero{ flex-direction: column-reverse !important; align-items: stretch !important; }
+          .td-hero-main{ width: 100%; }
+          .td-quotebox{ max-width: 100% !important; }
         }
         @media (max-width: 768px){
           .td-container{ padding: 12px 10px 36px !important; }
@@ -1052,8 +1073,12 @@ export default function PublicProfile() {
           .td-revgrid{ grid-template-columns: 1fr !important; }
           .td-mgal{ grid-template-columns: repeat(3,1fr) !important; }
           .td-t4{ grid-template-columns: repeat(2,1fr) !important; }
-          .td-hero-rings{ width: 100%; justify-content: space-around !important; }
+          .td-hero-rings{ width: 100%; justify-content: space-around !important; flex-wrap: wrap !important; gap: 12px !important; }
           .td-hero-rings .td-shieldring-svg{ width: 96px !important; height: 96px !important; }
+          .td-lightbox{ grid-template-columns: 1fr !important; max-height: 92vh !important; }
+          .td-lightbox-imgwrap{ max-height: 46vh !important; }
+          .td-lightbox-imgwrap img{ max-height: 46vh !important; }
+          .td-lightbox-info{ max-height: 46vh !important; }
         }
         @media (max-width: 480px){
           .td-mgal{ grid-template-columns: repeat(2,1fr) !important; }
