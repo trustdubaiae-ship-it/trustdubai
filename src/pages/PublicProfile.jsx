@@ -191,6 +191,7 @@ export default function PublicProfile() {
   const [notFound, setNotFound] = useState(false)
   const [customer, setCustomer] = useState(undefined)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showQuote, setShowQuote] = useState(false)
   const [loginFor, setLoginFor] = useState(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewRating, setReviewRating] = useState(5)
@@ -441,39 +442,40 @@ export default function PublicProfile() {
   const chip = (t, k) => <span key={k} style={{ fontSize: 10.5, padding: '4px 11px', borderRadius: 7, background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, fontWeight: 600 }}>{t}</span>
   const scrollTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }
 
-  /* ---- Get-a-Quote lead form (rendered inside the hero, next to WhatsApp) ---- */
-  const QuoteBox = () => {
-    if (!leadForm) return null
+  /* ---- Get-a-Quote lead form — rendered inside a MODAL (opened via the
+     "Get a Quote" button). Written as a plain function (NOT a <Component/>) so
+     inputs/selects keep their focus & selection across re-renders. ---- */
+  function renderQuoteForm() {
+    if (submitted) {
+      return (
+        <div style={{ textAlign: 'center', padding: '18px 0' }}>
+          <div style={{ fontSize: 40 }}>✅</div>
+          <h3 style={{ fontFamily: "'Sora',sans-serif", marginTop: 8, fontSize: 16, color: TH.t1 }}>Request Submitted!</h3>
+          <p style={{ fontSize: 12, color: TH.t2, marginTop: 4 }}>{company.name} will contact you shortly.</p>
+          <button onClick={() => setShowQuote(false)} style={{ marginTop: 14, padding: '9px 22px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Close</button>
+        </div>
+      )
+    }
     return (
-      <div id="getquote" className="td-quotebox" style={{ marginTop: 14, background: TH.soft, border: `1px solid ${TH.line}`, borderRadius: 12, padding: 14, maxWidth: 460, boxSizing: 'border-box' }}>
-        {submitted ? (
-          <div style={{ textAlign: 'center', padding: '14px 0' }}>
-            <div style={{ fontSize: 36 }}>✅</div>
-            <h3 style={{ fontFamily: "'Sora',sans-serif", marginTop: 6, fontSize: 15, color: TH.t1 }}>Request Submitted!</h3>
-            <p style={{ fontSize: 11.5, color: TH.t2, marginTop: 4 }}>{company.name} will contact you shortly.</p>
-          </div>
-        ) : (
-          <form onSubmit={submitLead}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 11 }}>
-              <span style={{ fontSize: 15 }}>📩</span>
-              <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 13.5, color: TH.t1, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{leadForm.title || 'Get a Quote'}</span>
+      <form onSubmit={submitLead}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, paddingRight: 30 }}>
+          <span style={{ fontSize: 18 }}>📩</span>
+          <span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16, color: TH.t1 }}>{leadForm?.title || 'Get a Quote'}</span>
+        </div>
+        {customer && <div style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '7px 11px', marginBottom: 12, fontSize: 11.5, color: TH.green }}>✓ Submitting as {customer.full_name || customer.email}</div>}
+        {questions.map(q => {
+          const inp = { width: '100%', padding: '10px 12px', border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.soft, color: TH.t1, outline: 'none' }
+          return (
+            <div key={q.id} style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 5, color: TH.t1 }}>{q.question}{q.required && <span style={{ color: TH.red }}> *</span>}</label>
+              {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp} />}
+              {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp}><option value="">Select</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
+              {q.type === 'radio' && (q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', gap: 7, fontSize: 12.5, color: TH.t2, marginBottom: 7, cursor: 'pointer' }}><input type="radio" name={'q_' + q.id} value={o} checked={answers[q.question] === o} required={q.required} onChange={() => setAnswers(p => ({ ...p, [q.question]: o }))} />{o}</label>)}
             </div>
-            {customer && <div style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, padding: '7px 11px', marginBottom: 11, fontSize: 11, color: TH.green }}>✓ {customer.full_name || customer.email}</div>}
-            {questions.map(q => {
-              const inp = { width: '100%', padding: '9px 11px', border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', background: TH.cardSolid, color: TH.t1, outline: 'none' }
-              return (
-                <div key={q.id} style={{ marginBottom: 10 }}>
-                  <label style={{ fontSize: 11.5, fontWeight: 600, display: 'block', marginBottom: 5, color: TH.t2 }}>{q.question}{q.required && <span style={{ color: TH.red }}> *</span>}</label>
-                  {q.type === 'text' && <input required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp} />}
-                  {q.type === 'select' && <select required={q.required} value={answers[q.question] || ''} onChange={e => setAnswers(p => ({ ...p, [q.question]: e.target.value }))} style={inp}><option value="">Select</option>{(q.options || []).map((o, i) => <option key={i} value={o}>{o}</option>)}</select>}
-                  {q.type === 'radio' && (q.options || []).map((o, i) => <label key={i} style={{ display: 'flex', gap: 7, fontSize: 12, color: TH.t2, marginBottom: 6, cursor: 'pointer' }}><input type="radio" name={q.id} value={o} required={q.required} onChange={() => setAnswers(p => ({ ...p, [q.question]: o }))} />{o}</label>)}
-                </div>
-              )
-            })}
-            <button type="submit" disabled={submitting} style={{ width: '100%', padding: 11, background: submitting ? '#94a3b8' : TH.grad, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: TH.glow }}>{submitting ? '...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}</button>
-          </form>
-        )}
-      </div>
+          )
+        })}
+        <button type="submit" disabled={submitting} style={{ width: '100%', padding: 12, background: submitting ? '#94a3b8' : TH.grad, color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: TH.glow }}>{submitting ? '...' : customer ? 'Submit — Get Quote' : 'Sign in to Submit'}</button>
+      </form>
     )
   }
 
@@ -616,13 +618,10 @@ export default function PublicProfile() {
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                 {company.whatsapp && <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent("Hi, I saw your profile on TrustDubai and I'm interested in your services."), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#25D366', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 18px rgba(37,211,102,0.32)' }}>💬 WhatsApp</button>}
                 {company.phone && <a href={'tel:' + company.phone.replace(/\s/g, '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: TH.soft, color: TH.t1, border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}>📞 Call</a>}
-                {leadForm && <button onClick={() => scrollTo('getquote')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: TH.glow }}>📩 Get a Quote</button>}
+                {leadForm && <button onClick={() => setShowQuote(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: TH.glow }}>📩 Get a Quote</button>}
                 <button onClick={() => { scrollTo('reviews'); if (requireLogin('review')) setShowReviewForm(true) }} style={{ padding: '8px 16px', background: TH.soft, color: TH.t1, border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>★ Write Review</button>
                 {can('socialLinks', plan) && socialLinks.map(s => <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '8px 13px', background: TH.soft, color: TH.t1, borderRadius: 9, fontSize: 12, fontWeight: 600, textDecoration: 'none', border: `1px solid ${TH.line}` }}>{s.icon} {s.label}</a>)}
               </div>
-
-              {/* GET A QUOTE — right next to the WhatsApp / Call buttons */}
-              <QuoteBox />
             </div>
             {/* 3 SHIELD RINGS */}
             <div className="td-hero-rings" style={{ display: 'flex', gap: 10, alignItems: 'flex-start', justifyContent: 'center', flexWrap: 'nowrap', maxWidth: '100%' }}>
@@ -1036,6 +1035,16 @@ export default function PublicProfile() {
                 <button onClick={() => setLightboxImg(null)} style={{ marginLeft: 'auto', padding: '8px 18px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>Close</button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* GET A QUOTE modal — opens from the hero "Get a Quote" button */}
+      {showQuote && leadForm && (
+        <div onClick={() => setShowQuote(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 330, padding: 16 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: TH.cardSolid, border: `1px solid ${TH.line}`, borderRadius: 18, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', padding: 22, position: 'relative' }}>
+            <button onClick={() => setShowQuote(false)} style={{ position: 'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: '50%', background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, cursor: 'pointer', fontSize: 15, zIndex: 2 }}>✕</button>
+            {renderQuoteForm()}
           </div>
         </div>
       )}
