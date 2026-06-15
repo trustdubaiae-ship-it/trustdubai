@@ -62,7 +62,7 @@ function setJsonLD(service, area, companies) {
   s.text = JSON.stringify({
     '@context':'https://schema.org','@type':'Service',
     serviceType: service, areaServed: { '@type':'Place', name: (area||'Dubai')+', Dubai' },
-    provider: { '@type':'Organization', name:'TrustDubai', url:'https://www.trustdubai.ae' },
+    provider: { '@type':'Organization', name:'Quvera', url:'https://www.trustdubai.ae' },
     description: `Find verified ${service} companies in ${area||'Dubai'}. Compare reviews and get free quotes.`,
   })
   document.head.appendChild(s)
@@ -98,7 +98,7 @@ export default function ServiceArea() {
       setCompanies(rows)
 
       const where = area ? `${area}, Dubai` : 'Dubai'
-      const title = `${service} in ${where} — Top Verified Companies | TrustDubai`
+      const title = `${service} in ${where} — Top Verified Companies | Quvera`
       const desc  = `Find the best ${service.toLowerCase()} companies in ${where}. Compare verified reviews, ratings, and get up to 3 free quotes from trusted professionals.`
       const url   = `https://www.trustdubai.ae/services/${serviceArea}`
       setSEO({ title, description: desc, url })
@@ -138,7 +138,7 @@ export default function ServiceArea() {
           <div style={{ fontSize:46 }}>🔍</div>
           <h1 style={{ fontFamily:"'Sora',sans-serif", color:t1, margin:'12px 0', fontSize:20 }}>Page not found</h1>
           <p style={{ color:t2, fontSize:14, marginBottom:18 }}>This service page doesn't exist.</p>
-          <button onClick={()=>window.location.href='/'} style={{ padding:'10px 24px', background:'#0099cc', color:'#fff', border:'none', borderRadius:10, fontWeight:700, cursor:'pointer' }}>Go to TrustDubai</button>
+          <button onClick={()=>window.location.href='/'} style={{ padding:'10px 24px', background:'#0099cc', color:'#fff', border:'none', borderRadius:10, fontWeight:700, cursor:'pointer' }}>Go to Quvera</button>
         </div>
       </div>
     )
@@ -147,9 +147,9 @@ export default function ServiceArea() {
   const where = area || 'Dubai'
   const FAQS = [
     { q:`How do I find the best ${service.toLowerCase()} company in ${where}?`,
-      a:`Browse verified ${service.toLowerCase()} companies in ${where} on TrustDubai. Compare real customer reviews, ratings, and request up to 3 free quotes to choose the right professional.` },
+      a:`Browse verified ${service.toLowerCase()} companies in ${where} on Quvera. Compare real customer reviews, ratings, and request up to 3 free quotes to choose the right professional.` },
     { q:`Are these ${service.toLowerCase()} companies verified?`,
-      a:`Yes. TrustDubai verifies businesses through trade licence, Emirates ID, and document checks so you deal with trusted, legitimate companies in ${where}.` },
+      a:`Yes. Quvera verifies businesses through trade licence, Emirates ID, and document checks so you deal with trusted, legitimate companies in ${where}.` },
     { q:`How much does ${service.toLowerCase()} cost in ${where}?`,
       a:`Pricing depends on your project scope and finish. The easiest way is to request free quotes from multiple verified companies and compare — no obligation.` },
   ]

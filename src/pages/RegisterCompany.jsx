@@ -130,7 +130,7 @@ export default function RegisterCompany({ navigate }) {
       <div style={{ textAlign: 'center', padding: '60px 24px' }}>
         <div style={{ fontSize: 52, color: 'var(--green)', marginBottom: 14 }}><i className="ti ti-circle-check" /></div>
         <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>{existing.name} is already listed!</div>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.6 }}>Your business is live on TrustDubai. Manage everything from the business portal.</p>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.6 }}>Your business is live on Quvera. Manage everything from the business portal.</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
           <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Open Business Portal →</button>
           {existing.slug && <button onClick={() => window.location.href = '/' + existing.slug} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 24, padding: '12px', fontSize: 14, cursor: 'pointer' }}>View Public Profile</button>}
@@ -176,14 +176,14 @@ export default function RegisterCompany({ navigate }) {
       <Header title="List Your Business" />
 
       <div style={{ background: 'var(--primary)', padding: '20px 16px', color: '#fff', textAlign: 'center' }}>
-        <div style={{ fontFamily: "'DM Serif Display',serif", fontSize: 20, marginBottom: 6 }}>Get Found on TrustDubai</div>
+        <div style={{ fontFamily: "'DM Serif Display',serif", fontSize: 20, marginBottom: 6 }}>Get Found on Quvera</div>
         <p style={{ fontSize: 12, opacity: 0.85 }}>100% free — no credit card required</p>
       </div>
 
       <div onClick={() => navigate('claim-company')} style={{ margin: '14px auto 0', maxWidth: 520, marginLeft: 16, marginRight: 16, padding: '11px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
         <i className="ti ti-discount-check" style={{ fontSize: 18, color: 'var(--primary)' }} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>Already listed on TrustDubai?</div>
+          <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text-primary)' }}>Already listed on Quvera?</div>
           <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 1 }}>Claim your company instead of creating a new one.</div>
         </div>
         <i className="ti ti-arrow-right" style={{ fontSize: 16, color: 'var(--primary)' }} />

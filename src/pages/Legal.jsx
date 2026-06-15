@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 /* ============================================================================
-   TrustDubai — Legal pages (Terms / Privacy / Refund)
+   Quvera — Legal pages (Terms / Privacy / Refund)
    One component, rendered by 3 routes via the `page` prop.
    Real operating-entity details filled in (RenoFix Plus Technical Contracting L.L.C).
 ============================================================================ */
 const LEGAL = {
-  entity:    'RenoFix Plus Technical Contracting L.L.C',  // registered legal entity operating TrustDubai
-  brand:     'TrustDubai',                                 // platform / brand name
+  entity:    'RenoFix Plus Technical Contracting L.L.C',  // registered legal entity operating Quvera
+  brand:     'Quvera',                                 // platform / brand name
   license:   '1585059',                                    // DET trade licence number
   register:  '2776638',                                    // commercial register number
   chamber:   '684850',                                     // Dubai Chamber membership number
@@ -47,7 +47,7 @@ export default function Legal({ page = 'terms' }) {
   const navigate = useNavigate()
   const [dark, setDark] = useState(() => { try { return localStorage.getItem('td_theme') === 'dark' } catch { return false } })
   useEffect(() => { try { localStorage.setItem('td_theme', dark ? 'dark' : 'light') } catch (e) {} }, [dark])
-  useEffect(() => { window.scrollTo(0, 0); document.title = (TABS.find(t => t.key === page)?.label || 'Legal') + ' — TrustDubai' }, [page])
+  useEffect(() => { window.scrollTo(0, 0); document.title = (TABS.find(t => t.key === page)?.label || 'Legal') + ' — Quvera' }, [page])
 
   const TH = makeTheme(dark)
   const F = "'Manrope',sans-serif"
@@ -110,7 +110,7 @@ export default function Legal({ page = 'terms' }) {
                 <P>These Terms of Service ("Terms") govern your access to and use of the {LEGAL.site} website, applications and services (collectively, the "Platform"). The Platform is operated by <B>{LEGAL.entity}</B>, a Limited Liability Company licensed by the {LEGAL.authority} under Trade Licence No. <B>{LEGAL.license}</B> (Commercial Register No. {LEGAL.register}), and is provided under the brand <B>"{LEGAL.brand}"</B> ("we", "us", "our"). By accessing or using the Platform, you agree to be bound by these Terms. If you do not agree, please do not use the Platform.</P>
               </Section>
 
-              <Section n="1" title="About TrustDubai">
+              <Section n="1" title="About Quvera">
                 <P>{LEGAL.brand} is a business verification and discovery platform that helps users in Dubai find, review and connect with home-service and other businesses. {LEGAL.brand} is <B>not a party</B> to any agreement, transaction or service performed between a user and a listed business. We do not provide the services advertised by businesses, and we are not responsible for their performance, quality, pricing or conduct.</P>
               </Section>
 

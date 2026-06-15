@@ -43,8 +43,8 @@ function Logo({ size = 15 }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 5, lineHeight: 1, flexShrink: 0 }}>
       <i className="ti ti-shield-check" style={{ fontSize: size * 1.35, color: '#0099cc', lineHeight: 1 }} />
       <div style={{ display: 'flex', alignItems: 'center', lineHeight: 1 }}>
-        <span style={{ fontSize: size, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>Trust</span>
-        <span style={{ fontSize: size, fontWeight: 700, color: '#0099cc', letterSpacing: '-0.3px' }}>Dubai</span>
+        <span style={{ fontSize: size, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>Quv</span>
+        <span style={{ fontSize: size, fontWeight: 700, color: '#0099cc', letterSpacing: '-0.3px' }}>era</span>
         <span style={{ fontSize: size * 0.38, color: '#0099cc', marginLeft: 1, lineHeight: 1, verticalAlign: 'super' }}>●</span>
       </div>
     </div>
@@ -723,7 +723,7 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
       await installPrompt.userChoice
       setInstallPrompt(null)
     } else {
-      alert('To add TrustDubai to your home screen:\n\n• iPhone (Safari): tap Share → "Add to Home Screen"\n• Android (Chrome): tap menu (⋮) → "Add to Home screen"')
+      alert('To add Quvera to your home screen:\n\n• iPhone (Safari): tap Share → "Add to Home Screen"\n• Android (Chrome): tap menu (⋮) → "Add to Home screen"')
     }
   }
 
@@ -870,7 +870,7 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
         <div style={{ fontSize:10, fontWeight:700, color:'#fff', marginBottom:2, display:'flex', alignItems:'center', gap:5 }}>
           <i className="ti ti-device-mobile" style={{ fontSize:11, color:'#0099cc' }}/> Add to Home Screen
         </div>
-        <div style={{ fontSize:8, color:'rgba(255,255,255,0.45)', marginBottom:8, lineHeight:1.5 }}>Install TrustDubai on your device — open it like an app.</div>
+        <div style={{ fontSize:8, color:'rgba(255,255,255,0.45)', marginBottom:8, lineHeight:1.5 }}>Install Quvera on your device — open it like an app.</div>
         <button onClick={installApp}
           style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6, background:'rgba(0,153,204,0.2)', border:'0.5px solid rgba(0,153,204,0.4)', borderRadius:7, padding:'8px 4px', cursor:'pointer' }}>
           <i className="ti ti-download" style={{ fontSize:14, color:'#0099cc' }}/>
@@ -1035,7 +1035,7 @@ function SiteFooter() {
         <a href="/refund" style={linkStyle}>Refund Policy</a>
       </div>
       <div style={{ fontSize:9.5, color:'var(--text-muted)', textAlign:'right' }}>
-        © 2026 RenoFix Plus Technical Contracting L.L.C · operating TrustDubai
+        © 2026 RenoFix Plus Technical Contracting L.L.C · operating Quvera
       </div>
     </div>
   )
@@ -1268,7 +1268,7 @@ export default function Home({ navigate }) {
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:13, fontWeight:700, color:'#dc2626' }}>This email is registered as a business</div>
         <div style={{ fontSize:11.5, color:'#b91c1c', marginTop:1 }}>
-          "{blockedMsg}" uses this email on TrustDubai. Please use the Business Portal to manage it. Customer login needs a different email.
+          "{blockedMsg}" uses this email on Quvera. Please use the Business Portal to manage it. Customer login needs a different email.
         </div>
       </div>
       <button onClick={()=>window.open(BIZ_URL,'_blank')}

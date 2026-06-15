@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 
 /* ============================================================================
-   TrustDubai — Become a Partner (Reseller Program)
+   Quvera — Become a Partner (Reseller Program)
    Public page. Recruits partners who refer businesses via a referral link.
    Commission accrues automatically once the payment gateway is live.
    Responsive (phone/tablet/desktop) · Light + Dark.
@@ -36,11 +36,11 @@ const TIERS = [
 ]
 
 const FAQS = [
-  ['Is there any joining fee?', 'No. Becoming a TrustDubai Partner is completely free. You only earn — you never pay to join.'],
+  ['Is there any joining fee?', 'No. Becoming a Quvera Partner is completely free. You only earn — you never pay to join.'],
   ['How do I get paid?', 'Once a business you referred subscribes to a paid plan and the payment clears, your commission is recorded in your partner account and paid out monthly. Commission tracking activates automatically when our online payment gateway goes live.'],
   ['How long do I earn commission?', 'You earn a recurring commission every month for as long as the business you referred stays on a paid plan. The more active clients you keep, the higher your tier and rate.'],
   ['How is a referral tracked to me?', 'You get a unique referral link. Any business that signs up and subscribes through your link is automatically credited to you.'],
-  ['Who can become a partner?', 'Marketing agencies, business-setup consultants, freelancers, and anyone with access to Dubai home-service businesses. Applications are reviewed to protect the TrustDubai brand.'],
+  ['Who can become a partner?', 'Marketing agencies, business-setup consultants, freelancers, and anyone with access to Dubai home-service businesses. Applications are reviewed to protect the Quvera brand.'],
   ['What happens if a client cancels or refunds early?', 'Commission is paid only on verified, paid and retained accounts. If a client refunds within the protection window, that commission is reversed — this keeps the platform fair and trusted.'],
 ]
 
@@ -160,9 +160,9 @@ export default function Partner() {
       <div style={{ position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)', width: 620, height: 320, background: C.heroGlow, filter: 'blur(80px)', borderRadius: '50%', pointerEvents: 'none' }} />
         <div style={{ ...section, position: 'relative', textAlign: 'center', paddingTop: mobile ? 50 : 80, paddingBottom: mobile ? 30 : 40 }}>
-          <span style={{ display: 'inline-block', fontSize: 12, fontWeight: 700, color: C.green, background: C.accentBg, border: `1px solid ${C.green}44`, borderRadius: 99, padding: '6px 14px', marginBottom: 18 }}>TrustDubai Partner Program</span>
+          <span style={{ display: 'inline-block', fontSize: 12, fontWeight: 700, color: C.green, background: C.accentBg, border: `1px solid ${C.green}44`, borderRadius: 99, padding: '6px 14px', marginBottom: 18 }}>Quvera Partner Program</span>
           <h1 style={{ fontSize: mobile ? 30 : 48, fontWeight: 800, letterSpacing: '-1px', lineHeight: 1.08, color: C.t1, maxWidth: 760, margin: '0 auto' }}>
-            Earn recurring income.<br />Partner with <span style={{ color: C.green }}>TrustDubai</span>.
+            Earn recurring income.<br />Partner with <span style={{ color: C.green }}>Quvera</span>.
           </h1>
           <p style={{ fontSize: mobile ? 15 : 17, color: C.t2, lineHeight: 1.6, maxWidth: 600, margin: '18px auto 0' }}>
             Refer Dubai businesses to the platform that verifies trust. They subscribe, you earn up to <b style={{ color: C.t1 }}>30% recurring commission</b> — every single month.
@@ -290,7 +290,7 @@ export default function Partner() {
           <div style={{ display: 'grid', gridTemplateColumns: cols3, gap: 16 }}>
             {[
               ['🏢', 'Marketing agencies', 'Add a recurring revenue line on top of the services you already sell to local businesses.'],
-              ['📋', 'Business-setup consultants', 'You already help companies launch in Dubai — add TrustDubai verification to your offering.'],
+              ['📋', 'Business-setup consultants', 'You already help companies launch in Dubai — add Quvera verification to your offering.'],
               ['💼', 'Freelancers & connectors', 'Know contractors, interior firms, or home-service businesses? Refer and earn monthly.'],
             ].map((s, i) => (
               <div key={i} style={card}>
@@ -308,7 +308,7 @@ export default function Partner() {
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <div style={kicker}>Apply now</div>
-            <h2 style={h2}>Become a TrustDubai Partner</h2>
+            <h2 style={h2}>Become a Quvera Partner</h2>
             <p style={{ fontSize: 14.5, color: C.t2, marginTop: 10 }}>Free to join. We review every application to protect the platform's trust.</p>
           </div>
 
@@ -317,7 +317,7 @@ export default function Partner() {
               <div style={{ fontSize: 46, marginBottom: 10 }}>✅</div>
               <div style={{ fontSize: 20, fontWeight: 800, color: C.t1 }}>Application received!</div>
               <p style={{ fontSize: 14.5, color: C.t2, lineHeight: 1.6, marginTop: 12, maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
-                Thank you for applying to the TrustDubai Partner Program. Our team will review your application and reach out by email. Once approved, you'll receive your unique referral link to start earning.
+                Thank you for applying to the Quvera Partner Program. Our team will review your application and reach out by email. Once approved, you'll receive your unique referral link to start earning.
               </p>
               <a href="/" className="pt-btn" style={{ display: 'inline-block', marginTop: 22, background: C.cardSoft, border: `1px solid ${C.line}`, color: C.t1, fontWeight: 700, fontSize: 14, padding: '11px 22px', borderRadius: 11, textDecoration: 'none' }}>Back to Home</a>
             </div>

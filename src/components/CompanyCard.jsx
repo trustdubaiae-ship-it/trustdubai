@@ -77,7 +77,7 @@ export default function CompanyCard({ company, onClick }) {
 
   // WhatsApp contact (predefined message)
   const waNumber = (company.whatsapp || company.phone || '').replace(/[^0-9]/g, '')
-  const waMsg = encodeURIComponent("Hi, I saw your profile on TrustDubai and I'm interested in your services. Can we discuss?")
+  const waMsg = encodeURIComponent("Hi, I saw your profile on Quvera and I'm interested in your services. Can we discuss?")
   function openWhatsApp(e) {
     e.stopPropagation()
     if (!waNumber) return

@@ -66,7 +66,7 @@ export default function PublicLeadForm() {
     setCompany(c || null)
     const { data: q } = await supabase.from('lead_form_questions').select('*').eq('form_id', f.id).order('order_num')
     setQuestions(q || [])
-    document.title = (c?.name ? c.name + ' — ' : '') + (f.title || 'Get a Quote') + ' | TrustDubai'
+    document.title = (c?.name ? c.name + ' — ' : '') + (f.title || 'Get a Quote') + ' | Quvera'
     setLoading(false)
   }
 
@@ -116,7 +116,7 @@ export default function PublicLeadForm() {
         <div style={{ fontSize: 52 }}>🔍</div>
         <h2 style={{ fontFamily: "'Sora',sans-serif", color: '#16233a', margin: '12px 0' }}>Form not found</h2>
         <p style={{ color: '#56657c', fontSize: 14, marginBottom: 16 }}>This form may have been removed or is no longer active.</p>
-        <button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#1d6fb8', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 700 }}>Go to TrustDubai</button>
+        <button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#1d6fb8', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 700 }}>Go to Quvera</button>
       </div>
     </div>
   )
@@ -192,7 +192,7 @@ export default function PublicLeadForm() {
                 View {company.name} profile →
               </button>
             )}
-            <div style={{ marginTop: 18, fontSize: 11, color: TH.t3 }}>Powered by 🛡️ TrustDubai</div>
+            <div style={{ marginTop: 18, fontSize: 11, color: TH.t3 }}>Powered by 🛡️ Quvera</div>
           </div>
         ) : (
           <form onSubmit={submit} style={{ padding: 22 }}>
@@ -226,7 +226,7 @@ export default function PublicLeadForm() {
             </button>
 
             <div style={{ textAlign: 'center', marginTop: 16, fontSize: 11, color: TH.t3, lineHeight: 1.6 }}>
-              🔒 Your details are shared only with {company?.name || 'this business'}.<br />Powered by 🛡️ TrustDubai
+              🔒 Your details are shared only with {company?.name || 'this business'}.<br />Powered by 🛡️ Quvera
             </div>
           </form>
         )}

@@ -56,7 +56,7 @@ function makeTheme(dark) {
 function setSEO({ title, description, image, url }) {
   document.title = title
   const setMeta = (n, c, p = false) => { const a = p ? 'property' : 'name'; let el = document.querySelector(`meta[${a}="${n}"]`); if (!el) { el = document.createElement('meta'); el.setAttribute(a, n); document.head.appendChild(el) } el.setAttribute('content', c) }
-  setMeta('description', description); setMeta('og:title', title, true); setMeta('og:description', description, true); setMeta('og:url', url, true); setMeta('og:type', 'business.business', true); setMeta('og:image', image, true); setMeta('og:site_name', 'TrustDubai', true)
+  setMeta('description', description); setMeta('og:title', title, true); setMeta('og:description', description, true); setMeta('og:url', url, true); setMeta('og:type', 'business.business', true); setMeta('og:image', image, true); setMeta('og:site_name', 'Quvera', true)
   const old = document.getElementById('jsonld-business'); if (old) old.remove()
 }
 function setJsonLD(company, reviews) {
@@ -316,7 +316,7 @@ export default function PublicProfile() {
     if (data.category) { const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, total_reviews, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(6); setRelated(rel || []) }
     const reviewData = reviewRes.data || []
     const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
-    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | TrustDubai', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://trustdubai.ae/og-image.png', url: 'https://trustdubai.ae/' + slug })
+    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://trustdubai.ae/og-image.png', url: 'https://trustdubai.ae/' + slug })
     setJsonLD(data, reviewData); trackProfileView(data.id); setLoading(false)
   }
   async function refreshTeam() {
@@ -379,7 +379,7 @@ export default function PublicProfile() {
         })
       } catch (e) {}
     }
-    if (company.whatsapp) { const msg = ['🏢 *New Lead from TrustDubai*', '', '👤 Name: ' + (name || 'Not provided'), '📞 Phone: ' + (phone || 'Not provided'), '✉️ Email: ' + (email || 'Not provided'), '📍 Area: ' + (area || 'Not provided'), '', '📋 *Answers:*', ...Object.entries(fullAnswers).map(([q, a]) => '• ' + q + ': ' + a), '', '🔗 Via: trustdubai.ae/' + slug].join('\n'); window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank') }
+    if (company.whatsapp) { const msg = ['🏢 *New Lead from Quvera*', '', '👤 Name: ' + (name || 'Not provided'), '📞 Phone: ' + (phone || 'Not provided'), '✉️ Email: ' + (email || 'Not provided'), '📍 Area: ' + (area || 'Not provided'), '', '📋 *Answers:*', ...Object.entries(fullAnswers).map(([q, a]) => '• ' + q + ': ' + a), '', '🔗 Via: trustdubai.ae/' + slug].join('\n'); window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank') }
     setSubmitting(false); setSubmitted(true)
   }
   async function submitReview(e) { e.preventDefault(); if (!requireLogin('review')) return; if (!reviewText.trim()) return; setSubmittingReview(true); await supabase.from('reviews').insert({ company_id: company.id, reviewer_name: customer.full_name || customer.email, reviewer_email: customer.email, customer_id: customer.id, rating: reviewRating, review_text: reviewText, is_approved: true }); setSubmittingReview(false); setReviewSubmitted(true); setShowReviewForm(false); setReviewText(''); await refreshReviews() }
@@ -408,7 +408,7 @@ export default function PublicProfile() {
   `}</style>
 
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070b15' }}><Fonts /><div style={{ textAlign: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid #4f9fe0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'tdspin .8s linear infinite', margin: '0 auto 14px' }} /><div style={{ fontSize: 14, color: '#9aa7bd', fontFamily: 'Manrope,sans-serif' }}>Loading profile…</div></div></div>
-  if (notFound) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e7ecf3' }}><Fonts /><div style={{ textAlign: 'center', padding: 40 }}><div style={{ fontSize: 52 }}>🔍</div><h2 style={{ fontFamily: 'Sora,sans-serif', color: '#16233a', margin: '12px 0' }}>Company not found</h2><button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#1d6fb8', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 700 }}>Go to TrustDubai</button></div></div>
+  if (notFound) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e7ecf3' }}><Fonts /><div style={{ textAlign: 'center', padding: 40 }}><div style={{ fontSize: 52 }}>🔍</div><h2 style={{ fontFamily: 'Sora,sans-serif', color: '#16233a', margin: '12px 0' }}>Company not found</h2><button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#1d6fb8', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 700 }}>Go to Quvera</button></div></div>
 
   const plan = company.plan || 'free'
   const isPremium = plan === 'gold' || plan === 'platinum'
@@ -638,7 +638,7 @@ export default function PublicProfile() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '8px 0 14px' }}>
                 {company.is_verified && <span className="td-shine" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, color: '#fff', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: 'linear-gradient(135deg,#1e9e63,#22c55e)', padding: '4px 11px', borderRadius: 20 }}>✓ Verified Business</span>}
                 {plan !== 'free' && <span className={isPremium ? 'td-shine' : ''} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: TH.gradGold, color: '#3a2c00', padding: '4px 11px', borderRadius: 20, boxShadow: isPremium ? TH.glowGold : 'none' }}>{isPlatinum ? '💎' : '★'} {isPremium ? 'Premium · ' : ''}{plan.charAt(0).toUpperCase() + plan.slice(1)}</span>}
-                {isListed && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, padding: '4px 11px', borderRadius: 20 }}>📍 Listed on TrustDubai</span>}
+                {isListed && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', background: TH.soft, border: `1px solid ${TH.line}`, color: TH.t2, padding: '4px 11px', borderRadius: 20 }}>📍 Listed on Quvera</span>}
               </div>
               {gRating > 0 && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginBottom: 14, background: TH.soft, border: `1px solid ${TH.line}`, padding: '6px 12px', borderRadius: 20, maxWidth: '100%', flexWrap: 'wrap' }}>
@@ -658,7 +658,7 @@ export default function PublicProfile() {
               </div>
               <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 14 }}>{cats.map(c => chip(c, c))}{company.location && chip('📍 ' + company.location, 'loc')}</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
-                {company.whatsapp && <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent("Hi, I saw your profile on TrustDubai and I'm interested in your services."), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#25D366', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 18px rgba(37,211,102,0.32)' }}>💬 WhatsApp</button>}
+                {company.whatsapp && <button onClick={() => window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent("Hi, I saw your profile on Quvera and I'm interested in your services."), '_blank')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: '#25D366', color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 6px 18px rgba(37,211,102,0.32)' }}>💬 WhatsApp</button>}
                 {company.phone && <a href={'tel:' + company.phone.replace(/\s/g, '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: TH.soft, color: TH.t1, border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', textDecoration: 'none' }}>📞 Call</a>}
                 {leadForm && <button onClick={() => setShowQuote(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: TH.grad, color: '#fff', border: 'none', borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: TH.glow }}>📩 Get a Quote</button>}
                 <button onClick={() => { scrollTo('reviews'); if (requireLogin('review')) setShowReviewForm(true) }} style={{ padding: '8px 16px', background: TH.soft, color: TH.t1, border: `1px solid ${TH.line}`, borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>★ Write Review</button>
@@ -806,7 +806,7 @@ export default function PublicProfile() {
                 <div style={{ textAlign: 'center', padding: '24px 16px', border: `1px dashed ${TH.line}`, borderRadius: 10, background: TH.soft }}>
                   <div style={{ fontSize: 26, marginBottom: 8 }}>🔗</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: TH.t1, marginBottom: 5 }}>Google Reviews coming soon</div>
-                  <div style={{ fontSize: 11, color: TH.t3, lineHeight: 1.6 }}>Once connected, verified Google reviews will appear here alongside TrustDubai reviews.</div>
+                  <div style={{ fontSize: 11, color: TH.t3, lineHeight: 1.6 }}>Once connected, verified Google reviews will appear here alongside Quvera reviews.</div>
                 </div>
               </Card>
             )}
@@ -998,7 +998,7 @@ export default function PublicProfile() {
               })}
             </div>
             <div style={{ marginTop: 16, padding: '11px 13px', borderRadius: 10, background: TH.soft, fontSize: 11, color: TH.t3, lineHeight: 1.5, textAlign: 'center' }}>
-              Documents are verified by the TrustDubai team against official records.
+              Documents are verified by the Quvera team against official records.
             </div>
           </div>
         </div>
