@@ -105,7 +105,7 @@ export default function Partner() {
         if ((e.message || '').toLowerCase().includes('duplicate')) {
           setError('An application with this email already exists. We will be in touch.')
         } else {
-          setError('Something went wrong. Please try again or email partners@trustdubai.ae')
+          setError('Something went wrong. Please try again or email partners@quvera.ae')
         }
         setSending(false)
         return

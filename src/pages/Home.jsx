@@ -787,7 +787,7 @@ function RightPanel({ recentReviews, trending, onCompanyClick }) {
           <i className="ti ti-ad-2" style={{ fontSize:11, color:'#0099cc' }}/> Sponsored
         </div>
         {sponsoredCos.length === 0 ? (
-          <div onClick={()=>window.open('https://business.trustdubai.ae','_blank')}
+          <div onClick={()=>window.open('https://business.quvera.ae','_blank')}
             style={{ background:'#f0faff', border:'0.5px dashed #b3d9f0', borderRadius:8, padding:'12px 10px', cursor:'pointer', textAlign:'center' }}>
             <i className="ti ti-speakerphone" style={{ fontSize:18, color:'#0099cc', display:'block', marginBottom:5 }} />
             <div style={{ fontSize:10, fontWeight:700, color:'var(--text-primary)', marginBottom:2 }}>Advertise here</div>
@@ -1067,7 +1067,7 @@ export default function Home({ navigate }) {
   const isTablet  = device === 'tablet'
   const isDesktop = device === 'desktop'
 
-  const BIZ_URL = 'https://business.trustdubai.ae'
+  const BIZ_URL = 'https://business.quvera.ae'
 
   useEffect(() => {
     fetchAll()

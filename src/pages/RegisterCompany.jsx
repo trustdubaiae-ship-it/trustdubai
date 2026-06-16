@@ -132,7 +132,7 @@ export default function RegisterCompany({ navigate }) {
         <div style={{ fontSize: 19, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>{existing.name} is already listed!</div>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.6 }}>Your business is live on Quvera. Manage everything from the business portal.</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
-          <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Open Business Portal →</button>
+          <button onClick={() => window.open('https://business.quvera.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Open Business Portal →</button>
           {existing.slug && <button onClick={() => window.location.href = '/' + existing.slug} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 24, padding: '12px', fontSize: 14, cursor: 'pointer' }}>View Public Profile</button>}
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function RegisterCompany({ navigate }) {
           {isRejected && existing.rejection_reason && <div style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', borderRadius: 10, padding: '10px 14px', fontSize: 12.5, color: 'var(--red)', maxWidth: 340, margin: '0 auto 18px' }}>Reason: {existing.rejection_reason}</div>}
           {!isRejected && <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 24 }}>You can set up your profile in the portal now. You'll be notified by email once approved.</p>}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
-            <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Go to Business Portal →</button>
+            <button onClick={() => window.open('https://business.quvera.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Go to Business Portal →</button>
             <button onClick={() => navigate('home')} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 24, padding: '12px', fontSize: 14, cursor: 'pointer' }}>Back to Home</button>
           </div>
         </div>
@@ -165,7 +165,7 @@ export default function RegisterCompany({ navigate }) {
       <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8, color: 'var(--text-primary)' }}>Listing submitted!</div>
       <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.6 }}>We'll review your application and notify you on {form.email || form.phone}. Set up your profile in the portal now — it goes live once approved.</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 300, margin: '0 auto' }}>
-        <button onClick={() => window.open('https://business.trustdubai.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Open Business Portal →</button>
+        <button onClick={() => window.open('https://business.quvera.ae', '_blank')} style={{ background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Open Business Portal →</button>
         <button onClick={() => navigate('home')} style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-default)', borderRadius: 24, padding: '12px', fontSize: 14, cursor: 'pointer' }}>Back to Home</button>
       </div>
     </div>

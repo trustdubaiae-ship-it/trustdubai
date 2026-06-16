@@ -14,9 +14,9 @@ const LEGAL = {
   chamber:   '684850',                                     // Dubai Chamber membership number
   authority: 'Dubai Department of Economy & Tourism (DET)',
   address:   'Office G-02-38, Al Khabaisi, Deira, Dubai, United Arab Emirates',
-  email:     'support@trustdubai.ae',                      // official platform support email
+  email:     'support@quvera.ae',                      // official platform support email
   phone:     '+971 54 446 0966',                           // support phone / WhatsApp
-  site:      'trustdubai.ae',
+  site:      'quvera.ae',
   effective: '9 June 2026',
 }
 

@@ -258,7 +258,7 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
         {/* footer help */}
         <div style={{ marginTop: 24, textAlign: 'center', fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.7 }}>
           Not listed yet? <span onClick={() => navigate('register-company')} style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 600 }}>List your business</span><br />
-          Need help? <a href="mailto:support@trustdubai.ae" style={{ color: 'var(--primary)' }}>support@trustdubai.ae</a>
+          Need help? <a href="mailto:support@quvera.ae" style={{ color: 'var(--primary)' }}>support@quvera.ae</a>
         </div>
       </div>
     </div>

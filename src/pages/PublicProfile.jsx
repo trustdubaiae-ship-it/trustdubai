@@ -61,7 +61,7 @@ function setSEO({ title, description, image, url }) {
 }
 function setJsonLD(company, reviews) {
   const s = document.createElement('script'); s.id = 'jsonld-business'; s.type = 'application/ld+json'
-  s.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://trustdubai.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: reviews.length > 0 ? { '@type': 'AggregateRating', ratingValue: (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1), reviewCount: reviews.length, bestRating: 5, worstRating: 1 } : undefined })
+  s.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: reviews.length > 0 ? { '@type': 'AggregateRating', ratingValue: (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1), reviewCount: reviews.length, bestRating: 5, worstRating: 1 } : undefined })
   document.head.appendChild(s)
 }
 function analyzeReview(r) {
@@ -316,7 +316,7 @@ export default function PublicProfile() {
     if (data.category) { const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, total_reviews, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(6); setRelated(rel || []) }
     const reviewData = reviewRes.data || []
     const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
-    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://trustdubai.ae/og-image.png', url: 'https://trustdubai.ae/' + slug })
+    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://quvera.ae/og-image.png', url: 'https://quvera.ae/' + slug })
     setJsonLD(data, reviewData); trackProfileView(data.id); setLoading(false)
   }
   async function refreshTeam() {
@@ -379,7 +379,7 @@ export default function PublicProfile() {
         })
       } catch (e) {}
     }
-    if (company.whatsapp) { const msg = ['🏢 *New Lead from Quvera*', '', '👤 Name: ' + (name || 'Not provided'), '📞 Phone: ' + (phone || 'Not provided'), '✉️ Email: ' + (email || 'Not provided'), '📍 Area: ' + (area || 'Not provided'), '', '📋 *Answers:*', ...Object.entries(fullAnswers).map(([q, a]) => '• ' + q + ': ' + a), '', '🔗 Via: trustdubai.ae/' + slug].join('\n'); window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank') }
+    if (company.whatsapp) { const msg = ['🏢 *New Lead from Quvera*', '', '👤 Name: ' + (name || 'Not provided'), '📞 Phone: ' + (phone || 'Not provided'), '✉️ Email: ' + (email || 'Not provided'), '📍 Area: ' + (area || 'Not provided'), '', '📋 *Answers:*', ...Object.entries(fullAnswers).map(([q, a]) => '• ' + q + ': ' + a), '', '🔗 Via: quvera.ae/' + slug].join('\n'); window.open('https://wa.me/' + company.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(msg), '_blank') }
     setSubmitting(false); setSubmitted(true)
   }
   async function submitReview(e) { e.preventDefault(); if (!requireLogin('review')) return; if (!reviewText.trim()) return; setSubmittingReview(true); await supabase.from('reviews').insert({ company_id: company.id, reviewer_name: customer.full_name || customer.email, reviewer_email: customer.email, customer_id: customer.id, rating: reviewRating, review_text: reviewText, is_approved: true }); setSubmittingReview(false); setReviewSubmitted(true); setShowReviewForm(false); setReviewText(''); await refreshReviews() }

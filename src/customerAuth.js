@@ -4,9 +4,9 @@ export async function signInWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.href.includes('trustdubai.ae')
+      redirectTo: window.location.href.includes('quvera.ae')
         ? window.location.href
-        : 'https://trustdubai.ae',
+        : 'https://quvera.ae',
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',

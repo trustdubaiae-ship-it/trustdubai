@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://trustdubai.ae/sitemap.xml
+Sitemap: https://quvera.ae/sitemap.xml
