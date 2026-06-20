@@ -436,6 +436,8 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
       if (insErr) throw insErr
       await supabase.from('lead_forms').update({ submit_count: (form.submit_count || 0) + 1 }).eq('id', form.id)
       setDone(true)
+      // Meta Pixel — track lead conversion for ads optimisation
+      try { if (typeof window !== 'undefined' && window.fbq) window.fbq('track', 'Lead'); } catch (e) {}
       if (ins?.id) { setLeadId(ins.id); fetchMatched(ins.id) }
     } catch (e) { console.error(e); setError('Something went wrong. Please try again.') }
     finally { setSubmitting(false) }
