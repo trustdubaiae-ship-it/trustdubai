@@ -18,7 +18,6 @@ const AREAS = [
   'Jumeirah Beach Residence (JBR)','DIFC','City Walk','Al Furjan','Discovery Gardens',
   'Motor City','Jumeirah Golf Estates','Dubailand','International City','Town Square',
 ]
-
 const slugify = (s) => s.toLowerCase()
   .replace(/&/g,'and').replace(/[()]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')
 
@@ -39,6 +38,21 @@ function resolveSlug(slug) {
   return { service: null, area: null }
 }
 
+// Single source of truth for FAQs (used by both the page and FAQPage schema)
+function buildFaqs(service, where) {
+  const s = service.toLowerCase()
+  return [
+    { q:`How do I find the best ${s} company in ${where}?`,
+      a:`Browse verified ${s} companies in ${where} on Quvera. Compare real customer reviews, ratings and trust scores, then request up to 3 free quotes to choose the right professional.` },
+    { q:`Are these ${s} companies in ${where} verified?`,
+      a:`Yes. Quvera verifies every business through trade licence, Emirates ID and document checks, so you only deal with trusted, legitimate ${s} companies in ${where}.` },
+    { q:`How much does ${s} cost in ${where}?`,
+      a:`Pricing depends on your project size, materials and finish. The easiest way is to request free quotes from multiple verified ${s} companies in ${where} and compare them side by side — with no obligation.` },
+    { q:`How quickly can I get quotes for ${s} in ${where}?`,
+      a:`Most customers are matched with trusted ${s} companies in ${where} within minutes. Share a few project details and verified companies will reach out with their quotes.` },
+  ]
+}
+
 function setSEO({ title, description, url }) {
   document.title = title
   const set = (n, c, p=false) => {
@@ -49,22 +63,62 @@ function setSEO({ title, description, url }) {
   }
   set('description', description)
   set('og:title', title, true); set('og:description', description, true)
-  set('og:url', url, true); set('og:type', 'website', true)
+  set('og:url', url, true); set('og:type', 'website', true); set('og:site_name', 'Quvera', true)
+  set('twitter:card', 'summary_large_image'); set('twitter:title', title); set('twitter:description', description)
   let link = document.querySelector('link[rel="canonical"]')
   if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link) }
   link.href = url
 }
 
-function setJsonLD(service, area, companies) {
+function setJsonLD(service, area, companies, faqs) {
   const old = document.getElementById('jsonld-service'); if (old) old.remove()
+  const where = area || 'Dubai'
+  const url = `https://www.quvera.ae/services/${slugify(service)}${area ? '-' + slugify(area) : ''}`
+
+  const graph = [
+    {
+      '@type':'Service',
+      '@id': url + '#service',
+      name: `${service} in ${where}`,
+      serviceType: service,
+      areaServed: { '@type':'Place', name: `${where}, Dubai, UAE` },
+      provider: { '@type':'Organization', name:'Quvera', url:'https://www.quvera.ae' },
+      description: `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and trust scores, and get up to 3 free quotes.`,
+    },
+    {
+      '@type':'BreadcrumbList',
+      itemListElement: [
+        { '@type':'ListItem', position:1, name:'Home', item:'https://www.quvera.ae' },
+        { '@type':'ListItem', position:2, name:service, item:`https://www.quvera.ae/services/${slugify(service)}` },
+        ...(area ? [{ '@type':'ListItem', position:3, name:area, item:url }] : []),
+      ],
+    },
+    {
+      '@type':'FAQPage',
+      mainEntity: (faqs || []).map(f => ({
+        '@type':'Question', name: f.q,
+        acceptedAnswer: { '@type':'Answer', text: f.a },
+      })),
+    },
+  ]
+
+  // ItemList of the verified companies shown (helps Google understand the listing)
+  if (companies && companies.length) {
+    graph.push({
+      '@type':'ItemList',
+      name: `${service} companies in ${where}`,
+      numberOfItems: companies.length,
+      itemListElement: companies.slice(0, 20).map((c, i) => ({
+        '@type':'ListItem', position: i + 1,
+        url: c.slug ? `https://www.quvera.ae/${c.slug}` : undefined,
+        name: c.name,
+      })),
+    })
+  }
+
   const s = document.createElement('script')
   s.id = 'jsonld-service'; s.type = 'application/ld+json'
-  s.text = JSON.stringify({
-    '@context':'https://schema.org','@type':'Service',
-    serviceType: service, areaServed: { '@type':'Place', name: (area||'Dubai')+', Dubai' },
-    provider: { '@type':'Organization', name:'Quvera', url:'https://www.quvera.ae' },
-    description: `Find verified ${service} companies in ${area||'Dubai'}. Compare reviews and get free quotes.`,
-  })
+  s.text = JSON.stringify({ '@context':'https://schema.org', '@graph': graph })
   document.head.appendChild(s)
 }
 
@@ -98,11 +152,14 @@ export default function ServiceArea() {
       setCompanies(rows)
 
       const where = area ? `${area}, Dubai` : 'Dubai'
-      const title = `${service} in ${where} — Top Verified Companies | Quvera`
-      const desc  = `Find the best ${service.toLowerCase()} companies in ${where}. Compare verified reviews, ratings, and get up to 3 free quotes from trusted professionals.`
+      const cnt = rows.length
+      const title = `${service} Companies in ${where} — Top Verified | Quvera`
+      const desc  = cnt > 0
+        ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
+        : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`
       const url   = `https://www.quvera.ae/services/${serviceArea}`
       setSEO({ title, description: desc, url })
-      setJsonLD(service, area, rows)
+      setJsonLD(service, area, rows, buildFaqs(service, where))
     } catch(e){ console.error(e) }
     finally { setLoading(false) }
   }
@@ -114,7 +171,6 @@ export default function ServiceArea() {
     if (service) params.set('service', service)
     if (area)    params.set('area', area)
     if (!customer) {
-      // after login, Google redirect returns to home; still pass intent
       try { sessionStorage.setItem('td_quote_intent', params.toString()) } catch(e){}
       signInWithGoogle()
       return
@@ -145,14 +201,7 @@ export default function ServiceArea() {
   }
 
   const where = area || 'Dubai'
-  const FAQS = [
-    { q:`How do I find the best ${service.toLowerCase()} company in ${where}?`,
-      a:`Browse verified ${service.toLowerCase()} companies in ${where} on Quvera. Compare real customer reviews, ratings, and request up to 3 free quotes to choose the right professional.` },
-    { q:`Are these ${service.toLowerCase()} companies verified?`,
-      a:`Yes. Quvera verifies businesses through trade licence, Emirates ID, and document checks so you deal with trusted, legitimate companies in ${where}.` },
-    { q:`How much does ${service.toLowerCase()} cost in ${where}?`,
-      a:`Pricing depends on your project scope and finish. The easiest way is to request free quotes from multiple verified companies and compare — no obligation.` },
-  ]
+  const FAQS = buildFaqs(service, where)
 
   return (
     <div style={{ minHeight:'100vh', background:bg, fontFamily:"'Manrope',sans-serif", color:t1 }}>
@@ -161,26 +210,31 @@ export default function ServiceArea() {
       {/* Top bar */}
       <div style={{ background:card, borderBottom:`1px solid ${line}`, padding:'12px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:50 }}>
         <button onClick={()=>window.location.href='/'} style={{ display:'flex', alignItems:'center', background:'none', border:'none', cursor:'pointer', fontFamily:"'Sora',sans-serif", fontWeight:800, fontSize:17, color:t1 }}>
-          Trust<span style={{ color:'#0099cc' }}>Dubai</span>
+          Quv<span style={{ color:'#0099cc' }}>era</span>
         </button>
         <button onClick={()=>setDark(d=>{ const n=!d; try{localStorage.setItem('td_theme',n?'dark':'light')}catch(e){} return n })}
           style={{ width:34, height:34, borderRadius:9, border:`1px solid ${line}`, background:soft, color:t2, cursor:'pointer', fontSize:15 }}>{dark?'☀️':'🌙'}</button>
       </div>
 
       <div style={{ maxWidth:1100, margin:'0 auto', padding:'20px 16px 60px' }}>
-
         {/* Breadcrumb */}
         <div style={{ fontSize:12, color:t3, marginBottom:14 }}>
-          <span onClick={()=>window.location.href='/'} style={{ cursor:'pointer', color:'#0099cc' }}>Home</span> › {service} {area ? '› '+area : ''}
+          <span onClick={()=>window.location.href='/'} style={{ cursor:'pointer', color:'#0099cc' }}>Home</span>
+          {' › '}
+          <a href={`/services/${slugify(service)}`} style={{ color:'#0099cc', textDecoration:'none' }}>{service}</a>
+          {area ? ' › '+area : ''}
         </div>
 
         {/* Hero */}
         <div style={{ background:card, border:`1px solid ${line}`, borderRadius:16, padding:'24px 22px', marginBottom:16 }}>
           <h1 style={{ fontFamily:"'Sora',sans-serif", fontSize:'clamp(22px,4vw,32px)', fontWeight:800, color:t1, lineHeight:1.15, marginBottom:8 }}>
-            {service} in {where}
+            {service} Companies in {where}
           </h1>
-          <p style={{ fontSize:15, color:t2, lineHeight:1.6, maxWidth:680 }}>
-            Find top-rated, verified {service.toLowerCase()} companies in {where}. Compare real customer reviews and get up to 3 free quotes from trusted professionals — fast.
+          <p style={{ fontSize:15, color:t2, lineHeight:1.6, maxWidth:700 }}>
+            Find top-rated, verified {service.toLowerCase()} companies in {where}. Compare real customer reviews, ratings and trust scores, then get up to 3 free quotes from trusted professionals — fast.
+          </p>
+          <p style={{ fontSize:14, color:t2, lineHeight:1.6, maxWidth:700, marginTop:10 }}>
+            Every {service.toLowerCase()} company on Quvera is checked through trade licence, Emirates ID and document verification, so you deal only with legitimate, trustworthy businesses in {where}. Browse profiles, read genuine reviews, and request quotes from several companies in one go — with no obligation.
           </p>
           <div style={{ display:'flex', gap:16, marginTop:16, flexWrap:'wrap' }}>
             <div><div style={{ fontFamily:"'Sora',sans-serif", fontSize:22, fontWeight:800, color:'#0099cc' }}>{companies.length}</div><div style={{ fontSize:11, color:t3 }}>Companies</div></div>
@@ -199,6 +253,24 @@ export default function ServiceArea() {
           </button>
         </div>
 
+        {/* Why verified (content depth + trust keywords) */}
+        <div style={{ background:card, border:`1px solid ${line}`, borderRadius:16, padding:'18px 20px', marginBottom:20 }}>
+          <h2 style={{ fontFamily:"'Sora',sans-serif", fontSize:15, fontWeight:700, color:t1, marginBottom:10 }}>Why choose a verified {service.toLowerCase()} company in {where}?</h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))', gap:12 }}>
+            {[
+              ['🛡️','Trade-licence verified','Every company is checked against its UAE trade licence and documents before listing.'],
+              ['⭐','Real, genuine reviews','See honest ratings and reviews from real customers — not paid placements.'],
+              ['💬','Up to 3 free quotes','Compare quotes from multiple trusted companies and pick the best fit for your budget.'],
+            ].map(([ic,h,d])=>(
+              <div key={h} style={{ background:soft, border:`1px solid ${line}`, borderRadius:12, padding:14 }}>
+                <div style={{ fontSize:22 }}>{ic}</div>
+                <div style={{ fontSize:13.5, fontWeight:700, color:t1, margin:'6px 0 4px' }}>{h}</div>
+                <div style={{ fontSize:12, color:t2, lineHeight:1.5 }}>{d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {loading ? (
           <div style={{ textAlign:'center', padding:50 }}>
             <div style={{ width:34, height:34, border:'3px solid #0099cc', borderTopColor:'transparent', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto' }}/>
@@ -207,7 +279,7 @@ export default function ServiceArea() {
         ) : companies.length > 0 ? (
           <>
             <h2 style={{ fontFamily:"'Sora',sans-serif", fontSize:18, fontWeight:700, color:t1, marginBottom:12 }}>
-              Top {service} companies in {where}
+              Top {service.toLowerCase()} companies in {where}
             </h2>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:12, marginBottom:28 }}>
               {companies.map(c => (
@@ -284,7 +356,6 @@ export default function ServiceArea() {
             </div>
           ))}
         </div>
-
       </div>
     </div>
   )
