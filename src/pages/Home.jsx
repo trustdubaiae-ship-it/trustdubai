@@ -400,12 +400,8 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   async function fetchMatched(leadId) {
     setMatchLoading(true)
     async function query() {
-      const { data } = await supabase
-        .from('lead_distributions')
-        .select('rank, companies(id,name,slug,logo_url,avg_rating,total_reviews,trust_score,is_verified,category,plan)')
-        .eq('lead_id', leadId)
-        .order('rank', { ascending: true })
-      return (data || []).map(d => d.companies).filter(Boolean)
+      const { data } = await supabase.rpc('get_lead_matches', { p_lead_id: leadId })
+      return Array.isArray(data) ? data : []
     }
     try {
       await new Promise(r => setTimeout(r, 1500))
@@ -440,22 +436,20 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
     try {
       const answerObj = {}
       questions.forEach(q => { answerObj[q.question] = answers[q.id] ?? '' })
-      const { data: ins, error: insErr } = await supabase.from('lead_submissions').insert({
-        form_id: form.id,
-        name: leadName,
-        phone: leadPhone,
-        email: leadEmail || '',
-        answers: { ...answerObj, _area: leadArea || '' },
-        source_url: 'home',
-        customer_id: customer?.id || null,
-        status: 'new',
-      }).select('id').single()
+      const { data: newId, error: insErr } = await supabase.rpc('submit_public_lead', {
+        p_form_id: form.id,
+        p_name: leadName,
+        p_phone: leadPhone,
+        p_email: leadEmail || '',
+        p_answers: { ...answerObj, _area: leadArea || '' },
+        p_source_url: 'home',
+        p_customer_id: customer?.id || null,
+      })
       if (insErr) throw insErr
-      await supabase.from('lead_forms').update({ submit_count: (form.submit_count || 0) + 1 }).eq('id', form.id)
       setDone(true)
       // Meta Pixel — track lead conversion for ads optimisation
       try { if (typeof window !== 'undefined' && window.fbq) window.fbq('track', 'Lead'); } catch (e) {}
-      if (ins?.id) { setLeadId(ins.id); fetchMatched(ins.id) }
+      if (newId) { setLeadId(newId); fetchMatched(newId) }
     } catch (e) { console.error(e); setError('Something went wrong. Please try again.') }
     finally { setSubmitting(false) }
   }
