@@ -338,9 +338,19 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   const [matchLoading, setMatchLoading] = useState(false)
   const [leadId, setLeadId]     = useState(null)
   const [chatCo, setChatCo]     = useState(null)
+  const [gName, setGName]       = useState('')
+  const [gPhone, setGPhone]     = useState('')
+  const [gEmail, setGEmail]     = useState('')
+  const [gArea, setGArea]       = useState('')
 
   useEffect(() => {
-    if (open) { loadForm(); setDone(false); setAnswers({}); setError(''); setMatched([]); setLeadId(null); setChatCo(null) }
+    if (open) {
+      loadForm(); setDone(false); setAnswers({}); setError(''); setMatched([]); setLeadId(null); setChatCo(null)
+      setGName(customer?.full_name || '')
+      setGPhone(customer?.phone || '')
+      setGEmail(customer?.email || '')
+      setGArea(customer?.area || '')
+    }
   }, [open])
 
   async function loadForm() {
@@ -410,6 +420,13 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   }
 
   async function submit() {
+    const leadName  = (gName  || customer?.full_name || '').trim()
+    const leadPhone = (gPhone || customer?.phone || '').trim()
+    const leadEmail = (gEmail || customer?.email || '').trim()
+    const leadArea  = (gArea  || customer?.area || '')
+    if (!leadName)  { setError('Please enter your name'); return }
+    if (!leadPhone || leadPhone.replace(/[^0-9]/g,'').length < 7) { setError('Please enter a valid phone number'); return }
+    if (!leadArea)  { setError('Please select your area'); return }
     for (const q of questions) {
       if (q.required) {
         const a = answers[q.id]
@@ -425,12 +442,12 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
       questions.forEach(q => { answerObj[q.question] = answers[q.id] ?? '' })
       const { data: ins, error: insErr } = await supabase.from('lead_submissions').insert({
         form_id: form.id,
-        name: customer.full_name || customer.email?.split('@')[0] || 'Customer',
-        phone: customer.phone || '',
-        email: customer.email || '',
-        answers: { ...answerObj, _area: customer.area || '' },
+        name: leadName,
+        phone: leadPhone,
+        email: leadEmail || '',
+        answers: { ...answerObj, _area: leadArea || '' },
         source_url: 'home',
-        customer_id: customer.id || null,
+        customer_id: customer?.id || null,
         status: 'new',
       }).select('id').single()
       if (insErr) throw insErr
@@ -585,10 +602,30 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
                   })}
                 </div>
 
-                <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px 11px', fontSize:10.5, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
-                  <i className="ti ti-user-check" style={{ fontSize:13 }} />
-                  Signed in as {customer.full_name || customer.email?.split('@')[0]} · {customer.phone || ''} {customer.area ? '· '+customer.area : ''}
+                <div style={{ display:'flex', flexDirection:'column', gap:13, marginBottom:14 }}>
+                  <div>
+                    <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>Your Name <span style={{ color:'#ef4444' }}>*</span></div>
+                    <input value={gName} onChange={e=>setGName(e.target.value)} placeholder="e.g. Ankit Sharma" style={inpStyle} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>Phone / WhatsApp <span style={{ color:'#ef4444' }}>*</span></div>
+                    <input value={gPhone} onChange={e=>setGPhone(e.target.value)} placeholder="+971 50 000 0000" inputMode="tel" style={inpStyle} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>Your Area in Dubai <span style={{ color:'#ef4444' }}>*</span></div>
+                    <select value={gArea} onChange={e=>setGArea(e.target.value)} style={inpStyle}>
+                      <option value="">Select area...</option>
+                      {DUBAI_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
                 </div>
+
+                {customer && (
+                  <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px 11px', fontSize:10.5, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
+                    <i className="ti ti-user-check" style={{ fontSize:13 }} />
+                    Signed in as {customer.full_name || customer.email?.split('@')[0]}
+                  </div>
+                )}
 
                 {error && <div style={{ fontSize:11.5, color:'#dc2626', marginBottom:10 }}>{error}</div>}
 
@@ -1064,6 +1101,7 @@ export default function Home({ navigate }) {
   const [authChecked,   setAuthChecked]   = useState(false)
   const [leadModalOpen, setLeadModalOpen] = useState(false)
   const [profileGateOpen, setProfileGateOpen] = useState(false)
+  const [requireLogin, setRequireLogin] = useState(false)
   const device    = useDevice()
   const isMobile  = device === 'mobile'
   const isTablet  = device === 'tablet'
@@ -1102,6 +1140,14 @@ export default function Home({ navigate }) {
 
     if (!urlIntent && !savedIntent) return
 
+    // No login required → open the form directly (guests allowed, zero friction)
+    if (!requireLogin) {
+      try { sessionStorage.removeItem('td_quote_intent') } catch(e) {}
+      try { window.history.replaceState({}, '', '/') } catch(e) {}
+      setLeadModalOpen(true)
+      return
+    }
+
     // Logged in → clear intent, clean the URL, open form (or profile gate)
     if (customer) {
       try { sessionStorage.removeItem('td_quote_intent') } catch(e) {}
@@ -1118,7 +1164,7 @@ export default function Home({ navigate }) {
       try { window.history.replaceState({}, '', '/') } catch(e) {}
       signInWithGoogle()
     }
-  }, [authChecked, customer, hasActiveForm])
+  }, [authChecked, customer, hasActiveForm, requireLogin])
 
   function scrollToSection(id) {
     if (id === 'top') { window.scrollTo({ top:0, behavior:'smooth' }); return }
@@ -1144,11 +1190,11 @@ export default function Home({ navigate }) {
   }
 
   function openQuotes() {
-    if (!customer) {
+    if (requireLogin && !customer) {
       try { sessionStorage.setItem('td_quote_intent', '1') } catch(e) {}
       signInWithGoogle(); return
     }
-    if (!profileComplete(customer)) { setProfileGateOpen(true); return }
+    if (requireLogin && customer && !profileComplete(customer)) { setProfileGateOpen(true); return }
     setLeadModalOpen(true)
   }
 
@@ -1196,7 +1242,7 @@ export default function Home({ navigate }) {
       const revData     = revAll
 
       let th = thresholds
-      if (settingsRow) { th = { ...thresholds, ...settingsRow }; setThresholds(th) }
+      if (settingsRow) { th = { ...thresholds, ...settingsRow }; setThresholds(th); setRequireLogin(settingsRow.require_login_for_quotes === true) }
       const avg = ratData?.length>0 ? (ratData.reduce((s,r)=>s+r.rating,0)/ratData.length).toFixed(1) : '0.0'
       setStats({ companies:totalCo||0, reviews:totalRev||0, avgRating:avg, verified:verifiedCo||0 })
       const approved = allCo||[]
