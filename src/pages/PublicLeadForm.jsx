@@ -98,6 +98,10 @@ export default function PublicLeadForm() {
 
     setSubmitting(false)
     if (error) { console.error(error); setErr('Something went wrong. Please try again.'); return }
+
+    // Meta Pixel — track lead conversion for ads optimisation
+    try { if (typeof window !== 'undefined' && window.fbq) window.fbq('track', 'Lead'); } catch (e) {}
+
     setSubmitted(true)
   }
 
@@ -158,7 +162,7 @@ export default function PublicLeadForm() {
       {/* top bar */}
       <div style={{ maxWidth: 560, margin: '0 auto 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 15, color: TH.t1 }}>
-          🛡️ Trust<span style={{ background: TH.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Dubai</span>
+          🛡️ <span style={{ background: TH.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Quvera</span>
         </button>
         <button onClick={() => setDark(d => !d)} style={{ width: 34, height: 34, borderRadius: 10, border: `1px solid ${TH.line}`, background: TH.soft, color: TH.t2, cursor: 'pointer', fontSize: 15 }}>{dark ? '☀️' : '🌙'}</button>
       </div>
