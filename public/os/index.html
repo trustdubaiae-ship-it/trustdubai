@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quvera Business OS — One platform. One workflow. One source of truth.</title>
+<meta name="description" content="Quvera Business OS — the AI operating system for UAE contractors, interior fit-out and service companies. Run the full lifecycle from LEAD to TRUST on one platform." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap" rel="stylesheet" />
+<style>
+/* ============== TOKENS ============== */
+:root{
+  --bg:#070B16;
+  --bg-2:#0B1120;
+  --panel:rgba(20,28,46,0.66);
+  --panel-solid:#121A2C;
+  --line:rgba(150,180,230,0.13);
+  --line-strong:rgba(150,180,230,0.26);
+  --ink:#EBF0FA;
+  --ink-soft:#BFC9DE;
+  --muted:#7C88A6;
+  --gold:#F4BC4E;
+  --gold-2:#FFD98A;
+  --steel:#5FA0FF;
+  --steel-2:#93BEFF;
+  --cyan:#43E6E6;
+  --teal:#34D7C2;
+  --glow-gold:rgba(244,188,78,0.20);
+  --glow-steel:rgba(95,160,255,0.22);
+  --glow-cyan:rgba(67,230,230,0.22);
+  --shadow:0 30px 80px -34px rgba(0,0,0,0.85);
+  --radius:14px;
+  --maxw:1180px;
+  --blur:16px;
+}
+:root[data-theme="light"]{
+  --bg:#EEF3FB;
+  --bg-2:#FFFFFF;
+  --panel:rgba(255,255,255,0.72);
+  --panel-solid:#FFFFFF;
+  --line:rgba(20,45,95,0.12);
+  --line-strong:rgba(20,45,95,0.2);
+  --ink:#091022;
+  --ink-soft:#283450;
+  --muted:#586484;
+  --gold:#B07908;
+  --gold-2:#8A5E05;
+  --steel:#2766DF;
+  --steel-2:#1A4FBE;
+  --cyan:#0C9CA0;
+  --teal:#0E9C8B;
+  --glow-gold:rgba(176,121,8,0.14);
+  --glow-steel:rgba(39,102,223,0.14);
+  --glow-cyan:rgba(12,156,160,0.14);
+  --shadow:0 30px 70px -36px rgba(20,45,95,0.30);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative}
+.aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aurora span{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;animation:drift 22s ease-in-out infinite}
+.aurora .a{width:520px;height:520px;background:var(--glow-gold);top:-12%;right:4%}
+.aurora .b{width:560px;height:560px;background:var(--glow-steel);top:24%;left:-10%;animation-delay:-7s}
+.aurora .c{width:440px;height:440px;background:var(--glow-cyan);bottom:-8%;left:42%;animation-delay:-13s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.08)}66%{transform:translate(-30px,40px) scale(.95)}}
+body::before{content:"";position:fixed;inset:-2px;z-index:0;pointer-events:none;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:60px 60px;animation:grid 24s linear infinite;mask-image:radial-gradient(circle at 50% 24%,#000,transparent 80%);-webkit-mask-image:radial-gradient(circle at 50% 24%,#000,transparent 80%);opacity:.55}
+@keyframes grid{from{background-position:0 0}to{background-position:60px 60px}}
+.scan{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.4;mix-blend-mode:overlay;background:repeating-linear-gradient(to bottom,transparent 0 3px,rgba(120,160,220,0.05) 3px 4px)}
+#fx{position:fixed;inset:0;z-index:0;pointer-events:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1}
+a{color:inherit;text-decoration:none}
+.mono{font-family:"IBM Plex Mono",monospace;letter-spacing:.04em}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);display:inline-flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.hud{position:relative}
+.hud::before,.hud::after{content:"";position:absolute;width:16px;height:16px;border:1.5px solid var(--cyan);opacity:.55;transition:opacity .25s}
+.hud::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.hud::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.hud:hover::before,.hud:hover::after{opacity:1}
+
+header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur));background:color-mix(in srgb,var(--bg) 66%,transparent);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;justify-content:space-between;height:66px}
+.brand{display:flex;align-items:center;gap:11px;font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:19px;letter-spacing:-.01em}
+.brand .mark{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,var(--gold),var(--steel));color:#070B16;font-weight:700;font-size:16px;font-family:"Clash Display","Space Grotesk",sans-serif;box-shadow:0 0 18px -2px var(--glow-gold)}
+.brand small{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;font-weight:400}
+.nav{display:flex;align-items:center;gap:26px}
+.nav a.link{font-size:13.5px;color:var(--muted);transition:color .2s}
+.nav a.link:hover{color:var(--ink)}
+.controls{display:flex;align-items:center;gap:12px}
+.toggle{width:38px;height:38px;border-radius:10px;border:1px solid var(--line-strong);background:var(--panel);color:var(--ink);cursor:pointer;display:grid;place-items:center;transition:.2s;backdrop-filter:blur(8px)}
+.toggle:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 0 16px -4px var(--glow-gold)}
+.toggle svg{width:18px;height:18px}
+.btn{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:500;letter-spacing:.04em;padding:11px 18px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:.2s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#070B16;font-weight:600;box-shadow:0 0 26px -6px var(--glow-gold)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 38px -6px var(--glow-gold)}
+.btn-ghost{background:var(--panel);border-color:var(--line-strong);color:var(--ink);backdrop-filter:blur(8px)}
+.btn-ghost:hover{border-color:var(--cyan);transform:translateY(-2px);box-shadow:0 0 22px -8px var(--glow-cyan)}
+
+.hero{padding:90px 0 30px;text-align:center}
+.boot{display:inline-flex;align-items:center;gap:10px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase;padding:7px 14px;border:1px solid var(--line-strong);border-radius:999px;background:var(--panel);backdrop-filter:blur(8px)}
+.boot i{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal);animation:blink 1.4s infinite}
+.hero h1{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.025em;font-size:clamp(40px,6.6vw,80px);line-height:1.0;margin:24px auto 0;max-width:14ch}
+.hero h1 .grad{background:linear-gradient(115deg,var(--gold),var(--cyan) 60%,var(--steel));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 40px var(--glow-gold)}
+.hero p.sub{margin:24px auto 0;max-width:60ch;font-size:clamp(16px,1.7vw,19px);color:var(--ink-soft)}
+.hero .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+
+.pipeline-shell{margin:56px auto 0;max-width:1000px;padding:34px 26px 26px;background:var(--panel);border:1px solid var(--line-strong);border-radius:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;backdrop-filter:blur(var(--blur))}
+.pipeline-shell .tag{position:absolute;top:14px;left:18px;font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);letter-spacing:.18em}
+.pipeline-shell .tag b{color:var(--teal);font-weight:500}
+.pipe-svg{width:100%;height:120px;display:block}
+.pipe-track{stroke:var(--line-strong);stroke-width:2;fill:none}
+.pipe-flow{stroke:url(#pg);stroke-width:2.4;fill:none;stroke-dasharray:14 200;animation:dash 3.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-214}}
+.pkt{fill:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan))}
+.nodeC{fill:var(--bg-2);stroke:var(--line-strong);stroke-width:1.5;transition:.3s}
+.nodeC.on{stroke:var(--gold);filter:drop-shadow(0 0 10px var(--glow-gold))}
+.nlabel{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;fill:var(--muted)}
+.nlabel.on{fill:var(--ink)}
+.nicon{stroke:var(--muted);stroke-width:1.6;fill:none;transition:.3s}
+.nicon.on{stroke:var(--gold)}
+.pipeline-caption{margin-top:8px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-align:center;letter-spacing:.03em}
+.pipeline-caption b{color:var(--ink)}
+
+.system{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin:44px auto 0;max-width:940px}
+.chip{display:inline-flex;align-items:center;gap:9px;padding:9px 15px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-soft);letter-spacing:.03em;backdrop-filter:blur(8px)}
+.chip i{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal)}
+
+.cc{padding:90px 0 10px}
+.cc-head{text-align:center;max-width:60ch;margin:0 auto 34px}
+.cc-head h2{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:clamp(26px,3.4vw,40px);letter-spacing:-.02em;margin-top:14px}
+.cc-head p{color:var(--ink-soft);margin-top:12px}
+.console{background:var(--panel);border:1px solid var(--line-strong);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;backdrop-filter:blur(var(--blur))}
+.console-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.1em;color:var(--muted)}
+.console-bar .dots{display:flex;gap:6px}
+.console-bar .dots i{width:9px;height:9px;border-radius:50%;background:var(--line-strong)}
+.console-bar .dots i:nth-child(1){background:var(--gold)}
+.console-bar .dots i:nth-child(2){background:var(--cyan)}
+.console-bar .live{display:inline-flex;align-items:center;gap:7px;color:var(--teal)}
+.console-bar .live b{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:blink 1.3s infinite}
+.console-body{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+.kpi{background:var(--panel-solid);padding:22px 20px;position:relative}
+.kpi .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:34px;margin-top:8px;letter-spacing:-.02em}
+.kpi .v .u{font-size:16px;color:var(--muted);font-weight:500;margin-left:2px}
+.kpi .meta{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--teal);margin-top:4px}
+.ring{position:absolute;top:18px;right:18px;width:40px;height:40px}
+.ring circle{fill:none;stroke-width:4}
+.ring .bg{stroke:var(--line-strong)}
+.ring .fg{stroke:var(--gold);stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;stroke-dasharray:113;stroke-dashoffset:28}
+.bar-wrap{margin-top:12px;height:6px;border-radius:6px;background:var(--line-strong);overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--steel),var(--cyan));width:0;animation:fill 2s ease forwards}
+@keyframes fill{to{width:72%}}
+.terminal{background:var(--panel-solid);border-top:1px solid var(--line);padding:18px 20px;font-family:"IBM Plex Mono",monospace;font-size:13.5px;display:flex;align-items:center;gap:10px;min-height:54px}
+.terminal .prompt{color:var(--cyan)}
+.terminal .q{color:var(--ink)}
+.terminal .cur{width:9px;height:18px;background:var(--gold);display:inline-block;animation:blink 1s step-end infinite}
+
+.engines{padding:90px 0 40px}
+.engines-head{text-align:center;max-width:60ch;margin:0 auto 26px}
+.engines-head h2{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.02em;margin-top:16px}
+.engines-head p{color:var(--ink-soft);margin-top:14px}
+.engine{border-top:1px solid var(--line);padding:64px 0;display:grid;grid-template-columns:300px 1fr;gap:48px;align-items:start;position:relative}
+.engine-aside{position:sticky;top:96px}
+.engine-num{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:62px;line-height:1;background:linear-gradient(135deg,var(--gold),var(--cyan) 70%,var(--steel));-webkit-background-clip:text;background-clip:text;color:transparent;display:block;filter:drop-shadow(0 0 18px var(--glow-cyan))}
+.engine-aside h3{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:600;font-size:25px;letter-spacing:-.01em;margin:10px 0 12px}
+.engine-aside .verbs{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gold);letter-spacing:.06em;margin-bottom:16px}
+.engine-aside .lead{color:var(--ink-soft);font-size:15px}
+.engine-aside .pin{display:inline-flex;align-items:center;gap:8px;margin-top:18px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.1em}
+.engine-aside .pin i{width:9px;height:9px;border-radius:50%;border:2px solid var(--cyan);box-shadow:0 0 8px var(--glow-cyan)}
+.features{display:grid;gap:18px}
+.feature{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px 26px;transition:transform .25s,border-color .25s,box-shadow .25s;position:relative;overflow:hidden;backdrop-filter:blur(10px)}
+.feature::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(var(--gold),var(--cyan),var(--steel));opacity:0;transition:opacity .25s;box-shadow:0 0 14px var(--glow-cyan)}
+.feature:hover{transform:translateY(-3px);border-color:var(--line-strong);box-shadow:var(--shadow)}
+.feature:hover::before{opacity:1}
+.feature .fname{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:600;font-size:20px;letter-spacing:-.01em}
+.feature .what{color:var(--ink-soft);font-size:15px;margin-top:7px}
+.feature .row{margin-top:18px}
+.feature .row .k{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.feature .row.how .k{color:var(--steel)}
+.feature .row.why .k{color:var(--gold)}
+.feature .row .k::after{content:"";flex:1;height:1px;background:var(--line)}
+.feature .row p{font-size:14.5px;color:var(--ink-soft)}
+.feature .row.why p{color:var(--ink);font-weight:500}
+
+.closing{padding:110px 0;text-align:center}
+.closing .big{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.03em;font-size:clamp(30px,5vw,60px);line-height:1.05;max-width:18ch;margin:0 auto}
+.closing .big .grad{background:linear-gradient(115deg,var(--gold),var(--cyan) 60%,var(--steel));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 40px var(--glow-cyan)}
+.closing .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+
+footer{border-top:1px solid var(--line);padding:40px 0}
+.foot{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between}
+.foot .mono{font-size:12px;color:var(--muted)}
+.foot .links{display:flex;gap:20px;flex-wrap:wrap}
+.foot .links a{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);transition:color .2s}
+.foot .links a:hover{color:var(--gold)}
+
+.reveal{opacity:0;transform:translateY(26px) scale(.99);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media(max-width:860px){
+  .nav .link{display:none}
+  .engine{grid-template-columns:1fr;gap:28px}
+  .engine-aside{position:static}
+  .engine-num{font-size:48px}
+  .console-body{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){
+  .wrap{padding:0 18px}
+  .hero{padding:62px 0 20px}
+  .brand small{display:none}
+  .console-body{grid-template-columns:1fr 1fr}
+  .kpi .v{font-size:28px}
+  #fx{display:none}
+  .aurora span{filter:blur(60px)}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  .bar-fill{width:72%}
+}
+</style>
+</head>
+<body>
+
+<div class="aurora"><span class="a"></span><span class="b"></span><span class="c"></span></div>
+<canvas id="fx"></canvas>
+<div class="scan"></div>
+
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="#top"><span class="mark">Q</span><span>Quvera <small>BUSINESS OS</small></span></a>
+    <nav class="nav">
+      <a class="link" href="#engines">Engines</a>
+      <a class="link" href="#flow">The Flow</a>
+      <a class="link" href="#start">Get Started</a>
+      <div class="controls">
+        <button class="toggle" id="themeBtn" aria-label="Switch theme"></button>
+        <a class="btn btn-primary" href="https://quvera.ae" target="_blank" rel="noopener">quvera.ae →</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero wrap">
+    <span class="boot"><i></i> System online · Quvera Business OS · UAE</span>
+    <h1>Run the whole business from <span class="grad">one screen.</span></h1>
+    <p class="sub">An AI operating system for contractors, interior fit-out and service companies. Data is born once and flows by itself across the entire lifecycle — no re-entry, no silos, no lost dirhams.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#engines">Explore the 7 engines</a>
+      <a class="btn btn-ghost" href="#flow">See how data flows</a>
+    </div>
+
+    <div class="pipeline-shell hud" id="flow">
+      <div class="tag">LIFECYCLE&nbsp;·&nbsp;<b>data entered once, never again</b></div>
+      <svg class="pipe-svg" viewBox="0 0 980 120" preserveAspectRatio="xMidYMid meet" id="pipe">
+        <defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--gold)"/><stop offset="0.5" stop-color="var(--cyan)"/><stop offset="1" stop-color="var(--steel)"/></linearGradient></defs>
+        <line class="pipe-track" x1="70" y1="44" x2="910" y2="44"/>
+        <line class="pipe-flow" x1="70" y1="44" x2="910" y2="44"/>
+        <circle class="pkt" r="3.5"><animate attributeName="cx" from="70" to="910" dur="3.2s" repeatCount="indefinite"/></circle>
+        <g id="nodes"></g>
+      </svg>
+      <div class="pipeline-caption">One unbroken chain — a won lead becomes a quote, a project, an invoice, a payment, a review, and finally <b>trust that wins the next lead.</b></div>
+    </div>
+
+    <div class="system">
+      <span class="chip"><i></i> Multi-tenant</span>
+      <span class="chip"><i></i> Row-level security</span>
+      <span class="chip"><i></i> Multi-staff role permissions</span>
+      <span class="chip"><i></i> By-name accountability on every action</span>
+    </div>
+  </section>
+
+  <section class="cc wrap reveal">
+    <div class="cc-head">
+      <span class="eyebrow">Engine 07 · The Cockpit</span>
+      <h2>Your whole business, on one live screen.</h2>
+      <p>The Command Center turns every engine into a single AI-core dashboard — KPIs, priorities, and answers, all in real time.</p>
+    </div>
+    <div class="console hud">
+      <div class="console-bar">
+        <span>QUVERA // COMMAND CENTER</span>
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="live"><b></b> LIVE · <span id="clock">--:--:--</span></span>
+      </div>
+      <div class="console-body">
+        <div class="kpi">
+          <svg class="ring" viewBox="0 0 44 44"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" cx="22" cy="22" r="18"/></svg>
+          <div class="k">Business Health</div>
+          <div class="v">92<span class="u">%</span></div>
+          <div class="meta">▲ strong</div>
+        </div>
+        <div class="kpi">
+          <div class="k">AI Score</div>
+          <div class="v">A+</div>
+          <div class="meta">optimized</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Revenue Pipeline</div>
+          <div class="v">AED <span class="count" data-to="1.84">0</span><span class="u">M</span></div>
+          <div class="bar-wrap"><div class="bar-fill"></div></div>
+        </div>
+        <div class="kpi">
+          <div class="k">Active Projects</div>
+          <div class="v"><span class="count" data-to="14" data-int="1">0</span></div>
+          <div class="meta">on track</div>
+        </div>
+      </div>
+      <div class="terminal">
+        <span class="prompt">ask quvera ›</span>
+        <span class="q" id="ask"></span>
+        <span class="cur"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="engines wrap" id="engines">
+    <div class="engines-head reveal">
+      <span class="eyebrow">The System</span>
+      <h2>Seven engines. One connected OS.</h2>
+      <p>Each engine owns a stage of the lifecycle — and hands its data straight to the next. Follow the flow from the first enquiry to a reputation that sells for you.</p>
+    </div>
+
+    <div class="engine reveal">
+      <div class="engine-aside">
+        <span class="engine-num">01</span>
+        <h3>Lead Intelligence</h3>
+        <div class="verbs">Capture · Score · Convert</div>
+        <p class="lead">Where every opportunity enters the OS — captured, scored, and pushed toward a quote.</p>
+        <span class="pin"><i></i> ENTRY POINT</span>
+      </div>
+      <div class="features">
+        <article class="feature hud">
+          <div class="fname">Lead Hub</div>
+          <p class="what">The central inbox for every lead from every source — Meta Ads, WhatsApp, your public Quvera profile form, and manual entry.</p>
+          <div class="row how"><div class="k">How it works</div><p>All leads land in one stream. Filter instantly by status, source, or temperature. The Hub surfaces “due today” and “overdue” follow-ups so nothing goes cold — open any lead to act on the spot.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Zero leads slip through the cracks — every enquiry lives in one accountable place.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Lead Engine</div>
+          <p class="what">A visual sales pipeline powered by AI lead scoring.</p>
+          <div class="row how"><div class="k">How it works</div><p>Each lead is auto-scored Hot, Warm, or Cold from temperature, recency, source, and budget. Drag leads through your stages, and convert a won lead into a quote in one click — every detail carried across.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>You chase the right leads first and convert without re-entering a single field.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Quvera Leads</div>
+          <p class="what">A shared, verified lead marketplace built into the OS.</p>
+          <div class="row how"><div class="k">How it works</div><p>The platform distributes verified leads to the network. You claim the ones that fit your business, and each claimed lead drops straight into your Lead Hub, ready to work.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>A live pipeline of fresh demand on tap — beyond your own ads and referrals.</p></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="engine reveal">
+      <div class="engine-aside">
+        <span class="engine-num">02</span>
+        <h3>Revenue Intelligence</h3>
+        <div class="verbs">Quote · Close · Grow</div>
+        <p class="lead">Where a lead becomes money — branded quotes, online approval, and compliant invoicing.</p>
+        <span class="pin"><i></i> LEAD → QUOTE</span>
+      </div>
+      <div class="features">
+        <article class="feature hud">
+          <div class="fname">Quotations</div>
+          <p class="what">Branded quotes in three modes — Simple, Visual (a reference photo per line item), and BOQ (items grouped by trade).</p>
+          <div class="row how"><div class="k">How it works</div><p>Pull items from a smart Description Library where title-based autocomplete fills the full description and rate. Add quantity and rate; VAT 5% and discounts auto-calculate. Attach a payment schedule and save revisions as the deal evolves.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Professional, accurate quotes in minutes — priced right, branded, and revision-safe.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Client Approval Link</div>
+          <p class="what">A public link that lets clients approve or reject a quote online.</p>
+          <div class="row how"><div class="k">How it works</div><p>Send the quote as a link. The client opens a clean, branded view and approves or rejects in one tap. The status updates instantly — and an approval can spawn the project and the first invoice automatically.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Decisions happen faster, on record, with delivery starting the moment they say yes.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Variation Orders</div>
+          <p class="what">Controlled additions to an already-approved quote.</p>
+          <div class="row how"><div class="k">How it works</div><p>Add Variation Orders onto the approved quote. The revised total blends the original value plus all approved VOs into one clean figure.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Scope changes are captured and billed — no revenue leaks on site changes.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Invoices</div>
+          <p class="what">Invoices created directly from an approved quote — full amount or a single milestone.</p>
+          <div class="row how"><div class="k">How it works</div><p>Every invoice starts as a Proforma and becomes a Tax Invoice on the first recorded payment. Record payments by method. An unpaid invoice can be Cancelled or put On Hold (kept on record but excluded from ledger, VAT, and outstanding) instead of deleted. Print it or send it on WhatsApp.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Compliant billing with a clean audit trail — and money tracked from the first dirham.</p></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="engine reveal">
+      <div class="engine-aside">
+        <span class="engine-num">03</span>
+        <h3>Finance Intelligence</h3>
+        <div class="verbs">Monitor · Predict · Optimize</div>
+        <p class="lead">Where every dirham is visible — one ledger, real balances, automatic VAT.</p>
+        <span class="pin"><i></i> PAYMENT → LEDGER</span>
+      </div>
+      <div class="features">
+        <article class="feature hud">
+          <div class="fname">Ledger</div>
+          <p class="what">One unified money picture of the entire business.</p>
+          <div class="row how"><div class="k">How it works</div><p>Income flows in automatically from invoice payments; expenses arrive from manual entries, site expenses, subcontractor payments, and purchase bills. Set opening balances, transfer between Cash, Petty Cash, and Bank, and read a 6-month Income-vs-Expenses chart — click any bar to drill into that month — plus VAT Return (output − input), receivables, payables, and the real balance in each account.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Real-time financial truth — no spreadsheets, no guesswork.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Purchases</div>
+          <p class="what">Supplier bills with input VAT, tied to your projects.</p>
+          <div class="row how"><div class="k">How it works</div><p>Log a bill as paid or on credit and tag it to a client or project. The cost rolls straight into that project’s profit, and the input VAT flows into your VAT return.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>True project costing and accurate VAT — automatically, from a single entry.</p></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="engine reveal">
+      <div class="engine-aside">
+        <span class="engine-num">04</span>
+        <h3>Project Intelligence</h3>
+        <div class="verbs">Plan · Track · Deliver</div>
+        <p class="lead">Where a won quote becomes a delivered job — milestones, costs, and live client visibility.</p>
+        <span class="pin"><i></i> QUOTE → PROJECT</span>
+      </div>
+      <div class="features">
+        <article class="feature hud">
+          <div class="fname">Projects &amp; Operations</div>
+          <p class="what">Live projects with a contract value, weighted milestones, and full cost tracking.</p>
+          <div class="row how"><div class="k">How it works</div><p>A won quote becomes a live project carrying its contract value. Track weighted milestones, subcontractors (contract vs paid), site expenses, and material requests. Per-project profit calculates itself: client received − subcontractor paid − site spend − purchases.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>You always know, in real time, whether each job is actually making money.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Client Portal</div>
+          <p class="what">A private, secure window into the project for your client.</p>
+          <div class="row how"><div class="k">How it works</div><p>The client opens a secure link with an access code and sees live progress %, milestones, and an update timeline — showing only items you mark client-visible. They can leave comments, approve changes, and export a PDF.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Clients feel informed and in control — trust grows while you keep full command.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Update Timeline</div>
+          <p class="what">A complete, auditable history of every project update.</p>
+          <div class="row how"><div class="k">How it works</div><p>Every note or update is logged with a type — note, timeline change, or approval — stamped with the staff member’s name, and optionally shown to the client.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Total accountability — who did what, and when, is always on record.</p></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="engine reveal">
+      <div class="engine-aside">
+        <span class="engine-num">05</span>
+        <h3>Reputation &amp; Trust Intelligence</h3>
+        <div class="verbs">Review · Verify · Trust</div>
+        <p class="lead">Where delivery turns into reputation — and reputation loops back into new leads.</p>
+        <span class="pin"><i></i> REVIEW → TRUST</span>
+      </div>
+      <div class="features">
+        <article class="feature hud">
+          <div class="fname">Reviews</div>
+          <p class="what">Customer reviews you collect, display, and respond to.</p>
+          <div class="row how"><div class="k">How it works</div><p>Gather reviews from completed work, show them on your profile, and reply directly to each one.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Social proof that converts the next buyer before you even speak.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Trust Score</div>
+          <p class="what">A public score that signals how reliable your business is.</p>
+          <div class="row how"><div class="k">How it works</div><p>The score is built from your reviews, your verification status, and your platform activity.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>One number that instantly tells the market you can be trusted.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Verification</div>
+          <p class="what">A Verified badge earned by submitting your documents.</p>
+          <div class="row how"><div class="k">How it works</div><p>Submit the required documents through the OS to be verified and earn the badge.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Verified businesses win the next lead — credibility becomes a competitive edge.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Public Profile + Portfolio + Share</div>
+          <p class="what">A public business page and project portfolio you can share anywhere.</p>
+          <div class="row how"><div class="k">How it works</div><p>Showcase your business and completed projects on a public page, then share it by link or QR code. Every view it generates feeds new leads back into Engine 01.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Your reputation becomes a lead machine — closing the loop from Trust back to Lead.</p></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="engine reveal">
+      <div class="engine-aside">
+        <span class="engine-num">06</span>
+        <h3>Growth Intelligence</h3>
+        <div class="verbs">Reach · Target · Grow</div>
+        <p class="lead">Where you create new demand — ads, placement, and reach, all feeding Engine 01.</p>
+        <span class="pin"><i></i> → NEW LEADS</span>
+      </div>
+      <div class="features">
+        <article class="feature hud">
+          <div class="fname">Meta Ads</div>
+          <p class="what">Facebook and Instagram campaigns launched and managed inside the OS.</p>
+          <div class="row how"><div class="k">How it works</div><p>Connect your Facebook/Instagram, then build and manage campaigns with the Ad Builder and Connect tools. Leads from your ad forms flow straight into the Lead Hub.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Run ads and capture leads in one system — no broken handoffs, no lost enquiries.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Sponsored Placement</div>
+          <p class="what">Paid promotion that lifts your profile higher.</p>
+          <div class="row how"><div class="k">How it works</div><p>Pay to feature your profile in a higher position, then track the views and clicks it earns.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Buy visibility on demand and measure exactly what it returns.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Analytics</div>
+          <p class="what">Profile-view analytics for your public presence.</p>
+          <div class="row how"><div class="k">How it works</div><p>See your profile views for today, this week, and the last-30-day trend.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>You can see your reach growing — and react to it.</p></div>
+        </article>
+      </div>
+    </div>
+
+    <div class="engine reveal">
+      <div class="engine-aside">
+        <span class="engine-num">07</span>
+        <h3>Operations &amp; AI Intelligence</h3>
+        <div class="verbs">See · Decide · Act</div>
+        <p class="lead">The cockpit over everything — live KPIs, AI answers, and big-screen command views.</p>
+        <span class="pin"><i></i> THE COCKPIT</span>
+      </div>
+      <div class="features">
+        <article class="feature hud">
+          <div class="fname">Command Center</div>
+          <p class="what">The AI-Core cockpit homepage of your business.</p>
+          <div class="row how"><div class="k">How it works</div><p>One screen shows live KPIs — Business Health, AI Score, Revenue Pipeline, Active Projects, and AI Recommendations — alongside your engine nodes and Today’s Priorities.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>The whole company at a glance the moment you log in.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Revenue Engine</div>
+          <p class="what">A sales-analytics cockpit for your entire pipeline.</p>
+          <div class="row how"><div class="k">How it works</div><p>View a pipeline funnel, leads by source, a 30-day trend, a follow-up heatmap, a lead-score gauge, and conversion by source. A Fit-to-Screen mode turns any display into a live command wall.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>You see exactly where revenue is born, stalls, or slips — and act on it.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Ask Quvera AI</div>
+          <p class="what">A natural-language assistant for your business data.</p>
+          <div class="row how"><div class="k">How it works</div><p>Ask in plain language — “Which projects are delayed?”, “How many quotations need approval?”, “Show expected profit this month” — and get the answer instantly.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Answers in seconds, not reports in hours.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Planner &amp; Meetings + Organizer</div>
+          <p class="what">Scheduling, reminders, tasks, and follow-up management.</p>
+          <div class="row how"><div class="k">How it works</div><p>Schedule meetings, set reminders, and manage tasks and follow-ups in one organized place.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Nothing gets forgotten — every commitment is held by the system.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Control Wall</div>
+          <p class="what">A big-screen, live view of the business for the office display.</p>
+          <div class="row how"><div class="k">How it works</div><p>A fullscreen, auto-scaling, live-refreshing wall designed to run on your office screen.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Your whole team sees the same live truth, all day, in one glance.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Staff &amp; Access</div>
+          <p class="what">Multi-staff logins with role-based permissions.</p>
+          <div class="row how"><div class="k">How it works</div><p>Give each team member their own login with the right role permissions; every action they take is attributed by name.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>Control who does what — with full by-name accountability across the OS.</p></div>
+        </article>
+        <article class="feature hud">
+          <div class="fname">Plans</div>
+          <p class="what">Subscription tiers that scale with your business.</p>
+          <div class="row how"><div class="k">How it works</div><p>Each tier unlocks more features as you grow.</p></div>
+          <div class="row why"><div class="k">Why it matters</div><p>You pay for the power you need today and unlock more as you scale.</p></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing wrap reveal" id="start">
+    <span class="eyebrow">The Quvera Standard</span>
+    <p class="big" style="margin-top:18px">One platform · one workflow · <span class="grad">one source of truth.</span></p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://quvera.ae" target="_blank" rel="noopener">Start on quvera.ae →</a>
+      <a class="btn btn-ghost" href="#engines">Review the engines</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div class="brand"><span class="mark">Q</span><span>Quvera <small>BUSINESS OS</small></span></div>
+    <div class="mono">The AI operating system for UAE contractors &amp; fit-out companies.</div>
+    <div class="links">
+      <a href="https://quvera.ae" target="_blank" rel="noopener">quvera.ae</a>
+      <a href="#engines">Engines</a>
+      <a href="#flow">The Flow</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+const root=document.documentElement;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const btn=document.getElementById('themeBtn');
+const sun='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8L6 18M18 6l1.8-1.8"/></svg>';
+const moon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8z"/></svg>';
+function setTheme(t){root.setAttribute('data-theme',t);btn.innerHTML=t==='dark'?sun:moon;}
+setTheme((window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark');
+btn.addEventListener('click',()=>setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark'));
+
+const stages=[['LEAD','lead'],['QUOTE','rect'],['PROJECT','home'],['INVOICE','doc'],['PAYMENT','card'],['REVIEW','star'],['TRUST','shield']];
+const icons={
+  lead:'<path d="M-9 -2L9 -9 2 9-1 1-9 -2z"/>',
+  rect:'<rect x="-7" y="-8" width="14" height="16" rx="2"/><path d="M-4 -3h8M-4 1h8M-4 5h5"/>',
+  home:'<path d="M-9 9h18M-7 9V-1l7-5 7 5v10M-3 9V3h6v6"/>',
+  doc:'<rect x="-7" y="-8" width="14" height="16" rx="2"/><path d="M-4 -3h8M-4 1h6M-4 5h4"/>',
+  card:'<rect x="-9" y="-6" width="18" height="12" rx="2"/><path d="M-9 -2h18M-5 2h4"/>',
+  star:'<path d="M0 -9l2.6 5.3 5.9.9-4.3 4.1 1 5.8L0 9.3-5.2 12l1-5.8L-8.5-.9l5.9-.9z"/>',
+  shield:'<path d="M0 -9l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V-6z"/><path d="M-3 0l2 2 4-4"/>'
+};
+const g=document.getElementById('nodes');
+const total=stages.length, x0=70, x1=910, span=(x1-x0)/(total-1);
+const nodeEls=[];
+stages.forEach((s,i)=>{
+  const x=x0+span*i;
+  const grp=document.createElementNS('http://www.w3.org/2000/svg','g');
+  grp.setAttribute('transform',`translate(${x},44)`);
+  grp.innerHTML=`<circle class="nodeC" r="22"/><g class="nicon">${icons[s[1]]||''}</g><text class="nlabel" y="48" text-anchor="middle">${s[0]}</text>`;
+  g.appendChild(grp); nodeEls.push(grp);
+});
+function lit(i){nodeEls.forEach((n,j)=>{const on=j===i;n.querySelector('.nodeC').classList.toggle('on',on);n.querySelector('.nicon').classList.toggle('on',on);n.querySelector('.nlabel').classList.toggle('on',on);});}
+if(reduce){nodeEls.forEach((_,i)=>lit(i));}else{let p=0;lit(0);setInterval(()=>{p=(p+1)%total;lit(p);},620);}
+
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const clk=document.getElementById('clock');
+function tick(){clk.textContent=new Date().toLocaleTimeString('en-GB');}
+tick();setInterval(tick,1000);
+
+function countUp(el){const to=parseFloat(el.dataset.to),isInt=el.dataset.int;let s=null;
+  function step(t){if(!s)s=t;const p=Math.min((t-s)/1400,1);const v=to*(1-Math.pow(1-p,3));el.textContent=isInt?Math.round(v):v.toFixed(2);if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+const ccObs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.querySelectorAll('.count').forEach(c=>{reduce?(c.textContent=c.dataset.int?c.dataset.to:parseFloat(c.dataset.to).toFixed(2)):countUp(c);});ccObs.unobserve(e.target);}});},{threshold:.4});
+const ccEl=document.querySelector('.console');if(ccEl)ccObs.observe(ccEl);
+
+const asks=['Which projects are delayed?','How many quotations need approval?','Show expected profit this month'];
+const askEl=document.getElementById('ask');
+if(reduce){askEl.textContent=asks[0];}else{
+  let ai=0,ci=0,del=false;
+  (function type(){const w=asks[ai];askEl.textContent=del?w.slice(0,ci--):w.slice(0,ci++);
+    if(!del&&ci>w.length){del=true;setTimeout(type,1400);}
+    else if(del&&ci<0){del=false;ai=(ai+1)%asks.length;ci=0;setTimeout(type,260);}
+    else setTimeout(type,del?34:58);})();
+}
+
+const cv=document.getElementById('fx');
+if(cv&&!reduce&&window.innerWidth>560){
+  const ctx=cv.getContext('2d');let w,h,pts;
+  function rs(){w=cv.width=innerWidth;h=cv.height=innerHeight;pts=Array.from({length:44},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.6+.4}));}
+  rs();addEventListener('resize',rs);
+  function loop(){ctx.clearRect(0,0,w,h);const light=root.getAttribute('data-theme')==='light';ctx.fillStyle=light?'rgba(39,102,223,0.35)':'rgba(95,160,255,0.5)';
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill();});
+    requestAnimationFrame(loop);}
+  loop();
+}
+</script>
+</body>
+</html>
