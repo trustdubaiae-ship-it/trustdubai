@@ -1116,10 +1116,9 @@ export default function Home({ navigate }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Auto-open quote modal from ?quote=1 (landing/service pages) or a saved intent after login.
-  // Logged OUT + ?quote=1 → save intent, send to Google login, then re-open the form on return.
+  // Auto-open the quote modal from ?quote=1 (ad / landing links) — opens directly for everyone.
   useEffect(() => {
-    if (!authChecked || !hasActiveForm) return
+    if (!hasActiveForm) return
 
     let urlIntent = false
     let savedIntent = false
@@ -1131,31 +1130,11 @@ export default function Home({ navigate }) {
 
     if (!urlIntent && !savedIntent) return
 
-    // No login required → open the form directly (guests allowed, zero friction)
-    if (!requireLogin) {
-      try { sessionStorage.removeItem('td_quote_intent') } catch(e) {}
-      try { window.history.replaceState({}, '', '/') } catch(e) {}
-      setLeadModalOpen(true)
-      return
-    }
-
-    // Logged in → clear intent, clean the URL, open form (or profile gate)
-    if (customer) {
-      try { sessionStorage.removeItem('td_quote_intent') } catch(e) {}
-      try { window.history.replaceState({}, '', '/') } catch(e) {}
-      if (profileComplete(customer)) setLeadModalOpen(true)
-      else setProfileGateOpen(true)
-      return
-    }
-
-    // Logged OUT — only auto-start login when it came from the URL (avoids a login loop
-    // if the user cancels Google and returns with just the saved intent).
-    if (urlIntent) {
-      try { sessionStorage.setItem('td_quote_intent', '1') } catch(e) {}
-      try { window.history.replaceState({}, '', '/') } catch(e) {}
-      signInWithGoogle()
-    }
-  }, [authChecked, customer, hasActiveForm, requireLogin])
+    // Always open the quote form directly — zero friction for ad traffic (no login gate).
+    try { sessionStorage.removeItem('td_quote_intent') } catch(e) {}
+    try { window.history.replaceState({}, '', '/') } catch(e) {}
+    setLeadModalOpen(true)
+  }, [hasActiveForm])
 
   function scrollToSection(id) {
     if (id === 'top') { window.scrollTo({ top:0, behavior:'smooth' }); return }
@@ -1181,11 +1160,7 @@ export default function Home({ navigate }) {
   }
 
   function openQuotes() {
-    if (requireLogin && !customer) {
-      try { sessionStorage.setItem('td_quote_intent', '1') } catch(e) {}
-      signInWithGoogle(); return
-    }
-    if (requireLogin && customer && !profileComplete(customer)) { setProfileGateOpen(true); return }
+    // Open the quote form directly for everyone (no login gate) — maximises conversion.
     setLeadModalOpen(true)
   }
 
