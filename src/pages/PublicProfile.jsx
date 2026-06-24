@@ -603,7 +603,7 @@ export default function PublicProfile() {
       <div style={{ background: TH.dark ? 'rgba(7,11,21,0.7)' : 'rgba(255,255,255,0.75)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: `1px solid ${TH.line}`, position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ maxWidth: 1300, margin: '0 auto', padding: '11px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16, color: TH.t1 }}>🛡️ Trust<span style={{ background: TH.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Dubai</span></button>
+            <button onClick={() => window.location.href = '/'} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16, color: TH.t1 }}><span style={{ background: TH.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Quvera</span></button>
             <div className="td-navtabs" style={{ display: 'flex', gap: 18 }}>
               {[['overview', 'Overview'], ['portfolio', 'Work'], ['trust', 'Trust'], ['reviews', 'Reviews']].map(([k, l]) => <button key={k} onClick={() => scrollTo(k)} className="td-navtab" style={{ fontSize: 11, fontWeight: 700, background: 'none', border: 'none', color: TH.t2, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{l}</button>)}
               {verifiedCount > 0 && <button onClick={() => setShowTeamModal(true)} className="td-navtab" style={{ fontSize: 11, fontWeight: 700, background: 'none', border: 'none', color: TH.t2, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Team</button>}
@@ -945,7 +945,7 @@ export default function PublicProfile() {
 
         {/* FOOTER */}
         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, padding: '20px 4px 0', borderTop: `1px solid ${TH.line}`, marginTop: 14 }}>
-          <div><span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16 }}>Trust<span style={{ background: TH.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Dubai</span></span><div style={{ fontSize: 11, color: TH.t2, marginTop: 6 }}>Verify Business</div></div>
+          <div><span style={{ fontFamily: "'Sora',sans-serif", fontWeight: 800, fontSize: 16 }}><span style={{ background: TH.grad, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Quvera</span></span><div style={{ fontSize: 11, color: TH.t2, marginTop: 6 }}>Verify Business</div></div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 11, color: TH.t3, marginBottom: 8, fontWeight: 600 }}>Follow Us</div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
