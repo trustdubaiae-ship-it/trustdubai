@@ -342,10 +342,11 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   const [gPhone, setGPhone]     = useState('')
   const [gEmail, setGEmail]     = useState('')
   const [gArea, setGArea]       = useState('')
+  const [showDetails, setShowDetails] = useState(false)
 
   useEffect(() => {
     if (open) {
-      loadForm(); setDone(false); setAnswers({}); setError(''); setMatched([]); setLeadId(null); setChatCo(null)
+      loadForm(); setDone(false); setAnswers({}); setError(''); setMatched([]); setLeadId(null); setChatCo(null); setShowDetails(false)
       setGName(customer?.full_name || '')
       setGPhone(customer?.phone || '')
       setGEmail(customer?.email || '')
@@ -422,15 +423,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
     const leadArea  = (gArea  || customer?.area || '')
     if (!leadName)  { setError('Please enter your name'); return }
     if (!leadPhone || leadPhone.replace(/[^0-9]/g,'').length < 7) { setError('Please enter a valid phone number'); return }
-    if (!leadArea)  { setError('Please select your area'); return }
-    for (const q of questions) {
-      if (q.required) {
-        const a = answers[q.id]
-        if (a == null || a === '' || (Array.isArray(a) && a.length === 0)) {
-          setError('Please fill: ' + q.question); return
-        }
-      }
-    }
+    // Area + extra questions are optional for cold ad traffic — only name + phone are required.
     setError('')
     setSubmitting(true)
     try {
@@ -506,13 +499,11 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
           </div>
         ) : (
           <>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:3 }}>
-              <div style={{ fontSize:16, fontWeight:700, color:'var(--text-primary)' }}>{form?.title || 'Get Free Quotes'}</div>
-              <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:18, lineHeight:1 }}>×</button>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:4 }}>
+              <div style={{ fontSize:18, fontWeight:800, color:'var(--text-primary)', lineHeight:1.25, paddingRight:8 }}>Get 3 free quotes from verified Dubai pros</div>
+              <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', fontSize:20, lineHeight:1, flexShrink:0 }}>×</button>
             </div>
-            <div style={{ fontSize:11.5, color:'var(--text-muted)', marginBottom:16 }}>
-              {form?.description || "Answer a few questions — we'll match you with up to 3 trusted companies."}
-            </div>
+            <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:14 }}>100% free &amp; no obligation · takes 30 seconds</div>
 
             {loading ? (
               <div style={{ textAlign:'center', padding:30, color:'var(--text-muted)', fontSize:13 }}>
@@ -526,17 +517,39 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
               </div>
             ) : (
               <>
-                <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'9px 11px', fontSize:11, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'flex-start', gap:7, lineHeight:1.45 }}>
-                  <i className="ti ti-bulb" style={{ fontSize:14, flexShrink:0, marginTop:1 }} />
-                  <span>Describe your requirement clearly and in detail — the more you explain, the better we match you with the right company for the job.</span>
+                <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:14 }}>
+                  {['✓ Verified companies','✓ 100% free','✓ No spam'].map(t => (
+                    <span key={t} style={{ fontSize:10.5, fontWeight:600, color:'#0077aa', background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:99, padding:'4px 10px' }}>{t}</span>
+                  ))}
                 </div>
-                <div style={{ display:'flex', flexDirection:'column', gap:13, marginBottom:14 }}>
+                <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:13 }}>
+                  <div>
+                    <div style={lblStyle}>Your Name <span style={{ color:'#ef4444' }}>*</span></div>
+                    <input value={gName} onChange={e=>setGName(e.target.value)} placeholder="e.g. Ankit Sharma" style={inpStyle} />
+                  </div>
+                  <div>
+                    <div style={lblStyle}>Phone / WhatsApp <span style={{ color:'#ef4444' }}>*</span></div>
+                    <input value={gPhone} onChange={e=>setGPhone(e.target.value)} placeholder="+971 50 000 0000" inputMode="tel" style={inpStyle} />
+                  </div>
+                </div>
+                <button onClick={()=>setShowDetails(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, padding:'10px 12px', cursor:'pointer', color:'var(--text-secondary)', fontSize:12, fontWeight:600, marginBottom:14 }}>
+                  <span>Add project details <span style={{ color:'var(--text-muted)', fontWeight:400 }}>(optional — better match)</span></span>
+                  <i className={'ti ' + (showDetails ? 'ti-chevron-up' : 'ti-chevron-down')} />
+                </button>
+                {showDetails && <div style={{ display:'flex', flexDirection:'column', gap:13, marginBottom:14 }}>
+                  <div>
+                    <div style={lblStyle}>Your Area in Dubai</div>
+                    <select value={gArea} onChange={e=>setGArea(e.target.value)} style={inpStyle}>
+                      <option value="">Select area...</option>
+                      {DUBAI_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
+                  </div>
                   {questions.map(q => {
                     const opts = optionsFor(q)
                     return (
                       <div key={q.id}>
                         <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>
-                          {q.question}{q.required && <span style={{ color:'#ef4444' }}> *</span>}
+                          {q.question}
                         </div>
                         {q.help_text && <div style={{ fontSize:10, color:'var(--text-muted)', marginBottom:5 }}>{q.help_text}</div>}
 
@@ -594,25 +607,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
                       </div>
                     )
                   })}
-                </div>
-
-                <div style={{ display:'flex', flexDirection:'column', gap:13, marginBottom:14 }}>
-                  <div>
-                    <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>Your Name <span style={{ color:'#ef4444' }}>*</span></div>
-                    <input value={gName} onChange={e=>setGName(e.target.value)} placeholder="e.g. Ankit Sharma" style={inpStyle} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>Phone / WhatsApp <span style={{ color:'#ef4444' }}>*</span></div>
-                    <input value={gPhone} onChange={e=>setGPhone(e.target.value)} placeholder="+971 50 000 0000" inputMode="tel" style={inpStyle} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }}>Your Area in Dubai <span style={{ color:'#ef4444' }}>*</span></div>
-                    <select value={gArea} onChange={e=>setGArea(e.target.value)} style={inpStyle}>
-                      <option value="">Select area...</option>
-                      {DUBAI_AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-                    </select>
-                  </div>
-                </div>
+                </div>}
 
                 {customer && (
                   <div style={{ background:'#f0faff', border:'0.5px solid #b3d9f0', borderRadius:8, padding:'8px 11px', fontSize:10.5, color:'#0077aa', marginBottom:14, display:'flex', alignItems:'center', gap:6 }}>
@@ -624,12 +619,13 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
                 {error && <div style={{ fontSize:11.5, color:'#dc2626', marginBottom:10 }}>{error}</div>}
 
                 <button onClick={submit} disabled={submitting}
-                  style={{ width:'100%', padding:'12px', background:'#0099cc', color:'#fff', border:'none', borderRadius:9, fontSize:14, fontWeight:700, cursor:'pointer', opacity:submitting?0.7:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
+                  style={{ width:'100%', padding:'14px', background:'#0099cc', color:'#fff', border:'none', borderRadius:10, fontSize:15, fontWeight:800, cursor:'pointer', opacity:submitting?0.7:1, display:'flex', alignItems:'center', justifyContent:'center', gap:7, boxShadow:'0 8px 20px -6px rgba(0,153,204,0.5)' }}>
                   {submitting
                     ? <><div style={{ width:15, height:15, border:'2px solid rgba(255,255,255,0.3)', borderTopColor:'#fff', borderRadius:'50%', animation:'spin 0.8s linear infinite' }}/> Submitting...<style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></>
-                    : <><i className="ti ti-send" style={{ fontSize:14 }}/> Submit request</>
+                    : <><i className="ti ti-rocket" style={{ fontSize:15 }}/> Get my free quotes</>
                   }
                 </button>
+                <div style={{ fontSize:10.5, color:'var(--text-muted)', textAlign:'center', marginTop:10, lineHeight:1.5 }}>We'll match you with up to 3 verified companies who'll contact you. No spam.</div>
               </>
             )}
           </>
@@ -641,6 +637,7 @@ function LeadQuoteModal({ open, onClose, customer, mobile }) {
   )
 }
 const inpStyle = { width:'100%', padding:'10px 12px', background:'var(--bg-secondary)', border:'0.5px solid var(--border-default)', borderRadius:8, fontSize:12.5, color:'var(--text-primary)', outline:'none', boxSizing:'border-box' }
+const lblStyle = { fontSize:11.5, color:'var(--text-secondary)', marginBottom:5, fontWeight:600 }
 
 function TrustWave({ score }) {
   const bars = [4,8,12,6,10,14,8,5,11,7,9,13,6,10,8,12,5,9,11,7,8,11,7,13]
