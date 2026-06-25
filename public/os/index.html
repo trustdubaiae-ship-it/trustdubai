@@ -130,7 +130,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webki
 .boot i{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 10px var(--teal);animation:blink 1.4s infinite}
 
 /* ===== AI CORE reactor ===== */
-.reactor{position:relative;width:min(360px,80vw);aspect-ratio:1;margin:30px auto 6px}
+.reactor{position:relative;width:360px;height:360px;margin:26px auto 18px}
 .reactor .rr{position:absolute;border-radius:50%;border:1px solid var(--line-strong);inset:0}
 .reactor .rr.r2{inset:11%;border-style:dashed;border-color:color-mix(in srgb,var(--steel) 40%,transparent);animation:spin 30s linear infinite}
 .reactor .rr.r3{inset:23%;border-color:color-mix(in srgb,var(--purple) 45%,transparent);animation:spin 20s linear infinite reverse}
@@ -139,13 +139,20 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webki
   conic-gradient(from 0deg,var(--line-strong) 0 1deg,transparent 1deg 30deg,var(--line-strong) 30deg 31deg,transparent 31deg 60deg,var(--line-strong) 60deg 61deg,transparent 61deg 90deg,var(--line-strong) 90deg 91deg,transparent 91deg 120deg,var(--line-strong) 120deg 121deg,transparent 121deg 150deg,var(--line-strong) 150deg 151deg,transparent 151deg 180deg,var(--line-strong) 180deg 181deg,transparent 181deg 210deg,var(--line-strong) 210deg 211deg,transparent 211deg 240deg,var(--line-strong) 240deg 241deg,transparent 241deg 270deg,var(--line-strong) 270deg 271deg,transparent 271deg 300deg,var(--line-strong) 300deg 301deg,transparent 301deg 330deg,var(--line-strong) 330deg 331deg,transparent 331deg 360deg);
   -webkit-mask:radial-gradient(circle,transparent 47%,#000 47.6%,#000 50%,transparent 50.6%);mask:radial-gradient(circle,transparent 47%,#000 47.6%,#000 50%,transparent 50.6%);opacity:.7;animation:spin 90s linear infinite}
 .orbit{position:absolute;border-radius:50%}
-.orbit .sat{position:absolute;top:-5px;left:50%;width:10px;height:10px;margin-left:-5px;border-radius:50%}
-.orbit.o1{inset:0;animation:spin 14s linear infinite}
-.orbit.o1 .sat{background:var(--steel);box-shadow:0 0 14px var(--steel)}
-.orbit.o2{inset:11%;animation:spin 22s linear infinite reverse}
-.orbit.o2 .sat{background:var(--teal);box-shadow:0 0 14px var(--teal);width:8px;height:8px;margin-left:-4px}
-.orbit.o3{inset:23%;animation:spin 18s linear infinite}
-.orbit.o3 .sat{background:var(--purple-2);box-shadow:0 0 14px var(--purple);width:7px;height:7px;margin-left:-3.5px}
+.orbit .sat{position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%}
+.orbit.o3{inset:44%;animation:spin 11s linear infinite}
+.orbit.o3 .sat{background:var(--teal);box-shadow:0 0 12px var(--teal)}
+/* labelled feature satellites — orbit the core, text stays upright (counter-spin) */
+.forbit{position:absolute;inset:0;animation:spin 50s linear infinite}
+.fnode{position:absolute;top:50%;left:50%;width:0;height:0}
+.fspin{position:absolute;animation:spin 50s linear infinite reverse}
+.fchip{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.03em;color:var(--ink-soft);
+  background:color-mix(in srgb,var(--panel-solid) 90%,transparent);border:1px solid var(--line-strong);
+  border-radius:999px;padding:5px 11px;backdrop-filter:blur(6px);box-shadow:0 7px 18px -10px #000}
+.fchip i{width:6px;height:6px;border-radius:50%;background:var(--steel);box-shadow:0 0 8px var(--steel);flex-shrink:0}
+.fchip.hot{color:#04060F;background:linear-gradient(135deg,var(--steel),var(--purple));border-color:transparent;font-weight:600;box-shadow:0 0 26px -4px var(--glow-steel)}
+.fchip.hot i{background:#04060F;box-shadow:none}
 .r-core{position:absolute;inset:35%;border-radius:50%;display:grid;place-items:center;text-align:center;
   background:radial-gradient(circle at 50% 36%,color-mix(in srgb,var(--steel) 85%,#fff),var(--purple) 92%);
   box-shadow:0 0 70px -6px var(--glow-steel),0 0 40px -10px var(--glow-purple),inset 0 0 34px rgba(255,255,255,.18);
@@ -271,6 +278,10 @@ footer{border-top:1px solid var(--line);padding:40px 0}
   .kpi .v{font-size:28px}
   #fx{display:none}
   .aurora span{filter:blur(60px)}
+  .reactor{transform:scale(.82);margin:8px auto 2px}
+}
+@media(max-width:380px){
+  .reactor{transform:scale(.66);margin:0 auto -8px}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
@@ -318,12 +329,18 @@ footer{border-top:1px solid var(--line);padding:40px 0}
   <section class="hero wrap">
     <span class="boot"><i></i> System online · Quvera Business OS · UAE</span>
 
-    <div class="reactor hud" aria-hidden="true">
+    <div class="reactor hud" aria-label="Quvera OS feature core">
       <div class="tick"></div>
       <div class="rr r1"></div><div class="rr r2"></div><div class="rr r3"></div><div class="rr r4"></div>
-      <div class="orbit o1"><span class="sat"></span></div>
-      <div class="orbit o2"><span class="sat"></span></div>
       <div class="orbit o3"><span class="sat"></span></div>
+      <div class="forbit">
+        <div class="fnode" style="transform:rotate(0deg) translateY(-140px)"><div class="fspin"><span class="fchip hot" style="transform:translate(-50%,-50%) rotate(0deg)"><i></i> AI Team</span></div></div>
+        <div class="fnode" style="transform:rotate(60deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-60deg)"><i></i> Lead Hub</span></div></div>
+        <div class="fnode" style="transform:rotate(120deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-120deg)"><i></i> Quotations</span></div></div>
+        <div class="fnode" style="transform:rotate(180deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-180deg)"><i></i> Ledger</span></div></div>
+        <div class="fnode" style="transform:rotate(240deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-240deg)"><i></i> Projects</span></div></div>
+        <div class="fnode" style="transform:rotate(300deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-300deg)"><i></i> Trust Score</span></div></div>
+      </div>
       <div class="r-core"><span class="lab">AI CORE<small>QUVERA OS</small></span></div>
     </div>
 
