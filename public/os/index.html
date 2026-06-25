@@ -153,12 +153,17 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webki
 .fchip i{width:6px;height:6px;border-radius:50%;background:var(--steel);box-shadow:0 0 8px var(--steel);flex-shrink:0}
 .fchip.hot{color:#04060F;background:linear-gradient(135deg,var(--steel),var(--purple));border-color:transparent;font-weight:600;box-shadow:0 0 26px -4px var(--glow-steel)}
 .fchip.hot i{background:#04060F;box-shadow:none}
-.r-core{position:absolute;inset:35%;border-radius:50%;display:grid;place-items:center;text-align:center;
-  background:radial-gradient(circle at 50% 36%,color-mix(in srgb,var(--steel) 85%,#fff),var(--purple) 92%);
-  box-shadow:0 0 70px -6px var(--glow-steel),0 0 40px -10px var(--glow-purple),inset 0 0 34px rgba(255,255,255,.18);
-  animation:pulse 3.2s ease-in-out infinite}
-.r-core .lab{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;letter-spacing:.14em;color:#04060F}
-.r-core .lab small{display:block;font-size:8.5px;letter-spacing:.2em;opacity:.7;margin-top:2px}
+.fchip.t i{background:var(--teal);box-shadow:0 0 8px var(--teal)}
+.fchip.p i{background:var(--purple-2);box-shadow:0 0 8px var(--purple)}
+.forbit.ccw{animation-direction:reverse}
+.fspin.ccw{animation-direction:normal}
+.r-core{position:absolute;inset:33%;border-radius:50%;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle at 50% 40%,#D9FCFF 0%,#34E4E8 42%,#0BB6D6 72%,rgba(10,150,180,0.10) 100%);
+  box-shadow:0 0 96px -4px rgba(0,230,230,0.55),0 0 56px -12px rgba(0,255,200,0.5),inset 0 0 44px rgba(255,255,255,.32);
+  animation:pulse 3.4s ease-in-out infinite}
+.r-core::after{content:"";position:absolute;inset:-9%;border-radius:50%;border:1px solid color-mix(in srgb,var(--teal) 55%,transparent);box-shadow:0 0 28px -6px var(--glow-cyan)}
+.r-core .lab{position:relative;z-index:1;font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:17px;letter-spacing:.01em;color:#042330;line-height:1.04}
+.r-core .lab small{display:block;font-family:"IBM Plex Mono",monospace;font-size:8.5px;letter-spacing:.26em;font-weight:600;opacity:.72;margin-bottom:2px}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.045);filter:brightness(1.12)}}
 
@@ -333,15 +338,14 @@ footer{border-top:1px solid var(--line);padding:40px 0}
       <div class="tick"></div>
       <div class="rr r1"></div><div class="rr r2"></div><div class="rr r3"></div><div class="rr r4"></div>
       <div class="orbit o3"><span class="sat"></span></div>
-      <div class="forbit">
-        <div class="fnode" style="transform:rotate(0deg) translateY(-140px)"><div class="fspin"><span class="fchip hot" style="transform:translate(-50%,-50%) rotate(0deg)"><i></i> AI Team</span></div></div>
-        <div class="fnode" style="transform:rotate(60deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-60deg)"><i></i> Lead Hub</span></div></div>
-        <div class="fnode" style="transform:rotate(120deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-120deg)"><i></i> Quotations</span></div></div>
-        <div class="fnode" style="transform:rotate(180deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-180deg)"><i></i> Ledger</span></div></div>
-        <div class="fnode" style="transform:rotate(240deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-240deg)"><i></i> Projects</span></div></div>
-        <div class="fnode" style="transform:rotate(300deg) translateY(-140px)"><div class="fspin"><span class="fchip" style="transform:translate(-50%,-50%) rotate(-300deg)"><i></i> Trust Score</span></div></div>
-      </div>
-      <div class="r-core"><span class="lab">AI CORE<small>QUVERA OS</small></span></div>
+      <div class="forbit" style="animation-duration:60s"><div class="fnode" style="transform:rotate(20deg) translateY(-165px)"><div class="fspin" style="animation-duration:60s"><span class="fchip hot" style="transform:translate(-50%,-50%) rotate(-20deg)"><i></i> AI Team</span></div></div></div>
+      <div class="forbit ccw" style="animation-duration:42s"><div class="fnode" style="transform:rotate(80deg) translateY(-110px)"><div class="fspin ccw" style="animation-duration:42s"><span class="fchip t" style="transform:translate(-50%,-50%) rotate(-80deg)"><i></i> Lead Hub</span></div></div></div>
+      <div class="forbit" style="animation-duration:52s"><div class="fnode" style="transform:rotate(132deg) translateY(-150px)"><div class="fspin" style="animation-duration:52s"><span class="fchip p" style="transform:translate(-50%,-50%) rotate(-132deg)"><i></i> Quotations</span></div></div></div>
+      <div class="forbit ccw" style="animation-duration:36s"><div class="fnode" style="transform:rotate(176deg) translateY(-102px)"><div class="fspin ccw" style="animation-duration:36s"><span class="fchip t" style="transform:translate(-50%,-50%) rotate(-176deg)"><i></i> Projects</span></div></div></div>
+      <div class="forbit" style="animation-duration:64s"><div class="fnode" style="transform:rotate(224deg) translateY(-158px)"><div class="fspin" style="animation-duration:64s"><span class="fchip p" style="transform:translate(-50%,-50%) rotate(-224deg)"><i></i> Ledger</span></div></div></div>
+      <div class="forbit ccw" style="animation-duration:46s"><div class="fnode" style="transform:rotate(286deg) translateY(-120px)"><div class="fspin ccw" style="animation-duration:46s"><span class="fchip t" style="transform:translate(-50%,-50%) rotate(-286deg)"><i></i> Trust Score</span></div></div></div>
+      <div class="forbit" style="animation-duration:56s"><div class="fnode" style="transform:rotate(330deg) translateY(-138px)"><div class="fspin" style="animation-duration:56s"><span class="fchip p" style="transform:translate(-50%,-50%) rotate(-330deg)"><i></i> Command Center</span></div></div></div>
+      <div class="r-core"><span class="lab"><small>QUVERA</small>AI CORE</span></div>
     </div>
 
     <h1>Mission control for <span class="grad">your business.</span></h1>
