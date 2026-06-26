@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 import { signInWithGoogle, getCustomer } from '../customerAuth'
+import { CATEGORIES } from '../categories'
 
 export default function RegisterCompany({ navigate }) {
   const [form, setForm] = useState({ name: '', category: '', area: '', phone: '', email: '', description: '', whatsapp: '' })
@@ -242,7 +243,7 @@ export default function RegisterCompany({ navigate }) {
           <select value={form.category} onChange={e => set('category', e.target.value)}
             style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', background: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
             <option value="">Select category</option>
-            {['Interior Design','Renovation','AC Service','Plumbing','Cleaning','Painting','Electrical','Handyman'].map(c => <option key={c}>{c}</option>)}
+            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
           </select>
         </div>
 
