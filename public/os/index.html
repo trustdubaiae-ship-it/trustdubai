@@ -296,6 +296,61 @@ footer{border-top:1px solid var(--line);padding:40px 0}
   .reveal{opacity:1;transform:none}
   .bar-fill{width:72%}
 }
+
+/* ================= LIVE DEMO (interactive product tour) ================= */
+.demo{padding:84px 0 6px}
+.demo-head{text-align:center;max-width:60ch;margin:0 auto 26px}
+.demo-head h2{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:clamp(26px,3.4vw,40px);letter-spacing:-.02em;margin-top:14px}
+.demo-head p{color:var(--ink-soft);margin-top:12px}
+.demo-tabs{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
+.demo-tab{display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500;letter-spacing:.03em;padding:9px 15px;border-radius:999px;border:1px solid var(--line-strong);background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s;backdrop-filter:blur(8px)}
+.demo-tab:hover{color:var(--ink);border-color:var(--cyan);transform:translateY(-1px)}
+.demo-tab.on{color:#04060F;background:linear-gradient(135deg,var(--steel),var(--cyan));border-color:transparent;font-weight:600;box-shadow:0 0 22px -6px var(--glow-steel)}
+.demo-tab i{font-size:14px}
+.demo-stage{background:var(--panel);border:1px solid var(--line-strong);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;backdrop-filter:blur(var(--blur))}
+.demo-winbar{display:flex;align-items:center;gap:7px;padding:11px 16px;border-bottom:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.06em}
+.demo-winbar .d{width:10px;height:10px;border-radius:50%;background:var(--line-strong)}
+.demo-winbar .d.r{background:#ff5f57}.demo-winbar .d.y{background:#febc2e}.demo-winbar .d.g{background:#28c840}
+.demo-winbar .url{margin-left:12px;display:inline-flex;align-items:center;gap:6px;opacity:.85}
+.demo-winbar .live{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:var(--teal)}
+.demo-winbar .live b{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:blink 1.3s infinite}
+.demo-body{padding:18px}
+.demo-screen{display:none}
+.demo-screen.on{display:block;animation:dfade .45s ease}
+@keyframes dfade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.demo-cap{margin-top:14px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);letter-spacing:.02em}
+.demo-cap b{color:var(--ink)}
+/* mock pieces */
+.mk-grid{display:grid;gap:11px}
+.mk-kpis{grid-template-columns:repeat(4,1fr)}
+.mk-2{grid-template-columns:1fr 1fr}.mk-3{grid-template-columns:repeat(3,1fr)}
+.mk-card{background:var(--panel-solid);border:1px solid var(--line);border-radius:12px;padding:14px}
+.mk-k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mk-v{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:700;font-size:25px;margin-top:6px;letter-spacing:-.02em}
+.mk-v .u{font-size:14px;color:var(--muted)}
+.mk-sub{font-family:"IBM Plex Mono",monospace;font-size:10.5px;margin-top:3px}
+.mk-chip{display:inline-flex;align-items:center;gap:5px;font-family:"IBM Plex Mono",monospace;font-size:10px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink-soft);background:var(--panel)}
+.mk-chip.acc{color:var(--steel);border-color:color-mix(in srgb,var(--steel) 40%,transparent);background:color-mix(in srgb,var(--steel) 12%,transparent)}
+.mk-tabs{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap}
+.mk-pill{font-family:"IBM Plex Mono",monospace;font-size:11px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);color:var(--muted)}
+.mk-pill.on{background:var(--steel);color:#04060F;border-color:transparent;font-weight:600}
+.mk-title{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:600;font-size:15px;color:var(--ink)}
+.mk-mut{color:var(--muted);font-size:11.5px;font-family:"IBM Plex Mono",monospace}
+.mk-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--panel-solid)}
+.mk-av{width:34px;height:34px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;font-family:"Clash Display",sans-serif;font-weight:700;font-size:13px;color:#04060F;background:linear-gradient(135deg,var(--steel),var(--purple))}
+.mk-btn{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;padding:7px 12px;border-radius:8px;border:none;cursor:default}
+.mk-btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#1a1207}
+.mk-btn.gh{background:var(--panel);border:1px solid var(--line-strong);color:var(--ink-soft)}
+.mk-ring{position:relative;width:46px;height:46px;flex-shrink:0}
+.mk-bub{max-width:80%;font-size:12.5px;line-height:1.55;padding:10px 13px;border-radius:13px;font-family:"IBM Plex Sans",sans-serif}
+.mk-bub.u{align-self:flex-end;background:var(--steel);color:#04060F;border-bottom-right-radius:4px}
+.mk-bub.a{align-self:flex-start;background:var(--panel-solid);border:1px solid var(--line);color:var(--ink-soft);border-bottom-left-radius:4px}
+.mk-bars{display:flex;align-items:flex-end;gap:8px;height:110px;padding:8px 4px 0}
+.mk-bars .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+.mk-bars .bar{width:100%;border-radius:5px 5px 0 0;background:linear-gradient(var(--steel),color-mix(in srgb,var(--steel) 30%,transparent))}
+.mk-bars .bar.x{background:linear-gradient(var(--purple),color-mix(in srgb,var(--purple) 30%,transparent))}
+.mk-bars .bl{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted)}
+@media(max-width:680px){.mk-kpis{grid-template-columns:1fr 1fr}.mk-3{grid-template-columns:1fr 1fr}.demo-tab{font-size:11.5px;padding:8px 12px}.demo-winbar .url{display:none}}
 </style>
 </head>
 <body>
@@ -311,7 +366,7 @@ footer{border-top:1px solid var(--line);padding:40px 0}
     <nav class="nav">
       <a class="link" href="#engines">Engines</a>
       <a class="link" href="#flow">The Flow</a>
-      <a class="link" href="#cc">Command Center</a>
+      <a class="link" href="#cc">Live Demo</a>
       <a class="link" href="#start">Get Started</a>
       <div class="controls">
         <button class="toggle" id="themeBtn" aria-label="Switch theme"></button>
@@ -378,45 +433,149 @@ footer{border-top:1px solid var(--line);padding:40px 0}
     </div>
   </section>
 
-  <section class="cc wrap reveal" id="cc">
-    <div class="cc-head">
-      <span class="eyebrow">Engine 07 · The Cockpit</span>
-      <h2>Your whole business, on one live screen.</h2>
-      <p>The Command Center turns every engine into a single AI-core dashboard — KPIs, priorities, and answers, all in real time.</p>
+  <section class="demo wrap reveal" id="cc">
+    <div class="demo-head">
+      <span class="eyebrow">Live Demo</span>
+      <h2>See the OS in action.</h2>
+      <p>Click through the actual screens — this is exactly how Quvera runs a business, from the cockpit to the marketplace.</p>
     </div>
-    <div class="console hud">
-      <div class="console-bar">
-        <span>QUVERA // COMMAND CENTER</span>
-        <span class="dots"><i></i><i></i><i></i></span>
+
+    <div class="demo-tabs">
+      <button class="demo-tab on" data-s="cc"     data-url="/dashboard">Command Center</button>
+      <button class="demo-tab"    data-s="hub"    data-url="/business-hub">Business Hub</button>
+      <button class="demo-tab"    data-s="quote"  data-url="/quotations">Quotation</button>
+      <button class="demo-tab"    data-s="market" data-url="/marketplace">Marketplace</button>
+      <button class="demo-tab"    data-s="ai"     data-url="/ai-team">AI Team</button>
+      <button class="demo-tab"    data-s="ledger" data-url="/ledger">Ledger</button>
+    </div>
+
+    <div class="demo-stage hud">
+      <div class="demo-winbar">
+        <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+        <span class="url">⌁ quvera.ae<span id="demo-url">/dashboard</span></span>
         <span class="live"><b></b> LIVE · <span id="clock">--:--:--</span></span>
       </div>
-      <div class="console-body">
-        <div class="kpi">
-          <svg class="ring" viewBox="0 0 44 44"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" cx="22" cy="22" r="18"/></svg>
-          <div class="k">Business Health</div>
-          <div class="v">92<span class="u">%</span></div>
-          <div class="meta">▲ strong</div>
+      <div class="demo-body">
+
+        <!-- COMMAND CENTER -->
+        <div class="demo-screen on" data-s="cc">
+          <div class="mk-grid mk-kpis" style="margin-bottom:11px">
+            <div class="mk-card"><div class="mk-k">Business Health</div><div class="mk-v" style="color:var(--teal)">92<span class="u">%</span></div><div class="mk-sub" style="color:var(--teal)">▲ strong</div></div>
+            <div class="mk-card"><div class="mk-k">AI Score</div><div class="mk-v">A+</div><div class="mk-sub" style="color:var(--muted)">optimized</div></div>
+            <div class="mk-card"><div class="mk-k">Revenue Pipeline</div><div class="mk-v">AED 1.84<span class="u">M</span></div><div class="bar-wrap" style="margin-top:11px"><div class="bar-fill"></div></div></div>
+            <div class="mk-card"><div class="mk-k">Active Projects</div><div class="mk-v">14</div><div class="mk-sub" style="color:var(--teal)">on track</div></div>
+          </div>
+          <div class="mk-grid mk-2">
+            <div class="mk-card">
+              <div class="mk-k" style="margin-bottom:11px">Today's priorities</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="mk-row"><span class="mk-chip acc">DUE</span><span style="flex:1;font-size:12.5px;color:var(--ink-soft)">Follow up — Al Habtoor villa</span></div>
+                <div class="mk-row"><span class="mk-chip">QUOTE</span><span style="flex:1;font-size:12.5px;color:var(--ink-soft)">3 quotations awaiting approval</span></div>
+                <div class="mk-row"><span class="mk-chip">PAY</span><span style="flex:1;font-size:12.5px;color:var(--ink-soft)">AED 42,000 invoice overdue</span></div>
+              </div>
+            </div>
+            <div class="mk-card" style="display:flex;flex-direction:column">
+              <div class="mk-k">AI recommendation</div>
+              <div class="mk-bub a" style="margin-top:10px;max-width:100%">Your <b>Marina fit-out</b> margin dipped to 14%. Two subcontractor bills came in 9% over budget — review before the next milestone payment.</div>
+              <div style="margin-top:auto;padding-top:12px;font-family:'IBM Plex Mono',monospace;font-size:13px;display:flex;align-items:center;gap:8px"><span style="color:var(--steel)">ask quvera ›</span><span id="ask"></span><span class="cur"></span></div>
+            </div>
+          </div>
         </div>
-        <div class="kpi">
-          <div class="k">AI Score</div>
-          <div class="v">A+</div>
-          <div class="meta">optimized</div>
+
+        <!-- BUSINESS HUB -->
+        <div class="demo-screen" data-s="hub">
+          <div class="mk-tabs"><span class="mk-pill on">Quvera Leads</span><span class="mk-pill">Marketplace</span><span class="mk-pill">My Leads</span><span class="mk-pill">Forms</span></div>
+          <div class="mk-grid mk-3">
+            <div class="mk-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><span class="mk-chip" style="color:#ff7a7a;border-color:#ff7a7a55;background:rgba(255,122,122,.12)">🔥 HOT</span><span style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:14px;color:var(--steel)">88%</span></div><div class="mk-title">Ahmed K.</div><div class="mk-mut" style="margin-top:3px">Villa Renovation · JVC</div><div style="display:flex;gap:6px;margin-top:12px"><span class="mk-btn gh" style="flex:1;text-align:center">WhatsApp</span><span class="mk-btn gh">Call</span></div></div>
+            <div class="mk-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><span class="mk-chip" style="color:var(--gold);border-color:var(--glow-gold);background:var(--glow-gold)">WARM</span><span style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:14px;color:var(--gold)">61%</span></div><div class="mk-title">Sara M.</div><div class="mk-mut" style="margin-top:3px">Office Fit-out · Business Bay</div><div style="display:flex;gap:6px;margin-top:12px"><span class="mk-btn gh" style="flex:1;text-align:center">WhatsApp</span><span class="mk-btn gh">Call</span></div></div>
+            <div class="mk-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px"><span class="mk-chip">COLD</span><span style="font-family:'Clash Display',sans-serif;font-weight:700;font-size:14px;color:var(--muted)">34%</span></div><div class="mk-title">Rashid A.</div><div class="mk-mut" style="margin-top:3px">Kitchen Renovation · Marina</div><div style="display:flex;gap:6px;margin-top:12px"><span class="mk-btn gh" style="flex:1;text-align:center">WhatsApp</span><span class="mk-btn gh">Call</span></div></div>
+          </div>
+          <div class="mk-mut" style="text-align:center;margin-top:14px">Auto-scored Hot · Warm · Cold — chase the right leads first.</div>
         </div>
-        <div class="kpi">
-          <div class="k">Revenue Pipeline</div>
-          <div class="v">AED <span class="count" data-to="1.84">0</span><span class="u">M</span></div>
-          <div class="bar-wrap"><div class="bar-fill"></div></div>
+
+        <!-- QUOTATION -->
+        <div class="demo-screen" data-s="quote">
+          <div class="mk-card" style="padding:0;overflow:hidden">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--line)">
+              <div><div class="mk-title">Skyline Interiors LLC</div><div class="mk-mut" style="margin-top:2px">TRN 100••••••••003</div></div>
+              <div style="text-align:right"><div style="font-family:'Clash Display',sans-serif;font-weight:700;color:var(--gold);letter-spacing:2px">QUOTATION</div><div class="mk-mut" style="margin-top:2px">QT-0241 · 28 Jun</div></div>
+            </div>
+            <div style="padding:14px 18px">
+              <table style="width:100%;border-collapse:collapse;font-size:12px">
+                <thead><tr style="color:var(--muted);text-align:left;font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase"><th style="padding:6px 0">Description</th><th>Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Total</th></tr></thead>
+                <tbody style="color:var(--ink-soft)">
+                  <tr style="border-top:1px solid var(--line)"><td style="padding:9px 0">Gypsum false ceiling</td><td>120 m²</td><td style="text-align:right">85</td><td style="text-align:right">10,200</td></tr>
+                  <tr style="border-top:1px solid var(--line)"><td style="padding:9px 0">Painting &amp; finishing</td><td>240 m²</td><td style="text-align:right">35</td><td style="text-align:right">8,400</td></tr>
+                  <tr style="border-top:1px solid var(--line)"><td style="padding:9px 0">Joinery — TV unit</td><td>1 Nos</td><td style="text-align:right">6,100</td><td style="text-align:right">6,100</td></tr>
+                </tbody>
+              </table>
+              <div style="display:flex;justify-content:flex-end;margin-top:14px"><div style="width:230px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft)">
+                <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Subtotal</span><span>AED 24,700</span></div>
+                <div style="display:flex;justify-content:space-between;padding:3px 0"><span>VAT 5%</span><span>AED 1,235</span></div>
+                <div style="display:flex;justify-content:space-between;padding:9px 11px;margin-top:6px;background:color-mix(in srgb,var(--steel) 14%,transparent);border-radius:8px;color:var(--ink);font-weight:600"><span>Grand Total</span><span style="color:var(--steel)">AED 25,935</span></div>
+              </div></div>
+            </div>
+          </div>
+          <div class="mk-mut" style="text-align:center;margin-top:14px">Branded quote in minutes — VAT &amp; discounts auto-calculated. Send as a link for online approval.</div>
         </div>
-        <div class="kpi">
-          <div class="k">Active Projects</div>
-          <div class="v"><span class="count" data-to="14" data-int="1">0</span></div>
-          <div class="meta">on track</div>
+
+        <!-- MARKETPLACE -->
+        <div class="demo-screen" data-s="market">
+          <div class="mk-grid mk-2">
+            <div class="mk-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="mk-chip" style="color:var(--teal);border-color:color-mix(in srgb,var(--teal) 40%,transparent);background:color-mix(in srgb,var(--teal) 12%,transparent)">● OPEN</span><span class="mk-mut">28 Jun</span></div>
+              <div class="mk-title">False ceiling &amp; gypsum — 2BHK villa</div>
+              <div class="mk-mut" style="margin-top:4px">⌂ Skyline Interiors</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:10px"><span class="mk-chip acc">False Ceiling &amp; Gypsum</span><span class="mk-chip acc">Painting</span></div>
+              <div class="mk-mut" style="margin-top:10px">AED 8,000 – 12,000 · JVC · Start in 1 week</div>
+              <div style="display:flex;gap:6px;margin-top:12px"><span class="mk-btn gold" style="flex:1;text-align:center">I'm interested</span></div>
+            </div>
+            <div class="mk-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="mk-chip" style="color:var(--teal);border-color:color-mix(in srgb,var(--teal) 40%,transparent);background:color-mix(in srgb,var(--teal) 12%,transparent)">● OPEN</span><span class="mk-mut">27 Jun</span></div>
+              <div class="mk-title">MEP works — café fit-out</div>
+              <div class="mk-mut" style="margin-top:4px">⌂ Renofix Contracting</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:10px"><span class="mk-chip acc">MEP</span><span class="mk-chip acc">Electrical</span></div>
+              <div class="mk-mut" style="margin-top:10px">AED 30,000+ · Business Bay · 3 weeks</div>
+              <div style="display:flex;gap:6px;margin-top:12px"><span class="mk-btn gold" style="flex:1;text-align:center">I'm interested</span></div>
+            </div>
+          </div>
+          <div class="mk-mut" style="text-align:center;margin-top:14px">Subcontract overflow work to your trade — matched by category, your number stays private.</div>
         </div>
-      </div>
-      <div class="terminal">
-        <span class="prompt">ask quvera ›</span>
-        <span class="q" id="ask"></span>
-        <span class="cur"></span>
+
+        <!-- AI TEAM -->
+        <div class="demo-screen" data-s="ai">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+            <span class="mk-chip acc">Nexus</span><span class="mk-chip">Pulse</span><span class="mk-chip">Quanta</span><span class="mk-chip">Apex</span><span class="mk-chip">Abacus</span><span class="mk-chip">Atlas</span><span class="mk-chip">Forge</span>
+          </div>
+          <div class="mk-card" style="display:flex;flex-direction:column;gap:11px">
+            <div class="mk-bub u">Win this 1500 sqft office fit-out tender in Business Bay</div>
+            <div class="mk-bub a"><b>Nexus</b> → routing to your team: <b>Quanta</b> (estimate ≈ AED 0.68M @ 380–520/sqft), <b>Forge</b> (proposal + cover letter) and <b>Apex</b> (follow-up sequence). Drafts are ready — want the BOQ too?</div>
+          </div>
+          <div class="mk-mut" style="text-align:center;margin-top:14px">An AI Orchestrator coordinates specialist agents — give a goal, get a plan.</div>
+        </div>
+
+        <!-- LEDGER -->
+        <div class="demo-screen" data-s="ledger">
+          <div class="mk-grid mk-3" style="margin-bottom:11px">
+            <div class="mk-card"><div class="mk-k">Income (MTD)</div><div class="mk-v" style="color:var(--teal)">AED 312k</div></div>
+            <div class="mk-card"><div class="mk-k">Expenses</div><div class="mk-v" style="color:#ff7a7a">AED 188k</div></div>
+            <div class="mk-card"><div class="mk-k">Balance</div><div class="mk-v" style="color:var(--steel)">AED 124k</div></div>
+          </div>
+          <div class="mk-card">
+            <div class="mk-k" style="margin-bottom:6px">Income vs Expenses · last 6 months</div>
+            <div class="mk-bars">
+              <div class="bcol"><div style="display:flex;gap:3px;width:100%;height:100%;align-items:flex-end"><div class="bar" style="height:55%"></div><div class="bar x" style="height:40%"></div></div><div class="bl">Jan</div></div>
+              <div class="bcol"><div style="display:flex;gap:3px;width:100%;height:100%;align-items:flex-end"><div class="bar" style="height:68%"></div><div class="bar x" style="height:45%"></div></div><div class="bl">Feb</div></div>
+              <div class="bcol"><div style="display:flex;gap:3px;width:100%;height:100%;align-items:flex-end"><div class="bar" style="height:50%"></div><div class="bar x" style="height:52%"></div></div><div class="bl">Mar</div></div>
+              <div class="bcol"><div style="display:flex;gap:3px;width:100%;height:100%;align-items:flex-end"><div class="bar" style="height:82%"></div><div class="bar x" style="height:48%"></div></div><div class="bl">Apr</div></div>
+              <div class="bcol"><div style="display:flex;gap:3px;width:100%;height:100%;align-items:flex-end"><div class="bar" style="height:74%"></div><div class="bar x" style="height:55%"></div></div><div class="bl">May</div></div>
+              <div class="bcol"><div style="display:flex;gap:3px;width:100%;height:100%;align-items:flex-end"><div class="bar" style="height:95%"></div><div class="bar x" style="height:58%"></div></div><div class="bl">Jun</div></div>
+            </div>
+            <div style="display:flex;gap:16px;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--muted)"><span><span style="color:var(--steel)">■</span> Income</span><span><span style="color:var(--purple)">■</span> Expenses</span><span style="margin-left:auto">VAT Return (output − input): <b style="color:var(--ink)">AED 4,210</b></span></div>
+          </div>
+          <div class="mk-mut" style="text-align:center;margin-top:14px">Real-time money truth — income auto-flows from invoices, VAT calculated for you.</div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -768,6 +927,19 @@ if(cv&&!reduce&&window.innerWidth>560){
     requestAnimationFrame(loop);}
   loop();
 }
+
+/* live demo — interactive product tour tabs */
+(function(){
+  const tabs=document.querySelectorAll('.demo-tab');
+  const screens=document.querySelectorAll('.demo-screen');
+  const urlEl=document.getElementById('demo-url');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('on')); t.classList.add('on');
+    const id=t.getAttribute('data-s');
+    screens.forEach(s=>s.classList.toggle('on', s.getAttribute('data-s')===id));
+    if(urlEl) urlEl.textContent=t.getAttribute('data-url')||'';
+  }));
+})();
 </script>
 </body>
 </html>
