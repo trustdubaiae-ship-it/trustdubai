@@ -134,14 +134,17 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webki
 
 /* ===== AI CORE reactor ===== */
 .reactor{position:relative;width:600px;height:340px;margin:24px auto 16px}
-/* two OVAL orbit tracks — outer + inner, centered in a 600×340 frame */
+/* THREE static OVAL orbit tracks centered in the 600×340 frame */
 .reactor .ov{position:absolute;top:50%;left:50%;border-radius:50%}
-.reactor .ov.a{width:500px;height:300px;margin:-150px 0 0 -250px;border:1px solid color-mix(in srgb,var(--steel) 42%,transparent);box-shadow:inset 0 0 52px -16px var(--glow-steel)}
-.reactor .ov.b{width:350px;height:204px;margin:-102px 0 0 -175px;border:1px dashed color-mix(in srgb,var(--purple) 46%,transparent);animation:spin 30s linear infinite}
-/* feature chips orbit on TWO different ellipse lines (outer r1 + inner r2), upright */
-.rchip{position:absolute;offset-rotate:0deg}
-.rchip.r1{offset-path:path('M 50,170 a 250,150 0 1 0 500,0 a 250,150 0 1 0 -500,0');animation:travel 50s linear infinite}
-.rchip.r2{offset-path:path('M 125,170 a 175,102 0 1 0 350,0 a 175,102 0 1 0 -350,0');animation:travel 38s linear infinite}
+.reactor .ov.a{width:520px;height:316px;margin:-158px 0 0 -260px;border:1px solid color-mix(in srgb,var(--steel) 40%,transparent);box-shadow:inset 0 0 54px -18px var(--glow-steel)}
+.reactor .ov.b{width:390px;height:240px;margin:-120px 0 0 -195px;border:1px dashed color-mix(in srgb,var(--purple) 44%,transparent)}
+.reactor .ov.c{width:280px;height:190px;margin:-95px 0 0 -140px;border:1px dotted color-mix(in srgb,var(--cyan) 32%,transparent)}
+/* chips orbit on THREE ellipse lines, staying upright. top:0/left:0 anchors the
+   motion path to the frame so chips ride exactly ON the drawn ovals. */
+.rchip{position:absolute;top:0;left:0;offset-position:0 0;offset-rotate:0deg}
+.rchip.r1{offset-path:path('M 40,170 a 260,158 0 1 0 520,0 a 260,158 0 1 0 -520,0');animation:travel 52s linear infinite}
+.rchip.r2{offset-path:path('M 105,170 a 195,120 0 1 0 390,0 a 195,120 0 1 0 -390,0');animation:travel 44s linear infinite}
+.rchip.r3{offset-path:path('M 160,170 a 140,95 0 1 0 280,0 a 140,95 0 1 0 -280,0');animation:travel 36s linear infinite}
 @keyframes travel{to{offset-distance:100%}}
 .fchip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
   font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.03em;color:var(--ink-soft);
@@ -152,7 +155,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webki
 .fchip.hot i{background:#04060F;box-shadow:none}
 .fchip.t i{background:var(--teal);box-shadow:0 0 8px var(--teal)}
 .fchip.p i{background:var(--purple-2);box-shadow:0 0 8px var(--purple)}
-@media(prefers-reduced-motion:reduce){.rchip,.ov.b,.tick{animation:none}}
+@media(prefers-reduced-motion:reduce){.rchip{animation:none}}
 .r-core{position:absolute;top:50%;left:50%;width:142px;height:142px;margin:-71px 0 0 -71px;border-radius:50%;display:grid;place-items:center;text-align:center;
   background:radial-gradient(circle at 50% 40%,#D9FCFF 0%,#34E4E8 42%,#0BB6D6 72%,rgba(10,150,180,0.10) 100%);
   box-shadow:0 0 96px -4px rgba(0,230,230,0.55),0 0 56px -12px rgba(0,255,200,0.5),inset 0 0 44px rgba(255,255,255,.32);
@@ -410,13 +413,15 @@ footer{border-top:1px solid var(--line);padding:40px 0}
     <div class="reactor hud" aria-label="Quvera OS feature core">
       <div class="ov a"></div>
       <div class="ov b"></div>
+      <div class="ov c"></div>
       <span class="rchip r1 fchip hot" style="animation-delay:0s"><i></i> AI Team</span>
-      <span class="rchip r1 fchip p"   style="animation-delay:-12.5s"><i></i> Quotations</span>
-      <span class="rchip r1 fchip p"   style="animation-delay:-25s"><i></i> Ledger</span>
-      <span class="rchip r1 fchip p"   style="animation-delay:-37.5s"><i></i> Command Center</span>
+      <span class="rchip r1 fchip p"   style="animation-delay:-26s"><i></i> Command Center</span>
       <span class="rchip r2 fchip t"   style="animation-delay:0s"><i></i> Marketplace</span>
-      <span class="rchip r2 fchip t"   style="animation-delay:-12.7s"><i></i> Projects</span>
-      <span class="rchip r2 fchip t"   style="animation-delay:-25.3s"><i></i> Trust Score</span>
+      <span class="rchip r2 fchip p"   style="animation-delay:-14.7s"><i></i> Quotations</span>
+      <span class="rchip r2 fchip p"   style="animation-delay:-29.3s"><i></i> Ledger</span>
+      <span class="rchip r3 fchip t"   style="animation-delay:0s"><i></i> Projects</span>
+      <span class="rchip r3 fchip t"   style="animation-delay:-12s"><i></i> Trust Score</span>
+      <span class="rchip r3 fchip p"   style="animation-delay:-24s"><i></i> Client Portal</span>
       <div class="r-core"><span class="lab"><small>QUVERA</small>AI CORE</span></div>
     </div>
 
