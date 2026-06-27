@@ -351,6 +351,27 @@ footer{border-top:1px solid var(--line);padding:40px 0}
 .mk-bars .bar.x{background:linear-gradient(var(--purple),color-mix(in srgb,var(--purple) 30%,transparent))}
 .mk-bars .bl{font-family:"IBM Plex Mono",monospace;font-size:9px;color:var(--muted)}
 @media(max-width:680px){.mk-kpis{grid-template-columns:1fr 1fr}.mk-3{grid-template-columns:1fr 1fr}.demo-tab{font-size:11.5px;padding:8px 12px}.demo-winbar .url{display:none}}
+
+/* ================= FLOW CHART (how it works) ================= */
+.flow{padding:82px 0 10px}
+.fc{max-width:560px;margin:0 auto;display:flex;flex-direction:column;align-items:stretch}
+.fc-lbl{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:11px}
+.fc-inputs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.fc-in{font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:7px 13px;border-radius:999px;border:1px solid var(--line-strong);background:var(--panel);color:var(--ink-soft);backdrop-filter:blur(8px)}
+.fc-down{display:flex;justify-content:center;height:30px;position:relative}
+.fc-down::before{content:"";width:2px;height:100%;background:linear-gradient(var(--line-strong),var(--steel))}
+.fc-down::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--steel)}
+.fc-node{position:relative;border:1px solid var(--line-strong);border-radius:14px;padding:15px 18px;text-align:center;background:var(--panel);box-shadow:var(--shadow);backdrop-filter:blur(var(--blur));overflow:hidden}
+.fc-node::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac,var(--steel));box-shadow:0 0 14px var(--ac,var(--steel))}
+.fc-node b{font-family:"Clash Display","Space Grotesk",sans-serif;font-weight:600;font-size:16px;color:var(--ink);letter-spacing:-.01em}
+.fc-node small{display:block;font-size:11.5px;color:var(--muted);margin-top:4px}
+.fc-node.steel{--ac:var(--steel)}.fc-node.teal{--ac:var(--teal)}.fc-node.purple{--ac:var(--purple)}.fc-node.gold{--ac:var(--gold)}
+.fc-pair{display:flex;gap:12px}
+.fc-pair .fc-node{flex:1;min-width:0}
+.fc-loop{margin-top:14px;text-align:center}
+.fc-loop span{display:inline-flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:12px;padding:9px 16px;border-radius:999px;border:1px dashed color-mix(in srgb,var(--gold) 50%,transparent);color:var(--gold);background:var(--glow-gold)}
+.fc-ai{max-width:560px;margin:20px auto 0;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--cyan);padding:11px 16px;border:1px solid color-mix(in srgb,var(--cyan) 30%,transparent);border-radius:12px;background:color-mix(in srgb,var(--cyan) 8%,transparent)}
+@media(max-width:560px){.fc-pair{flex-direction:column;gap:0}.fc-pair .fc-node:first-child{margin-bottom:12px}}
 </style>
 </head>
 <body>
@@ -367,6 +388,7 @@ footer{border-top:1px solid var(--line);padding:40px 0}
       <a class="link" href="#engines">Engines</a>
       <a class="link" href="#flow">The Flow</a>
       <a class="link" href="#cc">Live Demo</a>
+      <a class="link" href="#how">How it works</a>
       <a class="link" href="#start">Get Started</a>
       <div class="controls">
         <button class="toggle" id="themeBtn" aria-label="Switch theme"></button>
@@ -578,6 +600,33 @@ footer{border-top:1px solid var(--line);padding:40px 0}
 
       </div>
     </div>
+  </section>
+
+  <section class="flow wrap reveal" id="how">
+    <div class="demo-head">
+      <span class="eyebrow">How it works</span>
+      <h2>One flow, end to end.</h2>
+      <p>Demand comes in, becomes money, becomes reputation — and reputation brings the next deal. Quvera runs the whole loop.</p>
+    </div>
+    <div class="fc">
+      <div class="fc-lbl">— Demand in —</div>
+      <div class="fc-inputs"><span class="fc-in">Meta Ads</span><span class="fc-in">WhatsApp</span><span class="fc-in">Profile Form</span><span class="fc-in">Quvera Leads</span><span class="fc-in">Marketplace</span></div>
+      <div class="fc-down"></div>
+      <div class="fc-node steel"><b>Business Hub</b><small>Capture &amp; auto-score every lead in one place</small></div>
+      <div class="fc-down"></div>
+      <div class="fc-node steel"><b>Quotation → Approval</b><small>Branded quote, one-tap online sign-off</small></div>
+      <div class="fc-down"></div>
+      <div class="fc-pair">
+        <div class="fc-node teal"><b>Project</b><small>Milestones · subcontractors · costs</small></div>
+        <div class="fc-node teal"><b>Invoice → Payment</b><small>Proforma → Tax invoice</small></div>
+      </div>
+      <div class="fc-down"></div>
+      <div class="fc-node purple"><b>Ledger</b><small>Every dirham · VAT · live profit</small></div>
+      <div class="fc-down"></div>
+      <div class="fc-node gold"><b>Reviews → Trust Score</b><small>Reputation that sells for you</small></div>
+      <div class="fc-loop"><span>↺ Trust wins the next lead</span></div>
+    </div>
+    <div class="fc-ai">⚡ AI Team + Command Center — advising &amp; automating across every step</div>
   </section>
 
   <section class="engines wrap" id="engines">
