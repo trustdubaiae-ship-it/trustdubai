@@ -134,22 +134,15 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webki
 
 /* ===== AI CORE reactor ===== */
 .reactor{position:relative;width:360px;height:360px;margin:26px auto 18px}
-.reactor .rr{position:absolute;border-radius:50%;border:1px solid var(--line-strong);inset:0}
-.reactor .rr.r2{inset:11%;border-style:dashed;border-color:color-mix(in srgb,var(--steel) 40%,transparent);animation:spin 30s linear infinite}
-.reactor .rr.r3{inset:23%;border-color:color-mix(in srgb,var(--purple) 45%,transparent);animation:spin 20s linear infinite reverse}
-.reactor .rr.r4{inset:35%;border-color:var(--glow-steel)}
-.reactor .tick{position:absolute;inset:0;border-radius:50%;background:
-  conic-gradient(from 0deg,var(--line-strong) 0 1deg,transparent 1deg 30deg,var(--line-strong) 30deg 31deg,transparent 31deg 60deg,var(--line-strong) 60deg 61deg,transparent 61deg 90deg,var(--line-strong) 90deg 91deg,transparent 91deg 120deg,var(--line-strong) 120deg 121deg,transparent 121deg 150deg,var(--line-strong) 150deg 151deg,transparent 151deg 180deg,var(--line-strong) 180deg 181deg,transparent 181deg 210deg,var(--line-strong) 210deg 211deg,transparent 211deg 240deg,var(--line-strong) 240deg 241deg,transparent 241deg 270deg,var(--line-strong) 270deg 271deg,transparent 271deg 300deg,var(--line-strong) 300deg 301deg,transparent 301deg 330deg,var(--line-strong) 330deg 331deg,transparent 331deg 360deg);
-  -webkit-mask:radial-gradient(circle,transparent 47%,#000 47.6%,#000 50%,transparent 50.6%);mask:radial-gradient(circle,transparent 47%,#000 47.6%,#000 50%,transparent 50.6%);opacity:.7;animation:spin 90s linear infinite}
-.orbit{position:absolute;border-radius:50%}
-.orbit .sat{position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%}
-.orbit.o3{inset:44%;animation:spin 11s linear infinite}
-.orbit.o3 .sat{background:var(--teal);box-shadow:0 0 12px var(--teal)}
-/* labelled feature satellites — orbit the core, text stays upright (counter-spin) */
-.forbit{position:absolute;inset:0;animation:spin 50s linear infinite}
-.fnode{position:absolute;top:50%;left:50%;width:0;height:0}
-.fspin{position:absolute;animation:spin 50s linear infinite reverse}
-.fchip{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+/* OVAL orbit tracks (gyroscope look) */
+.reactor .ov{position:absolute;top:50%;left:50%;border-radius:50%}
+.reactor .ov.a{width:320px;height:178px;margin:-89px 0 0 -160px;border:1px solid color-mix(in srgb,var(--steel) 38%,transparent);box-shadow:inset 0 0 36px -12px var(--glow-steel)}
+.reactor .ov.b{width:244px;height:132px;margin:-66px 0 0 -122px;border:1px dashed color-mix(in srgb,var(--purple) 42%,transparent);animation:spin 26s linear infinite}
+.reactor .tick{position:absolute;top:50%;left:50%;width:320px;height:178px;margin:-89px 0 0 -160px;border-radius:50%;border:1px dotted color-mix(in srgb,var(--cyan) 24%,transparent);animation:spin 80s linear infinite}
+/* feature chips travel along the OVAL path, staying upright (CSS motion path) */
+.rchip{position:absolute;offset-rotate:0deg;offset-path:path('M 20,180 a 160,89 0 1 0 320,0 a 160,89 0 1 0 -320,0');animation:travel 46s linear infinite}
+@keyframes travel{to{offset-distance:100%}}
+.fchip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
   font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.03em;color:var(--ink-soft);
   background:color-mix(in srgb,var(--panel-solid) 90%,transparent);border:1px solid var(--line-strong);
   border-radius:999px;padding:5px 11px;backdrop-filter:blur(6px);box-shadow:0 7px 18px -10px #000}
@@ -158,8 +151,7 @@ header{position:sticky;top:0;z-index:50;backdrop-filter:blur(var(--blur));-webki
 .fchip.hot i{background:#04060F;box-shadow:none}
 .fchip.t i{background:var(--teal);box-shadow:0 0 8px var(--teal)}
 .fchip.p i{background:var(--purple-2);box-shadow:0 0 8px var(--purple)}
-.forbit.ccw{animation-direction:reverse}
-.fspin.ccw{animation-direction:normal}
+@media(prefers-reduced-motion:reduce){.rchip,.ov.b,.tick{animation:none}}
 .r-core{position:absolute;inset:33%;border-radius:50%;display:grid;place-items:center;text-align:center;
   background:radial-gradient(circle at 50% 40%,#D9FCFF 0%,#34E4E8 42%,#0BB6D6 72%,rgba(10,150,180,0.10) 100%);
   box-shadow:0 0 96px -4px rgba(0,230,230,0.55),0 0 56px -12px rgba(0,255,200,0.5),inset 0 0 44px rgba(255,255,255,.32);
@@ -415,16 +407,16 @@ footer{border-top:1px solid var(--line);padding:40px 0}
     <span class="boot"><i></i> System online · Quvera Business OS · UAE</span>
 
     <div class="reactor hud" aria-label="Quvera OS feature core">
+      <div class="ov a"></div>
       <div class="tick"></div>
-      <div class="rr r1"></div><div class="rr r2"></div><div class="rr r3"></div><div class="rr r4"></div>
-      <div class="orbit o3"><span class="sat"></span></div>
-      <div class="forbit" style="animation-duration:60s"><div class="fnode" style="transform:rotate(20deg) translateY(-165px)"><div class="fspin" style="animation-duration:60s"><span class="fchip hot" style="transform:translate(-50%,-50%) rotate(-20deg)"><i></i> AI Team</span></div></div></div>
-      <div class="forbit ccw" style="animation-duration:42s"><div class="fnode" style="transform:rotate(80deg) translateY(-110px)"><div class="fspin ccw" style="animation-duration:42s"><span class="fchip t" style="transform:translate(-50%,-50%) rotate(-80deg)"><i></i> Marketplace</span></div></div></div>
-      <div class="forbit" style="animation-duration:52s"><div class="fnode" style="transform:rotate(132deg) translateY(-150px)"><div class="fspin" style="animation-duration:52s"><span class="fchip p" style="transform:translate(-50%,-50%) rotate(-132deg)"><i></i> Quotations</span></div></div></div>
-      <div class="forbit ccw" style="animation-duration:36s"><div class="fnode" style="transform:rotate(176deg) translateY(-102px)"><div class="fspin ccw" style="animation-duration:36s"><span class="fchip t" style="transform:translate(-50%,-50%) rotate(-176deg)"><i></i> Projects</span></div></div></div>
-      <div class="forbit" style="animation-duration:64s"><div class="fnode" style="transform:rotate(224deg) translateY(-158px)"><div class="fspin" style="animation-duration:64s"><span class="fchip p" style="transform:translate(-50%,-50%) rotate(-224deg)"><i></i> Ledger</span></div></div></div>
-      <div class="forbit ccw" style="animation-duration:46s"><div class="fnode" style="transform:rotate(286deg) translateY(-120px)"><div class="fspin ccw" style="animation-duration:46s"><span class="fchip t" style="transform:translate(-50%,-50%) rotate(-286deg)"><i></i> Trust Score</span></div></div></div>
-      <div class="forbit" style="animation-duration:56s"><div class="fnode" style="transform:rotate(330deg) translateY(-138px)"><div class="fspin" style="animation-duration:56s"><span class="fchip p" style="transform:translate(-50%,-50%) rotate(-330deg)"><i></i> Command Center</span></div></div></div>
+      <div class="ov b"></div>
+      <span class="rchip fchip hot" style="animation-delay:0s"><i></i> AI Team</span>
+      <span class="rchip fchip t"   style="animation-delay:-6.6s"><i></i> Marketplace</span>
+      <span class="rchip fchip p"   style="animation-delay:-13.1s"><i></i> Quotations</span>
+      <span class="rchip fchip t"   style="animation-delay:-19.7s"><i></i> Projects</span>
+      <span class="rchip fchip p"   style="animation-delay:-26.3s"><i></i> Ledger</span>
+      <span class="rchip fchip t"   style="animation-delay:-32.9s"><i></i> Trust Score</span>
+      <span class="rchip fchip p"   style="animation-delay:-39.4s"><i></i> Command Center</span>
       <div class="r-core"><span class="lab"><small>QUVERA</small>AI CORE</span></div>
     </div>
 
