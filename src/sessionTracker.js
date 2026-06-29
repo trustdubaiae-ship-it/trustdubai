@@ -21,13 +21,34 @@ function getSessionKey() {
 
 let started = false
 let heartbeat = null
+let geo = { ip: null, country: null }
+
+// Resolve the visitor's IP + country once per session (cached), so the Countries
+// and Returning-visitor tiles work. Best-effort: failure just leaves them null.
+async function loadGeo() {
+  try {
+    const cached = sessionStorage.getItem('td_session_geo')
+    if (cached) { geo = JSON.parse(cached); return }
+  } catch (e) {}
+  try {
+    const ctrl = new AbortController()
+    const tmo = setTimeout(() => ctrl.abort(), 2500)
+    const r = await fetch('https://ipapi.co/json/', { signal: ctrl.signal })
+    clearTimeout(tmo)
+    if (r.ok) {
+      const j = await r.json()
+      geo = { ip: j.ip || null, country: j.country_name || null }
+      try { sessionStorage.setItem('td_session_geo', JSON.stringify(geo)) } catch (e) {}
+    }
+  } catch (e) { /* offline / blocked — keep nulls */ }
+}
 
 async function ping(isNewPage) {
   try {
     await supabase.rpc('fn_track_session', {
       p_session_key: getSessionKey(),
-      p_ip: null, // edge/IP enrichment can be added later
-      p_country: null,
+      p_ip: geo.ip,
+      p_country: geo.country,
       p_user_agent: navigator.userAgent,
       p_page: location.pathname || '/',
       p_is_new_page: !!isNewPage,
@@ -39,7 +60,8 @@ async function ping(isNewPage) {
 export function startSessionTracking() {
   if (started) return
   started = true
-  ping(false) // create / open session
+  ping(false)                                  // create / open session immediately
+  loadGeo().then(() => ping(false))            // then backfill IP + country
 
   // Count a new page on history navigation (SPA)
   const fire = () => ping(true)
