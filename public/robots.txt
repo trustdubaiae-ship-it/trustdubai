@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://quvera.ae/sitemap.xml
+Sitemap: https://www.quvera.ae/sitemap.xml

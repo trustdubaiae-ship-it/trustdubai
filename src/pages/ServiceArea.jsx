@@ -21,6 +21,21 @@ const AREAS = [
 const slugify = (s) => s.toLowerCase()
   .replace(/&/g,'and').replace(/[()]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')
 
+// Common ways people actually search for each service (from Search Console data).
+// Woven naturally into copy so pages also rank for these phrasings.
+const SYNONYMS = {
+  'Carpentry & Joinery': 'joinery companies, carpenters and bespoke woodwork specialists',
+  'Kitchen Renovation': 'kitchen companies and kitchen fit-out contractors',
+  'Bathroom Renovation': 'bathroom companies and bathroom fit-out specialists',
+  'Landscaping': 'landscape companies, garden design and outdoor specialists',
+  'Fit-Out': 'fit-out contractors and interior fit-out companies',
+  'AC Service': 'AC repair, AC maintenance and air-conditioning companies',
+  'Swimming Pool': 'swimming pool builders, pool construction and maintenance companies',
+  'False Ceiling & Partition': 'gypsum, false ceiling and partition companies',
+  'Smart Home & Automation': 'smart home and home automation companies',
+  'Curtains & Blinds': 'curtains, blinds and window-treatment companies',
+}
+
 // Resolve a URL slug (e.g. "interior-design-business-bay") back to {service, area}
 function resolveSlug(slug) {
   if (!slug) return { service: null, area: null }
@@ -154,9 +169,10 @@ export default function ServiceArea() {
       const where = area ? `${area}, Dubai` : 'Dubai'
       const cnt = rows.length
       const title = `${service} Companies in ${where} — Top Verified | Quvera`
-      const desc  = cnt > 0
+      const syn = SYNONYMS[service] ? ` Also covering ${SYNONYMS[service]}.` : ''
+      const desc  = (cnt > 0
         ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
-        : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`
+        : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`) + syn
       const url   = `https://www.quvera.ae/services/${serviceArea}`
       setSEO({ title, description: desc, url })
       setJsonLD(service, area, rows, buildFaqs(service, where))
@@ -236,6 +252,11 @@ export default function ServiceArea() {
           <p style={{ fontSize:14, color:t2, lineHeight:1.6, maxWidth:700, marginTop:10 }}>
             Every {service.toLowerCase()} company on Quvera is checked through trade licence, Emirates ID and document verification, so you deal only with legitimate, trustworthy businesses in {where}. Browse profiles, read genuine reviews, and request quotes from several companies in one go — with no obligation.
           </p>
+          {SYNONYMS[service] && (
+            <p style={{ fontSize:13, color:t3, lineHeight:1.6, maxWidth:700, marginTop:8 }}>
+              Looking for {SYNONYMS[service]} in {where}? Quvera lists trusted, verified options so you can compare and choose with confidence.
+            </p>
+          )}
           <div style={{ display:'flex', gap:16, marginTop:16, flexWrap:'wrap' }}>
             <div><div style={{ fontFamily:"'Sora',sans-serif", fontSize:22, fontWeight:800, color:'#0099cc' }}>{companies.length}</div><div style={{ fontSize:11, color:t3 }}>Companies</div></div>
             <div><div style={{ fontFamily:"'Sora',sans-serif", fontSize:22, fontWeight:800, color:'#0099cc' }}>{companies.filter(c=>c.is_verified).length}</div><div style={{ fontSize:11, color:t3 }}>Verified</div></div>
