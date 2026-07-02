@@ -99,7 +99,9 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
     if (!tlFile) return null
     const ext = tlFile.name.split('.').pop()
     const path = `claims/${uploadId}/trade-license.${ext}`
-    const { error } = await supabase.storage.from('trade-licenses').upload(path, tlFile, { upsert: true })
+    // Unique uploadId per submission -> no conflict, so a plain insert. (upsert:true
+    // would also require an UPDATE storage policy, which anon visitors don't have.)
+    const { error } = await supabase.storage.from('trade-licenses').upload(path, tlFile, { upsert: false })
     if (error) return null
     return path
   }
