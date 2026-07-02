@@ -95,10 +95,10 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
     else setError(`That doesn't match our records. ${3 - n} attempt${3 - n === 1 ? '' : 's'} left.`)
   }
 
-  async function uploadTL(claimId) {
+  async function uploadTL(uploadId) {
     if (!tlFile) return null
     const ext = tlFile.name.split('.').pop()
-    const path = `claims/${claimId}/trade-license.${ext}`
+    const path = `claims/${uploadId}/trade-license.${ext}`
     const { error } = await supabase.storage.from('trade-licenses').upload(path, tlFile, { upsert: true })
     if (error) return null
     return path
@@ -109,25 +109,28 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
     if (!cEmail.trim()) return setError('Email is required so we can confirm your claim.')
     if (!tlFile) return setError('Please upload your trade licence to verify ownership.')
     setError(''); setLoading(true)
-    const { data: row, error: e } = await supabase.from('claim_requests').insert({
-      company_id: selected.id, company_name: selected.name, kind: 'claim',
-      last4_verified: true, contact_name: cName, contact_email: cEmail.toLowerCase(),
-      contact_phone: cPhone || null, tl_number: tlNumber || null, tl_expiry: tlExpiry || null,
-      status: 'pending',
-    }).select('id').single()
-    if (e || !row) { setLoading(false); return setError('Could not submit. Please try again.') }
-    const tlUrl = await uploadTL(row.id)
-    if (tlUrl) await supabase.from('claim_requests').update({ tl_url: tlUrl }).eq('id', row.id)
+    // Upload the licence first, keyed by a client id, so we don't depend on the
+    // (RLS-protected) inserted row id — the insert happens via a SECURITY DEFINER RPC.
+    const uploadId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now())
+    const tlUrl = await uploadTL(uploadId)
+    const { error: e } = await supabase.rpc('fn_submit_claim', {
+      p_company_id: selected.id, p_company_name: selected.name, p_kind: 'claim',
+      p_last4_verified: true, p_contact_name: cName, p_contact_email: cEmail.toLowerCase(),
+      p_contact_phone: cPhone || null, p_tl_number: tlNumber || null, p_tl_expiry: tlExpiry || null,
+      p_tl_url: tlUrl, p_message: null,
+    })
+    if (e) { setLoading(false); return setError('Could not submit. Please try again.') }
     setLoading(false); setSuccess('claim')
   }
 
   async function submitSupport() {
     if (!cName.trim() || !cEmail.trim()) return setError('Name and email are required.')
     setError(''); setLoading(true)
-    const { error: e } = await supabase.from('claim_requests').insert({
-      company_id: selected?.id || null, company_name: selected?.name || query, kind: 'support',
-      last4_verified: false, contact_name: cName, contact_email: cEmail.toLowerCase(),
-      contact_phone: cPhone || null, message: supportMsg || null, status: 'pending',
+    const { error: e } = await supabase.rpc('fn_submit_claim', {
+      p_company_id: selected?.id || null, p_company_name: selected?.name || query, p_kind: 'support',
+      p_last4_verified: false, p_contact_name: cName, p_contact_email: cEmail.toLowerCase(),
+      p_contact_phone: cPhone || null, p_tl_number: null, p_tl_expiry: null,
+      p_tl_url: null, p_message: supportMsg || null,
     })
     if (e) { setLoading(false); return setError('Could not send. Please try again.') }
     setLoading(false); setSuccess('support')
