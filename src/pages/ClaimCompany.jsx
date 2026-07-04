@@ -15,8 +15,7 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
 
   const [code, setCode] = useState('')
   const [attempts, setAttempts] = useState(0)
-  const [verified, setVerified] = useState(false)   // may proceed to the licence step
-  const [last4ok, setLast4ok] = useState(false)     // phone actually matched (vs skipped)
+  const [verified, setVerified] = useState(false)
   const [locked, setLocked] = useState(false)        // 3 wrong attempts -> support fallback
 
   const [cName, setCName] = useState('')
@@ -79,19 +78,17 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
 
   function pick(c) {
     setSelected(c); setResults([]); setQuery(c.name)
-    setCode(''); setAttempts(0); setVerified(false); setLast4ok(false); setLocked(false); setError('')
+    setCode(''); setAttempts(0); setVerified(false); setLocked(false); setError('')
   }
   function reset() {
     setSelected(null); setQuery(''); setResults([])
-    setCode(''); setAttempts(0); setVerified(false); setLast4ok(false); setLocked(false); setError('')
+    setCode(''); setAttempts(0); setVerified(false); setLocked(false); setError('')
   }
-  // skip the phone check → go straight to the licence upload; the team verifies it.
-  function skipVerify() { setError(''); setLast4ok(false); setVerified(true) }
 
   function verify() {
     setError('')
     if (digits(code).length !== 4) return setError('Enter the last 4 digits.')
-    if (code === last4(selected.phone)) { setLast4ok(true); setVerified(true); return }
+    if (code === last4(selected.phone)) { setVerified(true); return }
     const n = attempts + 1
     setAttempts(n)
     if (n >= 3) { setLocked(true); setError('') }
@@ -120,7 +117,7 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
     const tlUrl = await uploadTL(uploadId)
     const { error: e } = await supabase.rpc('fn_submit_claim', {
       p_company_id: selected.id, p_company_name: selected.name, p_kind: 'claim',
-      p_last4_verified: last4ok, p_contact_name: cName, p_contact_email: cEmail.toLowerCase(),
+      p_last4_verified: true, p_contact_name: cName, p_contact_email: cEmail.toLowerCase(),
       p_contact_phone: cPhone || null, p_tl_number: tlNumber || null, p_tl_expiry: tlExpiry || null,
       p_tl_url: tlUrl, p_message: null,
     })
@@ -209,7 +206,7 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
         {selected && !verified && !locked && (
           <div style={{ marginTop: 16, padding: 16, background: 'var(--bg-secondary)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-lg)' }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4 }}>{selected.name}</div>
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.6 }}>Fastest way in: confirm the <b>last 4 digits</b> of the phone number on this listing. Don't have it? You can skip and upload your trade licence instead.</p>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.6 }}>To prove this is your business, confirm the <b>last 4 digits</b> of the phone number registered on this listing.</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: 1 }}>+971&nbsp;•••&nbsp;•••</span>
               <input value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))} placeholder="0000" inputMode="numeric" maxLength={4}
@@ -217,7 +214,6 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
             </div>
             {error && <p style={{ color: 'var(--red)', fontSize: 12.5, marginTop: 10 }}>{error}</p>}
             <button onClick={verify} style={{ marginTop: 14, width: '100%', padding: 11, background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 24, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Verify &amp; Continue</button>
-            <button onClick={skipVerify} style={{ marginTop: 9, width: '100%', padding: 10, background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-default)', borderRadius: 24, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Skip — upload my trade licence instead →</button>
           </div>
         )}
 
@@ -240,9 +236,7 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
           <div style={{ marginTop: 16 }}>
             <div style={{ padding: '11px 14px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 'var(--radius-lg)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
               <i className="ti ti-circle-check" style={{ color: 'var(--green)', fontSize: 18 }} />
-              <span style={{ fontSize: 12.5, color: 'var(--text-primary)' }}>{last4ok
-                ? <>Number verified for <b>{selected.name}</b>. Now upload your trade licence.</>
-                : <>Claiming <b>{selected.name}</b>. Upload your trade licence — our team will verify it and confirm within 48 hours.</>}</span>
+              <span style={{ fontSize: 12.5, color: 'var(--text-primary)' }}>Number verified for <b>{selected.name}</b>. Now upload your trade licence.</span>
             </div>
 
             <div style={{ marginBottom: 12 }}><label style={labelStyle}>Your name *</label><input value={cName} onChange={e => setCName(e.target.value)} placeholder="Full name" style={inputStyle} /></div>
