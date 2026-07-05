@@ -744,7 +744,7 @@ export default function PublicProfile() {
             <Card TH={TH}>
               <H2 TH={TH}>📍 Location</H2>
               {(() => {
-                const mq = encodeURIComponent(company.address || company.location || ((company.name || '') + ' Dubai'))
+                const mq = encodeURIComponent((company.address || company.location || ((company.name || '') + ' Dubai')).replace(/\n/g, ', '))
                 const dir = company.map_link || `https://www.google.com/maps/search/?api=1&query=${mq}`
                 return (
                   <>
