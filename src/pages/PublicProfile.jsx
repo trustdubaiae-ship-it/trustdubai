@@ -752,7 +752,7 @@ export default function PublicProfile() {
                       <iframe title={'Map — ' + (company.name || 'location')} src={`https://maps.google.com/maps?q=${mq}&z=15&output=embed`} width="100%" height="170" style={{ border: 0, display: 'block' }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                     </div>
                     <div style={{ fontSize: 12, color: TH.t2, lineHeight: 1.7 }}>
-                      <div><b style={{ color: TH.t1 }}>{company.name}</b><br />{company.address || company.location || 'Dubai, UAE'}</div>
+                      <div><b style={{ color: TH.t1 }}>{company.name}</b><br /><span style={{ whiteSpace: 'pre-line' }}>{company.address || company.location || 'Dubai, UAE'}</span></div>
                       {company.phone && <div>📞 {company.phone}</div>}
                       <div>🕐 8 AM – 8 PM</div>
                     </div>
