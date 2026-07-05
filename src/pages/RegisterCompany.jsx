@@ -222,13 +222,14 @@ export default function RegisterCompany({ navigate }) {
           { key: 'name', label: 'Company name *', placeholder: 'Your company name' },
           { key: 'area', label: 'Area / Location *', placeholder: 'e.g. Business Bay, JVC, Marina' },
           { key: 'phone', label: 'WhatsApp number *', placeholder: '+971 50 XXX XXXX' },
-          { key: 'email', label: 'Email address *', placeholder: 'your@email.com' },
+          { key: 'email', label: 'Email address * (Gmail)', placeholder: 'you@gmail.com' },
         ].map(f => (
           <div key={f.key} style={{ marginBottom: 14 }}>
             <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 6 }}>{f.label}</label>
             <input value={form[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
               readOnly={f.key === 'email' && !!customer}
               style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-default)', borderRadius: 'var(--radius)', fontSize: 13, outline: 'none', boxSizing: 'border-box', background: (f.key === 'email' && customer) ? 'var(--bg-tertiary)' : 'var(--bg-secondary)', color: 'var(--text-primary)' }} />
+            {f.key === 'email' && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.5 }}><i className="ti ti-info-circle" style={{ fontSize: 12, verticalAlign: '-1px' }} /> Use a valid <b>Gmail</b> — you will sign in to your Business Portal with this email.</p>}
           </div>
         ))}
 

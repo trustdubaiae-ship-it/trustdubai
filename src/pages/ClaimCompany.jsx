@@ -223,7 +223,11 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}><i className="ti ti-headset" style={{ color: 'var(--primary)' }} /> Number doesn't match?</div>
             <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.6 }}>The registered number may have changed. Send a request to our support team and we'll help you claim <b>{selected.name}</b> manually.</p>
             <div style={{ marginBottom: 12 }}><label style={labelStyle}>Your name *</label><input value={cName} onChange={e => setCName(e.target.value)} style={inputStyle} /></div>
-            <div style={{ marginBottom: 12 }}><label style={labelStyle}>Email *</label><input value={cEmail} onChange={e => setCEmail(e.target.value)} placeholder="your@email.com" style={inputStyle} /></div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={labelStyle}>Email * <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Gmail)</span></label>
+              <input value={cEmail} onChange={e => setCEmail(e.target.value)} placeholder="you@gmail.com" style={inputStyle} />
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.5 }}><i className="ti ti-info-circle" style={{ fontSize: 12, verticalAlign: '-1px' }} /> Use a valid <b>Gmail</b> — you will sign in to your Business Portal with this email.</p>
+            </div>
             <div style={{ marginBottom: 12 }}><label style={labelStyle}>Phone</label><input value={cPhone} onChange={e => setCPhone(e.target.value)} placeholder="+971 50 XXX XXXX" style={inputStyle} /></div>
             <div style={{ marginBottom: 12 }}><label style={labelStyle}>Message</label><textarea value={supportMsg} onChange={e => setSupportMsg(e.target.value)} placeholder="Tell us about your business…" style={{ ...inputStyle, minHeight: 64, resize: 'vertical' }} /></div>
             {error && <p style={{ color: 'var(--red)', fontSize: 12.5, marginBottom: 10 }}>{error}</p>}
@@ -240,7 +244,11 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
             </div>
 
             <div style={{ marginBottom: 12 }}><label style={labelStyle}>Your name *</label><input value={cName} onChange={e => setCName(e.target.value)} placeholder="Full name" style={inputStyle} /></div>
-            <div style={{ marginBottom: 12 }}><label style={labelStyle}>Email *</label><input value={cEmail} onChange={e => setCEmail(e.target.value)} placeholder="your@email.com" style={inputStyle} /></div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={labelStyle}>Email * <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(Gmail)</span></label>
+              <input value={cEmail} onChange={e => setCEmail(e.target.value)} placeholder="you@gmail.com" style={inputStyle} />
+              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 5, lineHeight: 1.5 }}><i className="ti ti-info-circle" style={{ fontSize: 12, verticalAlign: '-1px' }} /> Use a valid <b>Gmail</b> — you will sign in to your Business Portal with this email.</p>
+            </div>
             <div style={{ marginBottom: 14 }}><label style={labelStyle}>Phone</label><input value={cPhone} onChange={e => setCPhone(e.target.value)} placeholder="+971 50 XXX XXXX" style={inputStyle} /></div>
 
             <div style={{ marginBottom: 12 }}>
