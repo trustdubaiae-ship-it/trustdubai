@@ -743,16 +743,23 @@ export default function PublicProfile() {
 
             <Card TH={TH}>
               <H2 TH={TH}>📍 Location</H2>
-              <div style={{ height: 120, borderRadius: 12, overflow: 'hidden', position: 'relative', background: TH.dark ? 'linear-gradient(135deg,#0d1a30,#0a1424)' : 'linear-gradient(135deg,#d6e6f5,#c2d8ee)', marginBottom: 10 }}>
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.2, backgroundImage: `linear-gradient(${TH.accent} 1px,transparent 1px),linear-gradient(90deg,${TH.accent} 1px,transparent 1px)`, backgroundSize: '18px 18px' }} />
-                <div style={{ position: 'absolute', top: '40%', left: '38%', width: 12, height: 12, borderRadius: '50% 50% 50% 0', background: '#dc3545', transform: 'rotate(-45deg)' }} />
-                <div style={{ position: 'absolute', top: '48%', left: '42%', background: '#1e2a3a', color: '#fff', fontSize: 8, padding: '3px 7px', borderRadius: 5, fontWeight: 600 }}>📍 {company.name}</div>
-              </div>
-              <div style={{ fontSize: 11, color: TH.t2, lineHeight: 1.8 }}>
-                <div><b style={{ color: TH.t1 }}>{company.name}</b><br />{company.location || 'Dubai, UAE'}</div>
-                {company.phone && <div>📞 {company.phone}</div>}
-                <div>🕐 8 AM – 8 PM</div>
-              </div>
+              {(() => {
+                const mq = encodeURIComponent(company.address || company.location || ((company.name || '') + ' Dubai'))
+                const dir = company.map_link || `https://www.google.com/maps/search/?api=1&query=${mq}`
+                return (
+                  <>
+                    <div style={{ height: 170, borderRadius: 12, overflow: 'hidden', marginBottom: 10, border: '1px solid ' + TH.line }}>
+                      <iframe title={'Map — ' + (company.name || 'location')} src={`https://maps.google.com/maps?q=${mq}&z=15&output=embed`} width="100%" height="170" style={{ border: 0, display: 'block' }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                    </div>
+                    <div style={{ fontSize: 12, color: TH.t2, lineHeight: 1.7 }}>
+                      <div><b style={{ color: TH.t1 }}>{company.name}</b><br />{company.address || company.location || 'Dubai, UAE'}</div>
+                      {company.phone && <div>📞 {company.phone}</div>}
+                      <div>🕐 8 AM – 8 PM</div>
+                    </div>
+                    <a href={dir} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 12, padding: '10px', borderRadius: 10, background: TH.accent, color: '#fff', fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>🧭 Get Directions</a>
+                  </>
+                )
+              })()}
             </Card>
           </div>
 
