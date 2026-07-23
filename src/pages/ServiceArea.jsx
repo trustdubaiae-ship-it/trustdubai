@@ -145,7 +145,27 @@ export default function ServiceArea() {
   const [customer, setCustomer]   = useState(null)
   const [dark, setDark] = useState(() => { try { return localStorage.getItem('td_theme') === 'dark' } catch { return false } })
 
+  // Apply SEO (title/meta/canonical + JSON-LD). Everything here is derived from
+  // the slug, so it works with or without company data. Called immediately on
+  // mount — so the page ALWAYS has correct SEO even if the DB is slow/down or
+  // rate-limited — and again after the fetch to enrich the JSON-LD with the
+  // company ItemList and the live count in the description.
+  function applySEO(rows) {
+    if (!service) return
+    const where = area ? `${area}, Dubai` : 'Dubai'
+    const cnt = rows.length
+    const title = `${service} Companies in ${where} — Top Verified | Quvera`
+    const syn = SYNONYMS[service] ? ` Also covering ${SYNONYMS[service]}.` : ''
+    const desc  = (cnt > 0
+      ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
+      : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`) + syn
+    const url   = `https://www.quvera.ae/services/${serviceArea}`
+    setSEO({ title, description: desc, url })
+    setJsonLD(service, area, rows, buildFaqs(service, where))
+  }
+
   useEffect(() => {
+    applySEO([])                 // SEO up-front — never blocked on the fetch
     getCustomer().then(c => { if (c && !c.blocked) setCustomer(c) })
     if (service) load()
     else setLoading(false)
@@ -165,17 +185,7 @@ export default function ServiceArea() {
       }
       rows.sort((a,b)=>(b.avg_rating||0)-(a.avg_rating||0))
       setCompanies(rows)
-
-      const where = area ? `${area}, Dubai` : 'Dubai'
-      const cnt = rows.length
-      const title = `${service} Companies in ${where} — Top Verified | Quvera`
-      const syn = SYNONYMS[service] ? ` Also covering ${SYNONYMS[service]}.` : ''
-      const desc  = (cnt > 0
-        ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
-        : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`) + syn
-      const url   = `https://www.quvera.ae/services/${serviceArea}`
-      setSEO({ title, description: desc, url })
-      setJsonLD(service, area, rows, buildFaqs(service, where))
+      applySEO(rows)             // enrich JSON-LD with company ItemList + live count
     } catch(e){ console.error(e) }
     finally { setLoading(false) }
   }
