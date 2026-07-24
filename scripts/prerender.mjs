@@ -164,6 +164,13 @@ async function snapshot(page, base, path) {
   // DB is slow/rate-limited — SEO is already present either way, so no hang.
   await page.waitForNetworkIdle({ idleTime: 500, timeout: 5000 }).catch(() => {})
   await delay(200)
+  // Meta Pixel's fbq injects <script src=connect.facebook.net…> nodes at runtime.
+  // Baking those into the snapshot double-loads the pixel (a second PageView),
+  // because the inline pixel init in <head> re-injects them on the client. Strip
+  // the injected nodes; the static inline init re-adds exactly one on load.
+  await page.evaluate(() => {
+    document.querySelectorAll('script[src*="connect.facebook.net"]').forEach((s) => s.remove())
+  }).catch(() => {})
   const okServices = !path.startsWith('/services/') ||
     await page.evaluate(() => !!document.getElementById('jsonld-service'))
   const html = await page.content()
