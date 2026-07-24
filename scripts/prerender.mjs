@@ -91,8 +91,30 @@ function startServer() {
   })
 }
 
-// --- puppeteer launch (self-heals a missing Chromium on CI) -----------------
-async function launchBrowser(puppeteer) {
+// --- browser launch ---------------------------------------------------------
+// Vercel's (Amazon Linux) build image lacks the system libraries a normal
+// headless Chromium needs, so a plain puppeteer.launch() fails there. On that
+// environment we drive a self-contained @sparticuz/chromium build via
+// puppeteer-core; locally we use full puppeteer with its bundled Chromium.
+async function launchBrowser() {
+  const onServerless =
+    !!process.env.VERCEL || !!process.env.CI || process.env.PRERENDER_CHROMIUM === 'sparticuz'
+
+  if (onServerless) {
+    console.log('   Launching @sparticuz/chromium (serverless build environment)…')
+    const chromium = (await import('@sparticuz/chromium')).default
+    const puppeteerCore = (await import('puppeteer-core')).default
+    const executablePath = await chromium.executablePath()
+    return await puppeteerCore.launch({
+      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+      executablePath,
+      headless: chromium.headless,
+      defaultViewport: chromium.defaultViewport,
+    })
+  }
+
+  console.log('   Launching bundled Chromium via puppeteer (local)…')
+  const puppeteer = (await import('puppeteer')).default
   const opts = {
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
@@ -102,11 +124,7 @@ async function launchBrowser(puppeteer) {
   } catch (e) {
     console.warn('   Chromium not found — installing it once…')
     const { execSync } = await import('node:child_process')
-    try {
-      execSync('npx --yes puppeteer browsers install chrome', { stdio: 'inherit' })
-    } catch (e2) {
-      throw new Error('Could not install Chromium for prerender: ' + e2.message)
-    }
+    execSync('npx --yes puppeteer browsers install chrome', { stdio: 'inherit' })
     return await puppeteer.launch(opts)
   }
 }
@@ -162,13 +180,6 @@ async function writePage(path, html) {
 async function mkdirP(dir) { await fs.mkdir(dir, { recursive: true }) }
 
 async function main() {
-  let puppeteer
-  try {
-    puppeteer = (await import('puppeteer')).default
-  } catch (e) {
-    return bail('puppeteer is not installed (run: npm i -D puppeteer).', e)
-  }
-
   let routes
   try {
     routes = readRoutes()
@@ -184,7 +195,7 @@ async function main() {
 
   let browser
   try {
-    browser = await launchBrowser(puppeteer)
+    browser = await launchBrowser()
   } catch (e) {
     server.close()
     return bail('could not launch Chromium.', e)
