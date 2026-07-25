@@ -28,6 +28,41 @@ const NAV_TIMEOUT = 25000
 const MAX_CRAWL_MS = 33 * 60 * 1000
 const delay = (ms) => new Promise((r) => setTimeout(r, ms))
 
+// Public Supabase creds (same anon values shipped in the client). Used ONCE to
+// bulk-fetch the SEO fields for every company, which we inject into each page so
+// the crawl needs no per-page DB query (see armPage / PublicProfile prerender path).
+const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpYmRvcnJheHhoZmJma2pocGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTkzNDUsImV4cCI6MjA5NTM3NTM0NX0.w5EMvd47CtWTc-8NgTlsM44EYmbGSQHc79wgjXTQlHE'
+
+async function fetchCompanyMap() {
+  const map = {}
+  const fields = 'slug,name,category,description,phone,location,area,avg_rating,total_reviews'
+  const pageSize = 1000
+  for (let offset = 0; ; offset += pageSize) {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/companies?select=${fields}&status=eq.approved&slug=not.is.null&order=slug&limit=${pageSize}&offset=${offset}`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+    )
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    const rows = await res.json()
+    for (const r of rows) {
+      if (!r.slug) continue
+      map[r.slug] = {
+        slug: r.slug,
+        name: r.name,
+        category: r.category || '',
+        description: (r.description || '').slice(0, 160),
+        phone: r.phone || '',
+        location: r.location || r.area || 'Dubai',
+        avg_rating: r.avg_rating != null ? r.avg_rating : null,
+        total_reviews: r.total_reviews || 0,
+      }
+    }
+    if (rows.length < pageSize) break
+  }
+  return map
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -135,8 +170,14 @@ async function launchBrowser() {
 
 // Block analytics/pixels and any writes so the crawl leaves no trace in
 // GA / Meta / the visitor_sessions table. Supabase GETs (page data) pass.
-async function armPage(page, serverHost) {
+async function armPage(page, serverHost, companyMapJson) {
   try { await page.setBypassServiceWorker(true) } catch { /* older puppeteer */ }
+  // Flag prerender + hand the app the pre-fetched company data, so company pages
+  // render their SEO from it with zero per-page DB queries.
+  await page.evaluateOnNewDocument((mapJson) => {
+    window.__PRERENDER__ = true
+    if (mapJson) { try { window.__PRERENDER_COMPANIES__ = JSON.parse(mapJson) } catch { /* ignore */ } }
+  }, companyMapJson).catch(() => {})
   await page.setRequestInterception(true)
   page.on('request', (req) => {
     let host = ''
@@ -216,6 +257,17 @@ async function main() {
   }
   if (!routes.length) return bail('no routes found in sitemap.')
 
+  // One bulk fetch of all company SEO data — injected into every page so the
+  // crawl makes zero per-page DB calls (see armPage / PublicProfile).
+  let companyMapJson = ''
+  try {
+    const map = await fetchCompanyMap()
+    companyMapJson = JSON.stringify(map)
+    console.log(`   Loaded SEO data for ${Object.keys(map).length} companies (${Math.round(companyMapJson.length / 1024)} KB).`)
+  } catch (e) {
+    console.warn(`   ! company data prefetch failed (${e.message}) — company pages fall back to per-page fetch.`)
+  }
+
   const server = await startServer()
   const port = server.address().port
   const base = `http://127.0.0.1:${port}`
@@ -237,7 +289,7 @@ async function main() {
 
   async function worker() {
     const page = await browser.newPage()
-    await armPage(page, serverHost)
+    await armPage(page, serverHost, companyMapJson)
     while (queue.length && Date.now() - t0 < MAX_CRAWL_MS) {
       const path = queue.shift()
       try {

@@ -65,8 +65,13 @@ function setSEO({ title, description, image, url }) {
   const old = document.getElementById('jsonld-business'); if (old) old.remove()
 }
 function setJsonLD(company, reviews) {
+  // Prefer the company row's stored aggregates (available even when the full
+  // reviews list isn't fetched, e.g. during prerender); fall back to the list.
+  const hasAgg = company.avg_rating != null && company.total_reviews > 0
+  const ratingValue = hasAgg ? Number(company.avg_rating).toFixed(1) : (reviews.length > 0 ? (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1) : null)
+  const reviewCount = hasAgg ? company.total_reviews : reviews.length
   const s = document.createElement('script'); s.id = 'jsonld-business'; s.type = 'application/ld+json'
-  s.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://www.quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: reviews.length > 0 ? { '@type': 'AggregateRating', ratingValue: (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1), reviewCount: reviews.length, bestRating: 5, worstRating: 1 } : undefined })
+  s.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://www.quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: ratingValue ? { '@type': 'AggregateRating', ratingValue, reviewCount, bestRating: 5, worstRating: 1 } : undefined })
   document.head.appendChild(s)
 }
 function analyzeReview(r) {
@@ -230,7 +235,10 @@ export default function PublicProfile() {
   const [submittingMemberRating, setSubmittingMemberRating] = useState(false)
 
   useEffect(() => {
-    fetchCompany(); checkCustomer(); fetchAiSetting(); fetchSocial()
+    fetchCompany()
+    // Skip the non-SEO fetches during prerender — they add ~3 queries per page
+    // (globals + customer/auth) that would overload the DB across ~1000 pages.
+    if (typeof window === 'undefined' || !window.__PRERENDER__) { checkCustomer(); fetchAiSetting(); fetchSocial() }
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (e, s) => {
       if (e === 'SIGNED_IN' && s?.user) { setCustomer(await upsertCustomer(s.user)); setShowLoginPrompt(false) }
       else if (e === 'SIGNED_OUT') setCustomer(null)
@@ -300,9 +308,31 @@ export default function PublicProfile() {
     // unavailable. Enriched with the real name/rating once the company loads.
     const fallbackName = slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     setSEO({ title: `${fallbackName} — Dubai | Quvera`, description: `${fallbackName} — a verified business in Dubai on Quvera. See reviews, ratings, services and contact details.`, image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+    // Prerender: use the company data the crawler injected (one bulk fetch for
+    // ALL pages) instead of querying per page — so the build never overloads
+    // Supabase and every company page gets full SEO. Zero DB calls on this path.
+    const injected = (typeof window !== 'undefined' && window.__PRERENDER__ && window.__PRERENDER_COMPANIES__) ? window.__PRERENDER_COMPANIES__[slug] : null
+    if (injected) {
+      setCompany(injected)
+      const avg = (injected.avg_rating != null && injected.total_reviews > 0) ? Number(injected.avg_rating).toFixed(1) : null
+      setSEO({ title: injected.name + ' — ' + (injected.category || 'Business') + ' Dubai | Quvera', description: (injected.description ? injected.description.slice(0, 140) : injected.name + ' is a verified ' + (injected.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+      setJsonLD(injected, [])
+      setLoading(false)
+      return
+    }
+
     const { data, error } = await supabase.from('companies').select('*').eq('slug', slug).eq('status', 'approved').single()
     if (error || !data) { setNotFound(true); setLoading(false); return }
     setCompany(data)
+    // Prerender without an injected map (rare): the company row already carries
+    // avg_rating/total_reviews, so no extra fetch is needed for full SEO.
+    if (typeof window !== 'undefined' && window.__PRERENDER__) {
+      const avg = (data.avg_rating != null && data.total_reviews > 0) ? Number(data.avg_rating).toFixed(1) : null
+      setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+      setJsonLD(data, [])
+      setLoading(false)
+      return
+    }
     const today = new Date().toISOString().slice(0, 10)
     const [reviewRes, formRes, portfolioRes, badgeRes, faqRes, teamRes, docMetaRes, compDocRes] = await Promise.all([
       supabase.from('reviews').select('id, reviewer_name, rating, review_text, owner_reply, owner_reply_at, replied_at, created_at, customer_id, helpful_count').eq('company_id', data.id).eq('is_approved', true).order('created_at', { ascending: false }).limit(60),
