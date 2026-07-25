@@ -57,11 +57,16 @@ function setSEO({ title, description, image, url }) {
   document.title = title
   const setMeta = (n, c, p = false) => { const a = p ? 'property' : 'name'; let el = document.querySelector(`meta[${a}="${n}"]`); if (!el) { el = document.createElement('meta'); el.setAttribute(a, n); document.head.appendChild(el) } el.setAttribute('content', c) }
   setMeta('description', description); setMeta('og:title', title, true); setMeta('og:description', description, true); setMeta('og:url', url, true); setMeta('og:type', 'business.business', true); setMeta('og:image', image, true); setMeta('og:site_name', 'Quvera', true)
+  // Canonical — without this the page inherits index.html's homepage canonical,
+  // which tells Google every company page is a duplicate of the homepage.
+  let link = document.querySelector('link[rel="canonical"]')
+  if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link) }
+  link.href = url
   const old = document.getElementById('jsonld-business'); if (old) old.remove()
 }
 function setJsonLD(company, reviews) {
   const s = document.createElement('script'); s.id = 'jsonld-business'; s.type = 'application/ld+json'
-  s.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: reviews.length > 0 ? { '@type': 'AggregateRating', ratingValue: (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1), reviewCount: reviews.length, bestRating: 5, worstRating: 1 } : undefined })
+  s.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://www.quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: reviews.length > 0 ? { '@type': 'AggregateRating', ratingValue: (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1), reviewCount: reviews.length, bestRating: 5, worstRating: 1 } : undefined })
   document.head.appendChild(s)
 }
 function analyzeReview(r) {
@@ -290,6 +295,11 @@ export default function PublicProfile() {
 
   async function fetchCompany() {
     setLoading(true)
+    // Base SEO up-front from the slug, so the page always has the correct canonical
+    // (not the homepage) and a sensible title even if the data fetch is slow or
+    // unavailable. Enriched with the real name/rating once the company loads.
+    const fallbackName = slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    setSEO({ title: `${fallbackName} — Dubai | Quvera`, description: `${fallbackName} — a verified business in Dubai on Quvera. See reviews, ratings, services and contact details.`, image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
     const { data, error } = await supabase.from('companies').select('*').eq('slug', slug).eq('status', 'approved').single()
     if (error || !data) { setNotFound(true); setLoading(false); return }
     setCompany(data)
@@ -316,7 +326,7 @@ export default function PublicProfile() {
     if (data.category) { const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, total_reviews, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(6); setRelated(rel || []) }
     const reviewData = reviewRes.data || []
     const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
-    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://quvera.ae/og-image.png', url: 'https://quvera.ae/' + slug })
+    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
     setJsonLD(data, reviewData); trackProfileView(data.id); setLoading(false)
   }
   async function refreshTeam() {

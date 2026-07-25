@@ -22,6 +22,10 @@ const DIST = resolve(__dirname, '..', 'dist')
 // miss the JSON-LD wait and come out partial. Keep it at 5 (verified 623/623).
 const CONCURRENCY = 5
 const NAV_TIMEOUT = 25000
+// Hard wall-clock budget for the whole crawl. If a slow/rate-limited DB drags
+// it out, we stop taking new pages and ship what we have (uncrawled routes fall
+// back to the SPA) — so the build always finishes well under Vercel's ~45min cap.
+const MAX_CRAWL_MS = 33 * 60 * 1000
 const delay = (ms) => new Promise((r) => setTimeout(r, ms))
 
 const MIME = {
@@ -147,13 +151,29 @@ async function armPage(page, serverHost) {
   page.setDefaultNavigationTimeout(NAV_TIMEOUT)
 }
 
+// Paths that render no data-driven JSON-LD (so we don't wait for one).
+const STATIC_PATHS = new Set(['/', '/partner', '/claim-company', '/terms', '/privacy', '/refund'])
+
+function pageKind(path) {
+  if (path.startsWith('/services/')) return 'service'   // sets #jsonld-service
+  if (STATIC_PATHS.has(path)) return 'static'
+  return 'company'                                       // /:slug → sets #jsonld-business
+}
+
 async function snapshot(page, base, path) {
   const url = base + path
+  const kind = pageKind(path)
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT }).catch(() => {})
-  // ServiceArea applies SEO + JSON-LD on mount (independent of the data fetch),
-  // so this resolves as soon as React mounts — never blocked on Supabase.
-  if (path.startsWith('/services/')) {
+  // ServiceArea/PublicProfile apply their JSON-LD after mount; wait for the one
+  // this page type emits. Bounded — if the data fetch is slow the page still has
+  // its up-front canonical + title, so a timeout just means "no rich JSON-LD yet".
+  if (kind === 'service') {
     await page.waitForFunction(() => !!document.getElementById('jsonld-service'), { timeout: 10000 }).catch(() => {})
+  } else if (kind === 'company') {
+    // shorter give-up than services: there are ~1000s of these, so a slow/
+    // rate-limited fetch mustn't blow the build budget (canonical+title are
+    // already set up-front, so a timeout just drops the reviews JSON-LD).
+    await page.waitForFunction(() => !!document.getElementById('jsonld-business'), { timeout: 6000 }).catch(() => {})
   }
   await page.waitForFunction(
     () => { const r = document.getElementById('root'); return r && r.children.length > 0 },
@@ -171,10 +191,11 @@ async function snapshot(page, base, path) {
   await page.evaluate(() => {
     document.querySelectorAll('script[src*="connect.facebook.net"]').forEach((s) => s.remove())
   }).catch(() => {})
-  const okServices = !path.startsWith('/services/') ||
-    await page.evaluate(() => !!document.getElementById('jsonld-service'))
+  let complete = true
+  if (kind === 'service') complete = await page.evaluate(() => !!document.getElementById('jsonld-service'))
+  else if (kind === 'company') complete = await page.evaluate(() => !!document.getElementById('jsonld-business'))
   const html = await page.content()
-  return { html, complete: okServices }
+  return { html, complete }
 }
 
 async function writePage(path, html) {
@@ -217,7 +238,7 @@ async function main() {
   async function worker() {
     const page = await browser.newPage()
     await armPage(page, serverHost)
-    while (queue.length) {
+    while (queue.length && Date.now() - t0 < MAX_CRAWL_MS) {
       const path = queue.shift()
       try {
         const { html, complete } = await snapshot(page, base, path)
@@ -233,6 +254,9 @@ async function main() {
   }
 
   await Promise.all(Array.from({ length: CONCURRENCY }, worker))
+  if (queue.length) {
+    console.warn(`   ⏱  crawl budget (${Math.round(MAX_CRAWL_MS / 60000)}min) hit — ${queue.length} routes skipped (they fall back to the SPA).`)
+  }
   await browser.close().catch(() => {})
   server.close()
 

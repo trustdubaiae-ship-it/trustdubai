@@ -25,6 +25,28 @@ const AREAS = [
 const slugify = (s) => s.toLowerCase()
   .replace(/&/g, 'and').replace(/[()]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
+// Public Supabase creds (same anon values shipped in the client) — used to list
+// approved company slugs so each company profile page (/:slug) is in the sitemap.
+const SUPABASE_URL = 'https://ribdorraxxhfbfkjhpie.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpYmRvcnJheHhoZmJma2pocGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3OTkzNDUsImV4cCI6MjA5NTM3NTM0NX0.w5EMvd47CtWTc-8NgTlsM44EYmbGSQHc79wgjXTQlHE'
+
+// Fetch every approved company's slug, paging past PostgREST's 1000-row cap.
+async function fetchCompanySlugs() {
+  const pageSize = 1000
+  const out = []
+  for (let offset = 0; ; offset += pageSize) {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/companies?select=slug&status=eq.approved&slug=not.is.null&order=slug&limit=${pageSize}&offset=${offset}`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+    )
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    const rows = await res.json()
+    for (const r of rows) if (r.slug) out.push(r.slug)
+    if (rows.length < pageSize) break
+  }
+  return out
+}
+
 const today = new Date().toISOString().slice(0, 10)
 
 const urls = []
@@ -39,6 +61,23 @@ add('/claim-company', '0.6', 'monthly')
 for (const svc of SERVICES) add(`/services/${slugify(svc)}`, '0.9')
 // Then every service x area combination.
 for (const svc of SERVICES) for (const area of AREAS) add(`/services/${slugify(svc)}-${slugify(area)}`, '0.7')
+
+// Individual company profile pages (/:slug) so each company also ranks for its
+// own name. Reserved slugs that collide with real routes are skipped. If the
+// fetch fails the build still succeeds with the static pages only.
+const RESERVED = new Set(['services', 'partner', 'claim-company', 'terms', 'privacy', 'refund'])
+try {
+  const slugs = await fetchCompanySlugs()
+  let n = 0
+  for (const s of slugs) {
+    if (!s || RESERVED.has(s)) continue
+    add('/' + s, '0.6')
+    n++
+  }
+  console.log(`  + ${n} company profile pages`)
+} catch (e) {
+  console.warn(`  ! company slugs not fetched (${e.message}) — static pages only`)
+}
 
 const body = urls.map(u =>
   `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${u.changefreq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`
