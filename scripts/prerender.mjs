@@ -217,22 +217,20 @@ async function snapshot(page, base, path) {
   // this page type emits. Bounded — if the data fetch is slow the page still has
   // its up-front canonical + title, so a timeout just means "no rich JSON-LD yet".
   if (kind === 'service') {
-    await page.waitForFunction(() => !!document.getElementById('jsonld-service'), { timeout: 10000 }).catch(() => {})
+    await page.waitForFunction(() => !!document.getElementById('jsonld-service'), { timeout: 8000 }).catch(() => {})
   } else if (kind === 'company') {
-    // shorter give-up than services: there are ~1000s of these, so a slow/
-    // rate-limited fetch mustn't blow the build budget (canonical+title are
-    // already set up-front, so a timeout just drops the reviews JSON-LD).
     await page.waitForFunction(() => !!document.getElementById('jsonld-business'), { timeout: 6000 }).catch(() => {})
   }
   await page.waitForFunction(
     () => { const r = document.getElementById('root'); return r && r.children.length > 0 },
-    { timeout: 8000 }
+    { timeout: 6000 }
   ).catch(() => {})
-  // Give the company fetch a BOUNDED chance to populate the list (enriches the
-  // JSON-LD ItemList + card grid). Resolves fast when healthy, caps out when the
-  // DB is slow/rate-limited — SEO is already present either way, so no hang.
-  await page.waitForNetworkIdle({ idleTime: 500, timeout: 5000 }).catch(() => {})
-  await delay(200)
+  // Company pages render from injected data — no network settle needed. Service
+  // pages get a short bounded wait to pick up their company list, then move on.
+  // (Removing the per-page network wait is what keeps the crawl inside the build
+  // budget on Vercel's slow container.)
+  if (kind === 'service') await page.waitForNetworkIdle({ idleTime: 400, timeout: 2500 }).catch(() => {})
+  await delay(150)
   // Meta Pixel's fbq injects <script src=connect.facebook.net…> nodes at runtime.
   // Baking those into the snapshot double-loads the pixel (a second PageView),
   // because the inline pixel init in <head> re-injects them on the client. Strip
@@ -330,6 +328,17 @@ async function main() {
   if (results.failed > routes.length / 2) {
     console.warn('   Most routes failed — check the build environment (Chromium / network).')
   }
+
+  // Ship a stats file so the build's actual behaviour is readable from the live
+  // site (/__prerender_stats.json) — the only window into what happened on Vercel.
+  try {
+    await fs.writeFile(join(DIST, '__prerender_stats.json'), JSON.stringify({
+      routes: routes.length, prerendered: buffer.length,
+      full: results.ok, partial: results.partial, failed: results.failed,
+      skipped: queue.length, budgetHit: queue.length > 0, seconds: Number(secs),
+      companies: Object.keys(COMPANY_MAP).length,
+    }, null, 2))
+  } catch (e) { /* non-fatal */ }
 }
 
 main().catch((e) => bail('unexpected error.', e))
