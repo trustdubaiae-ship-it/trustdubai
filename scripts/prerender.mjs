@@ -155,12 +155,20 @@ async function launchBrowser() {
     const chromium = (await import('@sparticuz/chromium')).default
     const puppeteerCore = (await import('puppeteer-core')).default
     const executablePath = await chromium.executablePath()
-    return await puppeteerCore.launch({
-      args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
-      executablePath,
-      headless: chromium.headless,
-      defaultViewport: chromium.defaultViewport,
-    })
+    // @sparticuz defaults to --single-process / --no-zygote for Lambda's tiny
+    // memory — but that serialises ALL tabs into one process, killing our
+    // concurrency (crawl ran ~25x slower than local). A Vercel BUILD container
+    // has plenty of RAM, so drop those and let Chromium go multi-process.
+    const fastArgs = chromium.args.filter(
+      (a) => a !== '--single-process' && a !== '--no-zygote'
+    )
+    const base = { executablePath, headless: chromium.headless, defaultViewport: chromium.defaultViewport }
+    try {
+      return await puppeteerCore.launch({ ...base, args: [...fastArgs, '--no-sandbox', '--disable-setuid-sandbox'] })
+    } catch (e) {
+      console.warn('   multi-process launch failed — falling back to @sparticuz defaults: ' + e.message)
+      return await puppeteerCore.launch({ ...base, args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'] })
+    }
   }
 
   console.log('   Launching bundled Chromium via puppeteer (local)…')
