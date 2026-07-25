@@ -100,10 +100,11 @@ function readRoutes() {
   return [...new Set(paths)]
 }
 
-// Company SEO map, served to pages over localhost during the crawl (instead of
-// injecting a huge string arg, which didn't survive the @sparticuz/puppeteer-core
-// path on Vercel). PublicProfile fetches this — no per-page Supabase call.
-let COMPANY_MAP_JSON = '{}'
+// Company SEO data, served to pages over localhost during the crawl. Each page
+// fetches ONLY its own row (tiny) — not the whole map — so the crawl stays fast
+// in Vercel's constrained @sparticuz build container. No per-page Supabase call.
+let COMPANY_MAP = {}
+const COMPANY_EP = '/__prerender_company/'
 
 // --- tiny static server with SPA fallback ----------------------------------
 function startServer() {
@@ -111,9 +112,10 @@ function startServer() {
     const server = createServer(async (req, resp) => {
       try {
         let pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname)
-        if (pathname === '/__prerender_companies.json') {
+        if (pathname.startsWith(COMPANY_EP)) {
+          const slug = pathname.slice(COMPANY_EP.length).replace(/\.json$/, '')
           resp.writeHead(200, { 'content-type': 'application/json; charset=utf-8' })
-          return resp.end(COMPANY_MAP_JSON)
+          return resp.end(JSON.stringify(COMPANY_MAP[slug] || null))
         }
         const ext = extname(pathname).toLowerCase()
         // asset request (has a real extension) → serve file if present
@@ -266,9 +268,8 @@ async function main() {
   // One bulk fetch of all company SEO data — served to pages over localhost so
   // the crawl makes zero per-page DB calls (see startServer / PublicProfile).
   try {
-    const map = await fetchCompanyMap()
-    COMPANY_MAP_JSON = JSON.stringify(map)
-    console.log(`   Loaded SEO data for ${Object.keys(map).length} companies (${Math.round(COMPANY_MAP_JSON.length / 1024)} KB).`)
+    COMPANY_MAP = await fetchCompanyMap()
+    console.log(`   Loaded SEO data for ${Object.keys(COMPANY_MAP).length} companies.`)
   } catch (e) {
     console.warn(`   ! company data prefetch failed (${e.message}) — company pages fall back to per-page fetch.`)
   }

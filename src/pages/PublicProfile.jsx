@@ -321,13 +321,9 @@ export default function PublicProfile() {
     // over localhost (one bulk fetch for ALL pages) — zero per-page DB calls, so
     // the crawl can never overload Supabase and every company page gets full SEO.
     if (typeof window !== 'undefined' && window.__PRERENDER__) {
-      let map = window.__PRERENDER_COMPANIES__
-      if (!map) {
-        try { map = await (await fetch('/__prerender_companies.json')).json() } catch (e) { map = null }
-        window.__PRERENDER_COMPANIES__ = map || {}
-      }
-      const c = map ? map[slug] : null
-      setPrerenderPath(c ? 'inject' : (map ? 'no-slug' : 'no-map'))
+      let c = null, fetched = false
+      try { c = await (await fetch('/__prerender_company/' + encodeURIComponent(slug) + '.json')).json(); fetched = true } catch (e) { fetched = false }
+      setPrerenderPath(c ? 'inject' : (fetched ? 'no-slug' : 'no-map'))
       if (c) {
         setCompany(c)
         const avg = (c.avg_rating != null && c.total_reviews > 0) ? Number(c.avg_rating).toFixed(1) : null
