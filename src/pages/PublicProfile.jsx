@@ -64,6 +64,15 @@ function setSEO({ title, description, image, url }) {
   link.href = url
   const old = document.getElementById('jsonld-business'); if (old) old.remove()
 }
+// Diagnostic: records which prerender path produced the snapshot, readable from
+// the live HTML (<meta name="x-prerender-path">) to debug the build remotely.
+function setPrerenderPath(v) {
+  try {
+    let el = document.querySelector('meta[name="x-prerender-path"]')
+    if (!el) { el = document.createElement('meta'); el.setAttribute('name', 'x-prerender-path'); document.head.appendChild(el) }
+    el.setAttribute('content', v)
+  } catch (e) {}
+}
 function setJsonLD(company, reviews) {
   // Prefer the company row's stored aggregates (available even when the full
   // reviews list isn't fetched, e.g. during prerender); fall back to the list.
@@ -308,25 +317,35 @@ export default function PublicProfile() {
     // unavailable. Enriched with the real name/rating once the company loads.
     const fallbackName = slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
     setSEO({ title: `${fallbackName} — Dubai | Quvera`, description: `${fallbackName} — a verified business in Dubai on Quvera. See reviews, ratings, services and contact details.`, image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
-    // Prerender: use the company data the crawler injected (one bulk fetch for
-    // ALL pages) instead of querying per page — so the build never overloads
-    // Supabase and every company page gets full SEO. Zero DB calls on this path.
-    const injected = (typeof window !== 'undefined' && window.__PRERENDER__ && window.__PRERENDER_COMPANIES__) ? window.__PRERENDER_COMPANIES__[slug] : null
-    if (injected) {
-      setCompany(injected)
-      const avg = (injected.avg_rating != null && injected.total_reviews > 0) ? Number(injected.avg_rating).toFixed(1) : null
-      setSEO({ title: injected.name + ' — ' + (injected.category || 'Business') + ' Dubai | Quvera', description: (injected.description ? injected.description.slice(0, 140) : injected.name + ' is a verified ' + (injected.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
-      setJsonLD(injected, [])
-      setLoading(false)
-      return
+    // Prerender: read this company's SEO data from the map the crawler serves
+    // over localhost (one bulk fetch for ALL pages) — zero per-page DB calls, so
+    // the crawl can never overload Supabase and every company page gets full SEO.
+    if (typeof window !== 'undefined' && window.__PRERENDER__) {
+      let map = window.__PRERENDER_COMPANIES__
+      if (!map) {
+        try { map = await (await fetch('/__prerender_companies.json')).json() } catch (e) { map = null }
+        window.__PRERENDER_COMPANIES__ = map || {}
+      }
+      const c = map ? map[slug] : null
+      setPrerenderPath(c ? 'inject' : (map ? 'no-slug' : 'no-map'))
+      if (c) {
+        setCompany(c)
+        const avg = (c.avg_rating != null && c.total_reviews > 0) ? Number(c.avg_rating).toFixed(1) : null
+        setSEO({ title: c.name + ' — ' + (c.category || 'Business') + ' Dubai | Quvera', description: (c.description ? c.description.slice(0, 140) : c.name + ' is a verified ' + (c.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+        setJsonLD(c, [])
+        setLoading(false)
+        return
+      }
+      // no map/slug → fall through to a single-row fetch below
     }
 
     const { data, error } = await supabase.from('companies').select('*').eq('slug', slug).eq('status', 'approved').single()
     if (error || !data) { setNotFound(true); setLoading(false); return }
     setCompany(data)
-    // Prerender without an injected map (rare): the company row already carries
+    // Prerender fallback (no map hit): the company row already carries
     // avg_rating/total_reviews, so no extra fetch is needed for full SEO.
     if (typeof window !== 'undefined' && window.__PRERENDER__) {
+      setPrerenderPath('fetch-fallback')
       const avg = (data.avg_rating != null && data.total_reviews > 0) ? Number(data.avg_rating).toFixed(1) : null
       setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
       setJsonLD(data, [])

@@ -100,12 +100,21 @@ function readRoutes() {
   return [...new Set(paths)]
 }
 
+// Company SEO map, served to pages over localhost during the crawl (instead of
+// injecting a huge string arg, which didn't survive the @sparticuz/puppeteer-core
+// path on Vercel). PublicProfile fetches this — no per-page Supabase call.
+let COMPANY_MAP_JSON = '{}'
+
 // --- tiny static server with SPA fallback ----------------------------------
 function startServer() {
   return new Promise((res) => {
     const server = createServer(async (req, resp) => {
       try {
         let pathname = decodeURIComponent(new URL(req.url, 'http://x').pathname)
+        if (pathname === '/__prerender_companies.json') {
+          resp.writeHead(200, { 'content-type': 'application/json; charset=utf-8' })
+          return resp.end(COMPANY_MAP_JSON)
+        }
         const ext = extname(pathname).toLowerCase()
         // asset request (has a real extension) → serve file if present
         if (ext) {
@@ -170,14 +179,11 @@ async function launchBrowser() {
 
 // Block analytics/pixels and any writes so the crawl leaves no trace in
 // GA / Meta / the visitor_sessions table. Supabase GETs (page data) pass.
-async function armPage(page, serverHost, companyMapJson) {
+async function armPage(page, serverHost) {
   try { await page.setBypassServiceWorker(true) } catch { /* older puppeteer */ }
-  // Flag prerender + hand the app the pre-fetched company data, so company pages
-  // render their SEO from it with zero per-page DB queries.
-  await page.evaluateOnNewDocument((mapJson) => {
-    window.__PRERENDER__ = true
-    if (mapJson) { try { window.__PRERENDER_COMPANIES__ = JSON.parse(mapJson) } catch { /* ignore */ } }
-  }, companyMapJson).catch(() => {})
+  // Flag prerender (small, reliable). The app fetches the company map from the
+  // crawl server itself (/__prerender_companies.json) — no per-page Supabase call.
+  await page.evaluateOnNewDocument(() => { window.__PRERENDER__ = true }).catch(() => {})
   await page.setRequestInterception(true)
   page.on('request', (req) => {
     let host = ''
@@ -257,13 +263,12 @@ async function main() {
   }
   if (!routes.length) return bail('no routes found in sitemap.')
 
-  // One bulk fetch of all company SEO data — injected into every page so the
-  // crawl makes zero per-page DB calls (see armPage / PublicProfile).
-  let companyMapJson = ''
+  // One bulk fetch of all company SEO data — served to pages over localhost so
+  // the crawl makes zero per-page DB calls (see startServer / PublicProfile).
   try {
     const map = await fetchCompanyMap()
-    companyMapJson = JSON.stringify(map)
-    console.log(`   Loaded SEO data for ${Object.keys(map).length} companies (${Math.round(companyMapJson.length / 1024)} KB).`)
+    COMPANY_MAP_JSON = JSON.stringify(map)
+    console.log(`   Loaded SEO data for ${Object.keys(map).length} companies (${Math.round(COMPANY_MAP_JSON.length / 1024)} KB).`)
   } catch (e) {
     console.warn(`   ! company data prefetch failed (${e.message}) — company pages fall back to per-page fetch.`)
   }
@@ -289,7 +294,7 @@ async function main() {
 
   async function worker() {
     const page = await browser.newPage()
-    await armPage(page, serverHost, companyMapJson)
+    await armPage(page, serverHost)
     while (queue.length && Date.now() - t0 < MAX_CRAWL_MS) {
       const path = queue.shift()
       try {
