@@ -22,7 +22,9 @@ const DIST = resolve(__dirname, '..', 'dist')
 // is CPU/render-bound, so scale concurrency with the container's cores. Vercel's
 // build box is bigger than its Lambda runtime, so this unblocks real parallelism.
 const CPU_COUNT = cpus().length
-const CONCURRENCY = Math.min(16, Math.max(5, CPU_COUNT * 2))
+// Company pages now render a light SEO-only body during prerender, so the crawl
+// is largely IO/navigation-bound — over-subscribing the cores helps overlap it.
+const CONCURRENCY = Math.min(16, Math.max(8, CPU_COUNT * 2))
 const NAV_TIMEOUT = 25000
 // Hard wall-clock budget for the whole crawl. If a slow/rate-limited DB drags
 // it out, we stop taking new pages and ship what we have (uncrawled routes fall

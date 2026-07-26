@@ -465,6 +465,27 @@ export default function PublicProfile() {
   if (loading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#070b15' }}><Fonts /><div style={{ textAlign: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid #4f9fe0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'tdspin .8s linear infinite', margin: '0 auto 14px' }} /><div style={{ fontSize: 14, color: '#9aa7bd', fontFamily: 'Manrope,sans-serif' }}>Loading profile…</div></div></div>
   if (notFound) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e7ecf3' }}><Fonts /><div style={{ textAlign: 'center', padding: 40 }}><div style={{ fontSize: 52 }}>🔍</div><h2 style={{ fontFamily: 'Sora,sans-serif', color: '#16233a', margin: '12px 0' }}>Company not found</h2><button onClick={() => window.location.href = '/'} style={{ padding: '10px 24px', background: '#1d6fb8', color: '#fff', borderRadius: 20, border: 'none', cursor: 'pointer', fontWeight: 700 }}>Go to Quvera</button></div></div>
 
+  // Prerender fast-body: on the crawler (window.__PRERENDER__) render a light,
+  // SEO-only body instead of the full profile, so the heavy component tree never
+  // renders on Vercel's 2-core build box (that render was the crawl's bottleneck).
+  // Real users have no flag → they get the full page below. The head already has
+  // the title/canonical/OG + LocalBusiness JSON-LD, so SEO is complete.
+  if (typeof window !== 'undefined' && window.__PRERENDER__) {
+    const where = company.location || 'Dubai'
+    const hasRating = company.avg_rating != null && company.total_reviews > 0
+    return (
+      <div style={{ minHeight: '100vh', background: '#f4f7fb', fontFamily: "'Manrope',sans-serif", color: '#16233a' }}>
+        <div style={{ maxWidth: 820, margin: '0 auto', padding: '22px 16px' }}>
+          <a href="/" style={{ color: '#0099cc', textDecoration: 'none', fontWeight: 800, fontFamily: "'Sora',sans-serif", fontSize: 17 }}>Quvera</a>
+          <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, margin: '14px 0 6px', lineHeight: 1.2 }}>{company.name}</h1>
+          <div style={{ color: '#56657c', fontSize: 15, marginBottom: 12 }}>{company.category || 'Verified business'} in {where}, Dubai</div>
+          <p style={{ color: '#56657c', fontSize: 15, lineHeight: 1.65 }}>{company.description || `${company.name} is a verified ${(company.category || 'business').toLowerCase()} in ${where}, Dubai on Quvera. See reviews, ratings, services and contact details, and request a free quote.`}</p>
+          {hasRating && <div style={{ marginTop: 10, fontWeight: 700 }}>★ {Number(company.avg_rating).toFixed(1)} · {company.total_reviews} reviews</div>}
+        </div>
+      </div>
+    )
+  }
+
   const plan = company.plan || 'free'
   const isPremium = plan === 'gold' || plan === 'platinum'
   const isPlatinum = plan === 'platinum'
