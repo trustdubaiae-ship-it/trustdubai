@@ -14,13 +14,15 @@ import { createServer } from 'node:http'
 import { readFileSync as readSync, promises as fs } from 'node:fs'
 import { join, dirname, extname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { cpus, totalmem } from 'node:os'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = resolve(__dirname, '..', 'dist')
-// Higher concurrency does NOT help here — the machine saturates and per-page
-// Supabase latency (not local waits) is the wall-clock floor. Above ~5, pages
-// miss the JSON-LD wait and come out partial. Keep it at 5 (verified 623/623).
-const CONCURRENCY = 5
+// Since company pages render from injected data (no Supabase per page), the crawl
+// is CPU/render-bound, so scale concurrency with the container's cores. Vercel's
+// build box is bigger than its Lambda runtime, so this unblocks real parallelism.
+const CPU_COUNT = cpus().length
+const CONCURRENCY = Math.min(16, Math.max(5, CPU_COUNT * 2))
 const NAV_TIMEOUT = 25000
 // Hard wall-clock budget for the whole crawl. If a slow/rate-limited DB drags
 // it out, we stop taking new pages and ship what we have (uncrawled routes fall
@@ -345,6 +347,7 @@ async function main() {
       full: results.ok, partial: results.partial, failed: results.failed,
       skipped: queue.length, budgetHit: queue.length > 0, seconds: Number(secs),
       companies: Object.keys(COMPANY_MAP).length,
+      cpus: CPU_COUNT, memGB: Math.round(totalmem() / 1e9), concurrency: CONCURRENCY,
     }, null, 2))
   } catch (e) { /* non-fatal */ }
 }
