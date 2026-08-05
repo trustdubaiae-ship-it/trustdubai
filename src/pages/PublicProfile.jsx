@@ -57,10 +57,12 @@ function makeTheme(dark) {
 // demand the DB-derived template below doesn't serve well. Keyed by URL slug;
 // every other company page keeps the generic name/category template.
 const SEO_OVERRIDES = {
-  // 73 impressions, avg position 7, 12.3% CTR — best-performing branded query,
-  // sitting just below page 1.
+  // Two queries land here: "osta services" (73 impr, pos 7, 12.3% CTR) and the
+  // Arabic "خدمات آسطا | osta services – ac repair & maintenance" (37 impr, pos
+  // 9.7). The Arabic one ranks because the DB-derived title carried the Arabic
+  // company name, so the override keeps it — dropping it would cost that query.
   'osta-services-ac-repair-maintenance': {
-    title: 'Osta Services Dubai | AC Repair & Maintenance – Quvera',
+    title: 'Osta Services خدمات آسطا | AC Repair & Maintenance Dubai – Quvera',
     description: 'Book trusted Osta AC repair and maintenance services in Dubai. Verified technicians, transparent pricing, same-day service across Dubai. Get a free quote today.',
   },
 }
