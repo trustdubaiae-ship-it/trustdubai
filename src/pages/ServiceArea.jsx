@@ -36,6 +36,23 @@ const SYNONYMS = {
   'Curtains & Blinds': 'curtains, blinds and window-treatment companies',
 }
 
+// Hand-written title/meta for the few pages where Search Console shows real
+// impressions but a weak click-through rate — these beat the generic template.
+// Keyed by URL slug; every other page falls back to the template in applySEO().
+const SEO_OVERRIDES = {
+  // 215 impressions, avg position 24.4, 0.5% CTR — highest-impression service page.
+  'interior-design-dubai-marina': {
+    title: 'Interior Design Dubai Marina | Verified Interior Designers & Fit-Out Companies – Quvera',
+    description: 'Compare verified interior design companies in Dubai Marina. Get quotes for apartment & villa interior fit-out, styling and renovation from vetted Quvera contractors — fast, free, no obligation.',
+  },
+  // 135 impressions, avg position 88.3, 0.7% CTR — also competing with the
+  // "joinery companies in dubai" query, which the title now names explicitly.
+  'carpentry-and-joinery-downtown-dubai': {
+    title: 'Carpentry & Joinery Companies in Downtown Dubai | Custom Woodwork – Quvera',
+    description: 'Find verified carpentry and joinery companies in Downtown Dubai for custom furniture, kitchen cabinets, doors and woodwork. Compare quotes from trusted local contractors on Quvera.',
+  },
+}
+
 // Resolve a URL slug (e.g. "interior-design-business-bay") back to {service, area}
 function resolveSlug(slug) {
   if (!slug) return { service: null, area: null }
@@ -154,9 +171,10 @@ export default function ServiceArea() {
     if (!service) return
     const where = area ? `${area}, Dubai` : 'Dubai'
     const cnt = rows.length
-    const title = `${service} Companies in ${where} — Top Verified | Quvera`
+    const ov = SEO_OVERRIDES[serviceArea]
+    const title = ov ? ov.title : `${service} Companies in ${where} — Top Verified | Quvera`
     const syn = SYNONYMS[service] ? ` Also covering ${SYNONYMS[service]}.` : ''
-    const desc  = (cnt > 0
+    const desc  = ov ? ov.description : (cnt > 0
       ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
       : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`) + syn
     const url   = `https://www.quvera.ae/services/${serviceArea}`

@@ -53,7 +53,23 @@ function makeTheme(dark) {
   }
 }
 
+// Hand-written title/meta for company pages where Search Console shows real
+// demand the DB-derived template below doesn't serve well. Keyed by URL slug;
+// every other company page keeps the generic name/category template.
+const SEO_OVERRIDES = {
+  // 73 impressions, avg position 7, 12.3% CTR — best-performing branded query,
+  // sitting just below page 1.
+  'osta-services-ac-repair-maintenance': {
+    title: 'Osta Services Dubai | AC Repair & Maintenance – Quvera',
+    description: 'Book trusted Osta AC repair and maintenance services in Dubai. Verified technicians, transparent pricing, same-day service across Dubai. Get a free quote today.',
+  },
+}
+
 function setSEO({ title, description, image, url }) {
+  // Applied here rather than at each call site so every path that sets SEO for
+  // this page (fallback, cached and fetched) picks the override up.
+  const ov = SEO_OVERRIDES[(url || '').split('/').pop()]
+  if (ov) { title = ov.title; description = ov.description }
   document.title = title
   const setMeta = (n, c, p = false) => { const a = p ? 'property' : 'name'; let el = document.querySelector(`meta[${a}="${n}"]`); if (!el) { el = document.createElement('meta'); el.setAttribute(a, n); document.head.appendChild(el) } el.setAttribute('content', c) }
   setMeta('description', description); setMeta('og:title', title, true); setMeta('og:description', description, true); setMeta('og:url', url, true); setMeta('og:type', 'business.business', true); setMeta('og:image', image, true); setMeta('og:site_name', 'Quvera', true)
