@@ -40,7 +40,13 @@ const SYNONYMS = {
 // impressions but a weak click-through rate — these beat the generic template.
 // Keyed by URL slug; every other page falls back to the template in applySEO().
 const SEO_OVERRIDES = {
-  // 215 impressions, avg position 24.4, 0.5% CTR — highest-impression service page.
+  // 447 impressions, avg position 27.2, 1.8% CTR — highest-impression page on
+  // the site. Ranking is stuck on page 3, so the snippet is doing the work here.
+  'interior-design-al-barsha': {
+    title: 'Interior Design Al Barsha Dubai | Verified Companies – Quvera',
+    description: 'Get matched with top interior design companies in Al Barsha, Dubai. Compare verified fit-out & décor specialists and request a free quote today.',
+  },
+  // 215 impressions, avg position 24.4, 0.5% CTR — second-highest service page.
   'interior-design-dubai-marina': {
     title: 'Interior Design Dubai Marina | Verified Interior Designers & Fit-Out Companies – Quvera',
     description: 'Compare verified interior design companies in Dubai Marina. Get quotes for apartment & villa interior fit-out, styling and renovation from vetted Quvera contractors — fast, free, no obligation.',
