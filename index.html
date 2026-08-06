@@ -48,6 +48,13 @@
     <meta name="twitter:title" content="Quvera — Verified Home & Interior Service Companies in Dubai" />
     <meta name="twitter:description" content="Verified Dubai companies for interior design, renovation, fit-out, AC, plumbing, cleaning and more. Real reviews & free quotes." />
     <meta name="twitter:image" content="https://www.quvera.ae/icon-512.png" />
+    <!-- Body font. Declared here rather than as an @import inside index.css so the
+         preload scanner can start it immediately, in parallel with the JS/CSS
+         bundle, instead of only after that bundle has been parsed. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" />
+
     <!-- Icon font. It is decorative, so it must not block first paint — PageSpeed
          measured 3.4s of render-blocking on this one request. Loaded via preload
          and promoted to a stylesheet on arrival; <noscript> keeps it working
