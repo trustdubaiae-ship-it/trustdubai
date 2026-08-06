@@ -48,7 +48,21 @@
     <meta name="twitter:title" content="Quvera — Verified Home & Interior Service Companies in Dubai" />
     <meta name="twitter:description" content="Verified Dubai companies for interior design, renovation, fit-out, AC, plumbing, cleaning and more. Real reviews & free quotes." />
     <meta name="twitter:image" content="https://www.quvera.ae/icon-512.png" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+    <!-- Icon font. It is decorative, so it must not block first paint — PageSpeed
+         measured 3.4s of render-blocking on this one request. Loaded via preload
+         and promoted to a stylesheet on arrival; <noscript> keeps it working
+         without JS. Version pinned (was @latest): jsDelivr caches a pinned
+         version for a year vs 7 days for @latest, and @latest would ship a
+         breaking tabler release straight to production with no deploy. -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css"
+          onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" /></noscript>
+    <style>
+      /* Reserve the glyph box before the async icon font lands, so promoting it
+         to a stylesheet doesn't shift the layout around it (CLS is already 0.365). */
+      .ti { display: inline-block; min-width: 1em; min-height: 1em; }
+    </style>
     <!-- Favicon -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <!-- PWA -->
