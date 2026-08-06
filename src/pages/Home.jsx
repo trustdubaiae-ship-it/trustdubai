@@ -1187,23 +1187,26 @@ export default function Home({ navigate }) {
       // allSettled = one failing/slow query never blanks the whole homepage.
       const results = await Promise.allSettled([
         supabase.from('platform_settings').select('*').eq('id', 1).maybeSingle(),
-        supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved'),
-        supabase.from('reviews').select('*',{count:'exact',head:true}).eq('is_approved',true),
-        supabase.from('companies').select('*',{count:'exact',head:true}).eq('status','approved').eq('is_verified',true),
         supabase.from('companies').select('*').eq('status','approved').order('created_at',{ascending:false}).limit(50),
         supabase.from('reviews').select('rating,created_at').eq('is_approved',true),
         supabase.from('reviews').select('id,reviewer_name,rating,review_text,created_at').eq('is_approved',true).order('created_at',{ascending:false}).limit(5),
-        supabase.from('companies').select('area').eq('status','approved'),
+        supabase.from('companies').select('area,is_verified').eq('status','approved'),
       ])
       const val = (i) => (results[i] && results[i].status === 'fulfilled') ? results[i].value : {}
       const settingsRow = val(0).data
-      const totalCo     = val(1).count
-      const totalRev    = val(2).count
-      const verifiedCo  = val(3).count
-      const allCo       = val(4).data
-      const revAll      = val(5).data       // one fetch reused for avg + monthly graph
-      const recentRev   = val(6).data
-      const areaRows    = val(7).data
+      const allCo       = val(1).data
+      const revAll      = val(2).data       // one fetch reused for avg + monthly graph
+      const recentRev   = val(3).data
+      const areaRows    = val(4).data
+      // The three headline counts used to be their own count:'exact' head requests.
+      // An exact count makes Postgres walk the whole table under RLS; on this data
+      // they were slow enough to intermittently 503, and a failed count fell through
+      // to `|| 0`, so the homepage would sometimes advertise 0 companies and 0
+      // reviews. Both source lists are already fetched in full here, so count them
+      // locally instead — three fewer requests, and numbers that can't silently zero.
+      const totalCo     = areaRows?.length
+      const totalRev    = revAll?.length
+      const verifiedCo  = areaRows?.filter(c => c.is_verified).length
       const ratData     = revAll
       const revData     = revAll
 
