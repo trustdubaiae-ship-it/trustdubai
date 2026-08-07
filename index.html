@@ -53,18 +53,33 @@
          bundle, instead of only after that bundle has been parsed. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" />
+    <link rel="stylesheet" media="print" onload="this.media='all'"
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" /></noscript>
 
-    <!-- Icon font. This was briefly loaded async (preload + onload swap) to clear
-         3.4s of render-blocking. That worked on the blocking metric — 3,420ms to
-         600ms — but FCP and LCP did not move at all across two runs, and CLS went
-         0.365 -> 0.45 over the same change. Reverted to a normal stylesheet: it
-         bought nothing measurable and icons arriving after first paint move the
-         layout. The version pin stays (was @latest): jsDelivr caches a pinned
-         version for a year vs 7 days, and @latest would ship a breaking tabler
-         release straight to production with no deploy. -->
+    <!-- Both stylesheets above and below are loaded off the critical path.
+         This was tried once before and reverted, because it cut render-blocking
+         from 3,420ms to 600ms while FCP and LCP did not move at all. The reason
+         was that the page had nothing to paint either way — the prerendered
+         homepage was an empty shell waiting on Supabase, so the blocking CSS was
+         never the constraint. Now that the homepage prerenders with real content
+         and seeds its first render, first paint is genuinely gated on these, and
+         PageSpeed puts 3,120ms behind them again. Same change, different page.
+         Neither font is needed to read the page: the body font has display=swap
+         so text renders in the fallback immediately, and the icons are
+         decorative. <noscript> copies keep both working without JS.
+         The version pin stays (was @latest): jsDelivr caches a pinned version
+         for a year vs 7 days, and @latest would ship a breaking tabler release
+         straight to production with no deploy. -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" />
+    <link rel="stylesheet" media="print" onload="this.media='all'"
+          href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" />
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" /></noscript>
+    <style>
+      /* Hold the glyph box while the icon sheet is off the critical path, so it
+         cannot claw back the CLS the homepage seeding just won (0.45 -> 0.132). */
+      .ti { display: inline-block; min-width: 1em; min-height: 1em; }
+    </style>
     <!-- Favicon -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <!-- PWA -->
