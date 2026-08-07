@@ -55,21 +55,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" />
 
-    <!-- Icon font. It is decorative, so it must not block first paint — PageSpeed
-         measured 3.4s of render-blocking on this one request. Loaded via preload
-         and promoted to a stylesheet on arrival; <noscript> keeps it working
-         without JS. Version pinned (was @latest): jsDelivr caches a pinned
-         version for a year vs 7 days for @latest, and @latest would ship a
-         breaking tabler release straight to production with no deploy. -->
+    <!-- Icon font. This was briefly loaded async (preload + onload swap) to clear
+         3.4s of render-blocking. That worked on the blocking metric — 3,420ms to
+         600ms — but FCP and LCP did not move at all across two runs, and CLS went
+         0.365 -> 0.45 over the same change. Reverted to a normal stylesheet: it
+         bought nothing measurable and icons arriving after first paint move the
+         layout. The version pin stays (was @latest): jsDelivr caches a pinned
+         version for a year vs 7 days, and @latest would ship a breaking tabler
+         release straight to production with no deploy. -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="preload" as="style" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css"
-          onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" /></noscript>
-    <style>
-      /* Reserve the glyph box before the async icon font lands, so promoting it
-         to a stylesheet doesn't shift the layout around it (CLS is already 0.365). */
-      .ti { display: inline-block; min-width: 1em; min-height: 1em; }
-    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" />
     <!-- Favicon -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <!-- PWA -->
