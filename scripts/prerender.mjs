@@ -67,6 +67,100 @@ async function fetchCompanyMap() {
   return map
 }
 
+// --- homepage seed --------------------------------------------------------
+// '/' is in STATIC_PATHS, so the crawl never waited for its data: the snapshot
+// was taken ~150ms after mount and the prerendered homepage shipped as an empty
+// shell — no companies for crawlers to read. Waiting in the browser did not fix
+// it (12s of network-idle still produced zeros; the DB is rate-limited with 16
+// pages crawling at once), so fetch it here in Node instead, the same way the
+// company map already is, and inject it into the shell we serve for '/'.
+//
+// Home.jsx reads this at module load, so during the crawl it renders WITH data
+// (fixing the SEO gap) and the same JSON stays in the output for real visitors,
+// letting React's first render match what was painted instead of blanking while
+// Supabase answers.
+//
+// The derivation below mirrors fetchAll() in Home.jsx. Keep the two in step.
+const SB = (path) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+}).then((r) => (r.ok ? r.json() : null)).catch(() => null)
+
+// Same request, but also asks for the row count. PostgREST caps a response at
+// 1000 rows, so counting the returned array undercounts a 1093-row table.
+const SBCount = (path) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  headers: {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    Prefer: 'count=estimated',
+  },
+}).then(async (r) => {
+  if (!r.ok) return { rows: null, count: null }
+  // Content-Range looks like "0-999/1093"
+  const total = parseInt((r.headers.get('content-range') || '').split('/')[1], 10)
+  return { rows: await r.json(), count: Number.isFinite(total) ? total : null }
+}).catch(() => ({ rows: null, count: null }))
+
+const CO_FIELDS = 'id,name,slug,category,categories,area,location,avg_rating,total_reviews,trust_score,is_verified,plan,logo_url,profile_views,created_at'
+const DEFAULT_TH = { min_companies: 50, min_reviews: 100, min_rating: 3.5, min_rating_reviews: 50, min_verified: 100, trust_score_min_verified: 100 }
+
+async function fetchHomeSeed() {
+  const [settingsArr, allCo, revAll, recentRev, areaRes, categories] = await Promise.all([
+    SB('platform_settings?select=*&id=eq.1'),
+    SB(`companies?select=${CO_FIELDS}&status=eq.approved&order=created_at.desc&limit=50`),
+    SB('reviews?select=rating,created_at&is_approved=eq.true'),
+    SB('reviews?select=id,reviewer_name,rating,review_text,created_at&is_approved=eq.true&order=created_at.desc&limit=5'),
+    SBCount('companies?select=area,is_verified&status=eq.approved'),
+    SB('categories?select=id,name,icon,type,sort_order&is_active=eq.true&order=sort_order.asc'),
+  ])
+  const areaRows = areaRes.rows
+  if (!allCo || !areaRows) return null            // no data → ship the shell, as before
+
+  const th = { ...DEFAULT_TH, ...(settingsArr?.[0] || {}) }
+  const minR = parseFloat(th.min_rating) || 3.5
+  const approved = allCo
+  const verifiedRated = approved.filter((c) => c.is_verified && (parseFloat(c.avg_rating) || 0) >= minR)
+
+  const totalCo = areaRes.count ?? areaRows.length
+  const totalRev = revAll?.length || 0
+  const verifiedSeen = areaRows.filter((c) => c.is_verified).length
+  const verifiedCo = (areaRows.length && totalCo > areaRows.length)
+    ? Math.round(verifiedSeen * (totalCo / areaRows.length))
+    : verifiedSeen
+  const avg = totalRev > 0 ? (revAll.reduce((s, r) => s + r.rating, 0) / totalRev).toFixed(1) : '0.0'
+
+  const counts = {}
+  for (const r of areaRows) { const a = (r.area || '').trim(); if (a) counts[a] = (counts[a] || 0) + 1 }
+  const areaList = Object.entries(counts).map(([area, count]) => ({ area, count })).sort((a, b) => b.count - a.count)
+
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+  const tm = (revAll || []).filter((r) => r.created_at >= monthStart)
+  const n = (k) => tm.filter((r) => r.rating === k).length
+  const total = tm.length
+  const s5 = n(5), s4 = n(4)
+
+  return {
+    stats: { companies: totalCo, reviews: totalRev, avgRating: avg, verified: verifiedCo },
+    topCos: [...verifiedRated].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0)).slice(0, 4),
+    newCos: approved.slice(0, 4),
+    trending: [...verifiedRated].sort((a, b) =>
+      ((b.profile_views || 0) + (b.total_reviews || 0) * 3) - ((a.profile_views || 0) + (a.total_reviews || 0) * 3)
+    ).slice(0, 5),
+    areaList,
+    recentReviews: recentRev || [],
+    reviewData: {
+      total, s5, s4, s3: n(3), s2: n(2), s1: n(1),
+      s5_pct: total > 0 ? Math.round(s5 / total * 100) : 0,
+      s4_pct: total > 0 ? Math.round(s4 / total * 100) : 0,
+    },
+    trustScore: Math.min(100, Math.round(
+      (verifiedCo / Math.max(totalCo, 1)) * 40 + (parseFloat(avg) / 5) * 40 + Math.min(totalRev / 100, 1) * 20
+    )),
+    thresholds: th,
+    categories: categories || [],
+  }
+}
+let HOME_SEED = null
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -134,7 +228,15 @@ function startServer() {
           }
         }
         // route → original index.html shell (client JS renders per route)
-        const shell = await fs.readFile(join(DIST, 'index.html'))
+        let shell = await fs.readFile(join(DIST, 'index.html'), 'utf8')
+        // Only '/' gets the seed — it is the only page Home.jsx renders, and the
+        // JSON would otherwise be dead weight on 1715 other pages.
+        if (pathname === '/' && HOME_SEED) {
+          // Escaping </ is what keeps a value containing "</script>" from ending
+          // the tag early; JSON.parse reads <\/ back as <\/ → "/" unchanged.
+          const json = JSON.stringify(HOME_SEED).replace(/<\//g, '<\\/')
+          shell = shell.replace('</body>', `<script id="__home_seed__" type="application/json">${json}</script></body>`)
+        }
         resp.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
         resp.end(shell)
       } catch (e) {
@@ -282,6 +384,18 @@ async function main() {
     console.log(`   Loaded SEO data for ${Object.keys(COMPANY_MAP).length} companies.`)
   } catch (e) {
     console.warn(`   ! company data prefetch failed (${e.message}) — company pages fall back to per-page fetch.`)
+  }
+
+  try {
+    HOME_SEED = await fetchHomeSeed()
+    if (HOME_SEED) {
+      const s = HOME_SEED.stats
+      console.log(`   Home seed: ${s.companies} companies, ${s.verified} verified, ${s.reviews} reviews, ${HOME_SEED.areaList.length} areas.`)
+    } else {
+      console.warn('   ! home seed unavailable — homepage prerenders as before (shell only).')
+    }
+  } catch (e) {
+    console.warn(`   ! home seed failed (${e.message}) — homepage prerenders as before.`)
   }
 
   const server = await startServer()

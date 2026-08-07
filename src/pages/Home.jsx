@@ -1071,20 +1071,43 @@ function SiteFooter() {
   )
 }
 
+// Above-the-fold state baked into the prerendered HTML by scripts/prerender.mjs
+// (see fetchHomeSeed there), read once at module load.
+//
+// Without it every visit goes: browser paints the prerendered page, React's
+// createRoot() clears #root — that is what createRoot does to a non-empty
+// container — and the page stays empty until Supabase answers. Content, blank,
+// content. That round trip is what CLS was measuring.
+//
+// With it, React's first render produces the same content in the same task, so
+// nothing blank is ever painted. Only the small visible slices are seeded; the
+// raw rows behind them are 63 KB and inlining those would cost more download
+// than the round trip saves. approvedCos stays async — it is below the fold and
+// only feeds the area filter.
+//
+// The seed is a build-time snapshot and can be slightly stale; fetchAll() still
+// runs and replaces it with live data a moment later.
+const SEED = (() => {
+  try {
+    const el = typeof document !== 'undefined' && document.getElementById('__home_seed__')
+    return el ? JSON.parse(el.textContent) : null
+  } catch { return null }
+})()
+
 export default function Home({ navigate }) {
-  const [topCos,        setTopCos]        = useState([])
+  const [topCos,        setTopCos]        = useState(SEED?.topCos || [])
   const [approvedCos,   setApprovedCos]   = useState([])
-  const [newCos,        setNewCos]        = useState([])
-  const [trending,      setTrending]      = useState([])
-  const [recentReviews, setRecentReviews] = useState([])
-  const [categories,    setCategories]    = useState([])
-  const [areaList,      setAreaList]      = useState([])
-  const [areaFilter,    setAreaFilter]    = useState('')
-  const [stats,         setStats]         = useState({ companies:0, reviews:0, avgRating:'0.0', verified:0 })
-  const [reviewData,    setReviewData]    = useState({ total:0, s5:0, s4:0, s3:0, s2:0, s1:0, s5_pct:0, s4_pct:0 })
-  const [trustScore,    setTrustScore]    = useState(0)
-  const [thresholds,    setThresholds]    = useState({ min_companies:50, min_reviews:100, min_rating:3.5, min_rating_reviews:50, min_verified:100, trust_score_min_verified:100 })
-  const [loading,       setLoading]       = useState(true)
+  const [newCos,        setNewCos]        = useState(SEED?.newCos || [])
+  const [trending,      setTrending]      = useState(SEED?.trending || [])
+  const [recentReviews, setRecentReviews] = useState(SEED?.recentReviews || [])
+  const [categories,    setCategories]    = useState(SEED?.categories || [])
+  const [areaList,      setAreaList]      = useState(SEED?.areaList || [])
+  const [areaFilter,    setAreaFilter]    = useState(SEED?.areaList?.[0]?.area || '')
+  const [stats,         setStats]         = useState(SEED?.stats || { companies:0, reviews:0, avgRating:'0.0', verified:0 })
+  const [reviewData,    setReviewData]    = useState(SEED?.reviewData || { total:0, s5:0, s4:0, s3:0, s2:0, s1:0, s5_pct:0, s4_pct:0 })
+  const [trustScore,    setTrustScore]    = useState(SEED?.trustScore || 0)
+  const [thresholds,    setThresholds]    = useState(SEED?.thresholds || { min_companies:50, min_reviews:100, min_rating:3.5, min_rating_reviews:50, min_verified:100, trust_score_min_verified:100 })
+  const [loading,       setLoading]       = useState(!SEED)
   const [customer,      setCustomer]      = useState(null)
   const [showUserMenu,  setShowUserMenu]  = useState(false)
   const [blockedMsg,    setBlockedMsg]    = useState(null)
@@ -1196,7 +1219,13 @@ export default function Home({ navigate }) {
           .eq('status','approved').order('created_at',{ascending:false}).limit(50),
         supabase.from('reviews').select('rating,created_at').eq('is_approved',true),
         supabase.from('reviews').select('id,reviewer_name,rating,review_text,created_at').eq('is_approved',true).order('created_at',{ascending:false}).limit(5),
-        supabase.from('companies').select('area,is_verified').eq('status','approved'),
+        // count:'estimated' rides along on this same request — no extra round trip.
+        // It is needed because PostgREST caps a response at 1000 rows, so the row
+        // array alone undercounts (1000 vs the real 1093). 'estimated' returns the
+        // exact count while the table is small and falls back to the planner's
+        // estimate once it is large, which is what makes it safe here — unlike
+        // count:'exact', which walked the whole table under RLS and 503'd.
+        supabase.from('companies').select('area,is_verified',{count:'estimated'}).eq('status','approved'),
       ])
       const val = (i) => (results[i] && results[i].status === 'fulfilled') ? results[i].value : {}
       const settingsRow = val(0).data
@@ -1210,9 +1239,17 @@ export default function Home({ navigate }) {
       // to `|| 0`, so the homepage would sometimes advertise 0 companies and 0
       // reviews. Both source lists are already fetched in full here, so count them
       // locally instead — three fewer requests, and numbers that can't silently zero.
-      const totalCo     = areaRows?.length
+      // Prefer the count that came back with the rows; fall back to the array
+      // length if the header was missing.
+      const totalCo     = val(4).count ?? areaRows?.length
       const totalRev    = revAll?.length
-      const verifiedCo  = areaRows?.filter(c => c.is_verified).length
+      // Verified has to be counted from the rows, so it is capped at the 1000 the
+      // response can carry. Scale it by the same ratio the total was capped by, so
+      // the two headline numbers stay consistent with each other.
+      const verifiedSeen = areaRows?.filter(c => c.is_verified).length
+      const verifiedCo  = (areaRows?.length && totalCo > areaRows.length)
+        ? Math.round(verifiedSeen * (totalCo / areaRows.length))
+        : verifiedSeen
       const ratData     = revAll
       const revData     = revAll
 
