@@ -15,6 +15,7 @@ import { readFileSync as readSync, promises as fs } from 'node:fs'
 import { join, dirname, extname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { cpus, totalmem } from 'node:os'
+import { resolveSlug, selectCompanies } from '../src/serviceAreas.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = resolve(__dirname, '..', 'dist')
@@ -161,6 +162,42 @@ async function fetchHomeSeed() {
 }
 let HOME_SEED = null
 
+// --- service-page seeds ----------------------------------------------------
+// /services/:slug pages had the same hole as the homepage, for a different
+// reason: ServiceArea calls applySEO([]) on mount, so #jsonld-service exists
+// immediately and the crawler's wait for it was satisfied before any company
+// data arrived. So these prerendered with an empty list — including the two
+// highest-impression pages in Search Console.
+//
+// One bulk fetch here, then each route's list is computed with the same
+// selectCompanies() the page uses at runtime, so seed and fetch agree.
+const SA_FIELDS = 'id,name,slug,category,categories,area,location,avg_rating,total_reviews,plan,is_verified,logo_url'
+// Enough to fill the visible list; the client fetch fills in the rest. Keeps the
+// seed off pages that match hundreds of companies (a service with no area).
+const SEED_MAX = 30
+let SERVICE_SEEDS = {}
+
+async function fetchServiceSeeds(routes) {
+  const all = []
+  for (let offset = 0; ; offset += 1000) {
+    const rows = await SB(`companies?select=${SA_FIELDS}&status=eq.approved&order=id&limit=1000&offset=${offset}`)
+    if (!rows || !rows.length) break
+    all.push(...rows)
+    if (rows.length < 1000) break
+  }
+  if (!all.length) return {}
+  const seeds = {}
+  for (const path of routes) {
+    if (!path.startsWith('/services/')) continue
+    const slug = path.slice('/services/'.length).replace(/\/$/, '')
+    const { service, area } = resolveSlug(slug)
+    if (!service) continue
+    const list = selectCompanies(all, service, area)
+    if (list.length) seeds[slug] = { slug, companies: list.slice(0, SEED_MAX) }
+  }
+  return seeds
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -229,14 +266,19 @@ function startServer() {
         }
         // route → original index.html shell (client JS renders per route)
         let shell = await fs.readFile(join(DIST, 'index.html'), 'utf8')
-        // Only '/' gets the seed — it is the only page Home.jsx renders, and the
-        // JSON would otherwise be dead weight on 1715 other pages.
-        if (pathname === '/' && HOME_SEED) {
-          // Escaping </ is what keeps a value containing "</script>" from ending
-          // the tag early; JSON.parse reads <\/ back as <\/ → "/" unchanged.
-          const json = JSON.stringify(HOME_SEED).replace(/<\//g, '<\\/')
-          shell = shell.replace('</body>', `<script id="__home_seed__" type="application/json">${json}</script></body>`)
+        // Each page carries only its own seed — the JSON would be dead weight on
+        // the 1715 routes that never read it. Escaping </ is what stops a value
+        // containing "</script>" from closing the tag early; JSON.parse reads the
+        // escape back out, so the string itself is unchanged.
+        const inject = (html, id, seed) =>
+          html.replace('</body>', `<script id="${id}" type="application/json">${JSON.stringify(seed).replace(/<\//g, '<\\/')}</script></body>`)
+
+        if (pathname.startsWith('/services/')) {
+          const slug = pathname.slice('/services/'.length).replace(/\/$/, '')
+          const seed = SERVICE_SEEDS[slug]
+          if (seed) shell = inject(shell, '__service_seed__', seed)
         }
+        if (pathname === '/' && HOME_SEED) shell = inject(shell, '__home_seed__', HOME_SEED)
         resp.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
         resp.end(shell)
       } catch (e) {
@@ -384,6 +426,14 @@ async function main() {
     console.log(`   Loaded SEO data for ${Object.keys(COMPANY_MAP).length} companies.`)
   } catch (e) {
     console.warn(`   ! company data prefetch failed (${e.message}) — company pages fall back to per-page fetch.`)
+  }
+
+  try {
+    SERVICE_SEEDS = await fetchServiceSeeds(routes)
+    const n = Object.keys(SERVICE_SEEDS).length
+    console.log(n ? `   Service seeds: ${n} routes.` : '   ! no service seeds — service pages prerender as before.')
+  } catch (e) {
+    console.warn(`   ! service seeds failed (${e.message}) — service pages prerender as before.`)
   }
 
   try {

@@ -2,24 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, getCustomer } from '../customerAuth'
-
-/* 20 services + 30 areas — must match DB categories & company areas */
-const SERVICES = [
-  'Interior Design','Renovation','Fit-Out','Kitchen Renovation','Bathroom Renovation',
-  'Carpentry & Joinery','Flooring','Painting','False Ceiling & Partition','AC Service',
-  'Plumbing','Electrical','Cleaning','Landscaping','Swimming Pool',
-  'Handyman','Pest Control','Smart Home & Automation','Curtains & Blinds','Waterproofing',
-]
-const AREAS = [
-  'Downtown Dubai','Business Bay','Dubai Marina','Palm Jumeirah','Jumeirah Village Circle (JVC)',
-  'Jumeirah Lake Towers (JLT)','Jumeirah','Dubai Hills Estate','Arabian Ranches','DAMAC Hills',
-  'Emirates Hills','The Springs','The Meadows','The Greens','Dubai Silicon Oasis',
-  'Mirdif','Al Barsha','Deira','Bur Dubai','Dubai Investment Park (DIP)',
-  'Jumeirah Beach Residence (JBR)','DIFC','City Walk','Al Furjan','Discovery Gardens',
-  'Motor City','Jumeirah Golf Estates','Dubailand','International City','Town Square',
-]
-const slugify = (s) => s.toLowerCase()
-  .replace(/&/g,'and').replace(/[()]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')
+import { SERVICES, AREAS, slugify, resolveSlug, selectCompanies } from '../serviceAreas'
 
 // Common ways people actually search for each service (from Search Console data).
 // Woven naturally into copy so pages also rank for these phrasings.
@@ -57,23 +40,6 @@ const SEO_OVERRIDES = {
     title: 'Carpentry & Joinery Companies in Downtown Dubai | Custom Woodwork – Quvera',
     description: 'Find verified carpentry and joinery companies in Downtown Dubai for custom furniture, kitchen cabinets, doors and woodwork. Compare quotes from trusted local contractors on Quvera.',
   },
-}
-
-// Resolve a URL slug (e.g. "interior-design-business-bay") back to {service, area}
-function resolveSlug(slug) {
-  if (!slug) return { service: null, area: null }
-  for (const svc of SERVICES) {
-    const sSlug = slugify(svc)
-    if (slug === sSlug || slug.startsWith(sSlug + '-')) {
-      const rest = slug === sSlug ? '' : slug.slice(sSlug.length + 1)
-      if (!rest) return { service: svc, area: null }
-      for (const ar of AREAS) {
-        if (slugify(ar) === rest) return { service: svc, area: ar }
-      }
-      return { service: svc, area: null }
-    }
-  }
-  return { service: null, area: null }
 }
 
 // Single source of truth for FAQs (used by both the page and FAQPage schema)
@@ -160,11 +126,29 @@ function setJsonLD(service, area, companies, faqs) {
   document.head.appendChild(s)
 }
 
+// Company list for this route, baked into the prerendered HTML by
+// scripts/prerender.mjs. Same reasoning as the homepage seed: React's
+// createRoot() clears #root on mount, so without this the page goes content →
+// blank → content while Supabase answers, which is what CLS measures.
+//
+// It also closes a real SEO gap. applySEO([]) runs on mount, so #jsonld-service
+// exists immediately and the crawler's wait for it was satisfied before any data
+// arrived — these pages were prerendering with no companies in them at all.
+const SEED = (() => {
+  try {
+    const el = typeof document !== 'undefined' && document.getElementById('__service_seed__')
+    return el ? JSON.parse(el.textContent) : null
+  } catch { return null }
+})()
+
 export default function ServiceArea() {
   const { serviceArea } = useParams()
   const { service, area } = resolveSlug(serviceArea)
-  const [companies, setCompanies] = useState([])
-  const [loading, setLoading]     = useState(true)
+  // Seed only applies to the route it was generated for — a client-side
+  // navigation to a different service page must not reuse the previous page's list.
+  const seeded = SEED && SEED.slug === serviceArea ? SEED.companies : null
+  const [companies, setCompanies] = useState(seeded || [])
+  const [loading, setLoading]     = useState(!seeded)
   const [customer, setCustomer]   = useState(null)
   const [dark, setDark] = useState(() => { try { return localStorage.getItem('td_theme') === 'dark' } catch { return false } })
 
@@ -203,11 +187,9 @@ export default function ServiceArea() {
         .eq('status','approved')
         .or(`category.eq.${service},categories.cs.{"${service}"}`)
       const { data } = await q
-      let rows = data || []
-      if (area) {
-        rows = rows.filter(c => (c.area||c.location||'').trim().toLowerCase() === area.toLowerCase())
-      }
-      rows.sort((a,b)=>(b.avg_rating||0)-(a.avg_rating||0))
+      // Same filter/sort prerender.mjs runs in Node, so the seeded list and the
+      // fetched one agree and swapping in fresh data doesn't reshuffle the page.
+      const rows = selectCompanies(data, service, area)
       setCompanies(rows)
       applySEO(rows)             // enrich JSON-LD with company ItemList + live count
     } catch(e){ console.error(e) }
