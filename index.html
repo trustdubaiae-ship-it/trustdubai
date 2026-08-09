@@ -50,7 +50,16 @@
     <meta name="twitter:image" content="https://www.quvera.ae/icon-512.png" />
     <!-- Body font. Declared here rather than as an @import inside index.css so the
          preload scanner can start it immediately, in parallel with the JS/CSS
-         bundle, instead of only after that bundle has been parsed. -->
+         bundle, instead of only after that bundle has been parsed.
+
+         Self-hosting this was tried and reverted: score went 65 -> 39. The two
+         Google origins do cost ~440ms + ~477ms of handshake cold, and removing
+         them looked like the same win the icon subset gave, but it measured far
+         worse. Prime suspect is the <link rel=preload as=font> that came with it —
+         62.7 KB of variable font pulled at top priority competes with the HTML,
+         CSS and JS that first paint actually needs on a 1.6 Mbps link. If this is
+         attempted again, do it WITHOUT the preload and change nothing else, so
+         there is one variable to read. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" />
