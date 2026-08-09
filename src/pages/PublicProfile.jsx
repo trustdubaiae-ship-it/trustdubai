@@ -459,7 +459,7 @@ export default function PublicProfile() {
   async function deleteReview(id) { if (!confirm('Delete your review?')) return; await supabase.from('reviews').delete().eq('id', id); await refreshReviews() }
   async function saveEditReview(id) { if (!editingText.trim()) return; await supabase.from('reviews').update({ rating: editingRating, review_text: editingText }).eq('id', id); setEditingReviewId(null); await refreshReviews() }
 
-  const Fonts = () => <style>{`
+  const Fonts = () => <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
     @keyframes tdspin{to{transform:rotate(360deg)}}
     @keyframes tdfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
     @keyframes tdshine{0%{background-position:-120% 0}60%,100%{background-position:220% 0}}

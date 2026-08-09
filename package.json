@@ -11,8 +11,7 @@
     "prerender": "node scripts/prerender.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "icons": "node scripts/gen-icon-subset.mjs",
-    "fonts": "node scripts/gen-fonts.mjs"
+    "icons": "node scripts/gen-icon-subset.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.2",

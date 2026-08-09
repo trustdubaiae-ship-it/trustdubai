@@ -237,7 +237,7 @@ export default function ServiceArea() {
 
   return (
     <div style={{ minHeight:'100vh', background:bg, fontFamily:"'Manrope',sans-serif", color:t1 }}>
-      <style>{``}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');`}</style>
 
       {/* Top bar */}
       <div style={{ background:card, borderBottom:`1px solid ${line}`, padding:'12px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:50 }}>
