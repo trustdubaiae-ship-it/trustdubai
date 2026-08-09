@@ -55,8 +55,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" />
 
-    <!-- Do not take these two stylesheets off the critical path. It has been tried
-         twice and measured both times; it is worse for this site, every time:
+    <!-- Icon font is self-hosted and subsetted. The CDN stylesheet was 211 KB of
+         ~5,800 icons, render-blocking, on a third-party origin that costs a full
+         DNS+TLS handshake (measured 553ms cold). This site uses 68 icons, so the
+         generated subset is 3.2 KB and same-origin, on a connection already open.
+         Regenerate with `npm run icons` after adding an icon — the script fails
+         loudly on any class it cannot find.
+
+         Do not take the font stylesheet below off the critical path. It has been
+         tried twice and measured both times; it is worse for this site, every time:
 
            blocking (current)   FCP 5.4s  LCP 6.5s  CLS 0.132  score 58
            async (media=print)  FCP 6.3s  LCP 8.9s  CLS 0.613  score 37
@@ -69,8 +76,7 @@
          The version pin stays (was @latest): jsDelivr caches a pinned version for
          a year vs 7 days, and @latest would ship a breaking tabler release
          straight to production with no deploy. -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.46.0/dist/tabler-icons.min.css" />
+    <link rel="stylesheet" href="/fonts/tabler-icons.subset.css" />
     <!-- Favicon -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <!-- PWA -->
