@@ -309,7 +309,7 @@ export default function MyAccount({ navigate }) {
 
   if (!customer) return (
     <div style={{ background: soft, minHeight: '100vh', fontFamily: "'Manrope',sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');`}</style>
+      <style>{``}</style>
       <div style={{ maxWidth: 460, margin: '0 auto', padding: '80px 16px' }}>
         <div style={{ background: card, border: `1px solid ${line}`, borderRadius: 16, padding: '40px 22px', textAlign: 'center' }}>
           <i className="ti ti-user-circle" style={{ fontSize: 42, color: '#0099cc' }} />
@@ -458,7 +458,7 @@ export default function MyAccount({ navigate }) {
 
   return (
     <div style={{ minHeight: '100vh', background: soft, fontFamily: "'Manrope',sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');`}</style>
+      <style>{``}</style>
 
       {/* Elegant gradient header */}
       <div style={{ background: 'linear-gradient(135deg,#0aa2cf 0%,#0883ad 100%)', padding: '16px 16px 18px' }}>

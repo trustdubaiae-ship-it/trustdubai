@@ -272,7 +272,7 @@ export default function MyRequests({ navigate }) {
 
   return (
     <div style={{ minHeight: '100vh', background: soft, fontFamily: "'Manrope',sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');`}</style>
+      <style>{``}</style>
 
       {/* Top bar */}
       <div style={{ background: card, borderBottom: `1px solid ${line}`, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, position: 'sticky', top: 0, zIndex: 50 }}>

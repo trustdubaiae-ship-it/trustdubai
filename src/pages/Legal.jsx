@@ -67,7 +67,7 @@ export default function Legal({ page = 'terms' }) {
 
   return (
     <div style={{ background: TH.bg, minHeight: '100vh', fontFamily: F, color: TH.t1 }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap');
+      <style>{`
         .td-legal-tab:hover{ color:${TH.accent} !important; }`}</style>
 
       {/* NAV */}

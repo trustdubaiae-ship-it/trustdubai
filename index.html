@@ -48,12 +48,15 @@
     <meta name="twitter:title" content="Quvera — Verified Home & Interior Service Companies in Dubai" />
     <meta name="twitter:description" content="Verified Dubai companies for interior design, renovation, fit-out, AC, plumbing, cleaning and more. Real reviews & free quotes." />
     <meta name="twitter:image" content="https://www.quvera.ae/icon-512.png" />
-    <!-- Body font. Declared here rather than as an @import inside index.css so the
-         preload scanner can start it immediately, in parallel with the JS/CSS
-         bundle, instead of only after that bundle has been parsed. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&display=swap" />
+    <!-- Body font, self-hosted. Google Fonts put two origins in series on the
+         critical path — fonts.googleapis.com for the stylesheet, then
+         fonts.gstatic.com for the files, which are only discoverable once that
+         stylesheet parses. Cold from Dubai that measured 440ms + 477ms of
+         DNS+TLS before a glyph was even requested. Served from here both
+         handshakes are gone and the preload scanner sees the file immediately.
+         Regenerate with `npm run fonts`. -->
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/rP2Hp2ywxg089UriCZOIHQ.woff2" />
+    <link rel="stylesheet" href="/fonts/fonts.css" />
 
     <!-- Icon font is self-hosted and subsetted. The CDN stylesheet was 211 KB of
          ~5,800 icons, render-blocking, on a third-party origin that costs a full
@@ -62,8 +65,8 @@
          Regenerate with `npm run icons` after adding an icon — the script fails
          loudly on any class it cannot find.
 
-         Do not take the font stylesheet below off the critical path. It has been
-         tried twice and measured both times; it is worse for this site, every time:
+         Do not take either stylesheet off the critical path. It has been tried
+         twice and measured both times; it is worse for this site, every time:
 
            blocking (current)   FCP 5.4s  LCP 6.5s  CLS 0.132  score 58
            async (media=print)  FCP 6.3s  LCP 8.9s  CLS 0.613  score 37

@@ -50,7 +50,7 @@ export default function PublicLeadForm() {
     if (document.getElementById('pfl-style')) return
     const el = document.createElement('style')
     el.id = 'pfl-style'
-    el.textContent = "@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap');@keyframes pflspin{to{transform:rotate(360deg)}}@keyframes pflfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes pflpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}.pfl-card{animation:pflfade .5s cubic-bezier(.2,.7,.2,1) both}.pfl-pop{animation:pflpop .5s ease both}"
+    el.textContent = "@keyframes pflspin{to{transform:rotate(360deg)}}@keyframes pflfade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes pflpop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.18)}100%{transform:scale(1);opacity:1}}.pfl-card{animation:pflfade .5s cubic-bezier(.2,.7,.2,1) both}.pfl-pop{animation:pflpop .5s ease both}"
     document.head.appendChild(el)
   }, [])
 
