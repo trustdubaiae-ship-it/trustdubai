@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, getCustomer } from '../customerAuth'
-import { SERVICES, AREAS, slugify, resolveSlug, selectCompanies } from '../serviceAreas'
+import { SERVICES, AREAS, slugify, resolveSlug, selectCompanies, SERVICE_DB_LABELS } from '../serviceAreas'
 
 // Common ways people actually search for each service (from Search Console data).
 // Woven naturally into copy so pages also rank for these phrasings.
@@ -182,10 +182,18 @@ export default function ServiceArea() {
   async function load() {
     setLoading(true)
     try {
+      // Ask for every DB spelling that maps to this service, not just the page's
+      // own name. companies.category holds the post-rename labels ('HVAC & AC'),
+      // so filtering on `category.eq.AC Service` matched zero rows and then
+      // overwrote the correct prerendered list with an empty one.
+      const labels = SERVICE_DB_LABELS[service] || [service]
+      const orFilter = labels
+        .map(l => `category.eq.${l},categories.cs.{"${l}"}`)
+        .join(',')
       let q = supabase.from('companies')
         .select('id,name,slug,category,categories,area,location,avg_rating,total_reviews,plan,is_verified,logo_url')
         .eq('status','approved')
-        .or(`category.eq.${service},categories.cs.{"${service}"}`)
+        .or(orFilter)
       const { data } = await q
       // Same filter/sort prerender.mjs runs in Node, so the seeded list and the
       // fetched one agree and swapping in fresh data doesn't reshuffle the page.

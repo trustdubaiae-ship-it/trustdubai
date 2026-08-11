@@ -53,7 +53,10 @@ export function resolveSlug(slug) {
  * vocabulary and is deliberately NOT renamed — that would move 600 live URLs —
  * so the two are reconciled here instead.
  *
- * Keys are lowercased+trimmed; look-ups go through norm(). Values must be exact
+ * Alias KEYS carry the real DB spelling and casing, because SERVICE_DB_LABELS
+ * below feeds them straight into a PostgREST `category.eq.` filter, which is
+ * case-sensitive. Matching is still case-insensitive: every look-up goes
+ * through a norm()'d index built once at module load. Values must be exact
  * AREAS / SERVICES entries. Some entries below have no companies behind them
  * yet and exist so a future retag starts matching without another code change.
  * ------------------------------------------------------------------------- */
@@ -63,56 +66,77 @@ const norm = (s) => String(s == null ? '' : s).trim().toLowerCase()
 // DB area label -> AREAS entry
 export const AREA_ALIASES = {
   // live mismatches, highest-volume first
-  'dubai investment park': 'Dubai Investment Park (DIP)',
-  'jvc': 'Jumeirah Village Circle (JVC)',
-  'jlt': 'Jumeirah Lake Towers (JLT)',
-  'dubai hills': 'Dubai Hills Estate',
-  'barsha': 'Al Barsha',
+  'Dubai Investment Park': 'Dubai Investment Park (DIP)',
+  'JVC': 'Jumeirah Village Circle (JVC)',
+  'JLT': 'Jumeirah Lake Towers (JLT)',
+  'Dubai Hills': 'Dubai Hills Estate',
+  'Barsha': 'Al Barsha',
   // not seen in the data yet — abbreviations and long forms of the same places
-  'dip': 'Dubai Investment Park (DIP)',
-  'jumeirah village circle': 'Jumeirah Village Circle (JVC)',
-  'jumeirah lake towers': 'Jumeirah Lake Towers (JLT)',
-  'jbr': 'Jumeirah Beach Residence (JBR)',
-  'jumeirah beach residence': 'Jumeirah Beach Residence (JBR)',
-  'al barsha south': 'Al Barsha',
-  'silicon oasis': 'Dubai Silicon Oasis',
-  'dso': 'Dubai Silicon Oasis',
-  'downtown': 'Downtown Dubai',
-  'damac hills': 'DAMAC Hills',
-  'difc': 'DIFC',
+  'DIP': 'Dubai Investment Park (DIP)',
+  'Jumeirah Village Circle': 'Jumeirah Village Circle (JVC)',
+  'Jumeirah Lake Towers': 'Jumeirah Lake Towers (JLT)',
+  'JBR': 'Jumeirah Beach Residence (JBR)',
+  'Jumeirah Beach Residence': 'Jumeirah Beach Residence (JBR)',
+  'Al Barsha South': 'Al Barsha',
+  'Silicon Oasis': 'Dubai Silicon Oasis',
+  'DSO': 'Dubai Silicon Oasis',
+  'Downtown': 'Downtown Dubai',
+  'Damac Hills': 'DAMAC Hills',
 }
 
 // DB category label -> one or more SERVICES entries. An array because a single
 // tag can legitimately cover two pages ('Kitchen & Bathroom').
 export const SERVICE_ALIASES = {
   // live mismatches (the category-table rename)
-  'hvac & ac': ['AC Service'],
-  'flooring & tiling': ['Flooring'],
-  'false ceiling': ['False Ceiling & Partition'],
-  'joinery & carpentry': ['Carpentry & Joinery'],
-  'kitchen & bathroom': ['Kitchen Renovation', 'Bathroom Renovation'],
+  'HVAC & AC': ['AC Service'],
+  'Flooring & Tiling': ['Flooring'],
+  'False Ceiling': ['False Ceiling & Partition'],
+  'Joinery & Carpentry': ['Carpentry & Joinery'],
+  'Kitchen & Bathroom': ['Kitchen Renovation', 'Bathroom Renovation'],
   // active category-table rows with no companies on them yet
-  'false ceiling & gypsum': ['False Ceiling & Partition'],
-  'cleaning services': ['Cleaning'],
-  'swimming pools': ['Swimming Pool'],
-  'handyman & maintenance': ['Handyman'],
-  // '&' / 'and' spelling variants
-  'hvac and ac': ['AC Service'],
-  'flooring and tiling': ['Flooring'],
-  'false ceiling and gypsum': ['False Ceiling & Partition'],
-  'joinery and carpentry': ['Carpentry & Joinery'],
-  'kitchen and bathroom': ['Kitchen Renovation', 'Bathroom Renovation'],
-  'handyman and maintenance': ['Handyman'],
+  'False Ceiling & Gypsum': ['False Ceiling & Partition'],
+  'Cleaning Services': ['Cleaning'],
+  'Swimming Pools': ['Swimming Pool'],
+  'Handyman & Maintenance': ['Handyman'],
+  // 'and' spelling variants
+  'HVAC and AC': ['AC Service'],
+  'Flooring and Tiling': ['Flooring'],
+  'False Ceiling and Gypsum': ['False Ceiling & Partition'],
+  'Joinery and Carpentry': ['Carpentry & Joinery'],
+  'Kitchen and Bathroom': ['Kitchen Renovation', 'Bathroom Renovation'],
+  'Handyman and Maintenance': ['Handyman'],
 }
 
-const AREA_BY_NORM = new Map(AREAS.map(a => [norm(a), a]))
-const SERVICE_BY_NORM = new Map(SERVICES.map(s => [norm(s), s]))
+const AREA_BY_NORM = new Map([
+  ...AREAS.map(a => [norm(a), a]),
+  ...Object.entries(AREA_ALIASES).map(([k, v]) => [norm(k), v]),
+])
+const SERVICE_BY_NORM = new Map([
+  ...SERVICES.map(s => [norm(s), [s]]),
+  ...Object.entries(SERVICE_ALIASES).map(([k, v]) => [norm(k), v]),
+])
+
+// Reverse map: SERVICES entry -> every DB category label that should land on it,
+// canonical name first. ServiceArea.jsx builds its Supabase filter from this —
+// without it the page asks for `category.eq.AC Service`, which matches nothing,
+// and wipes out the correct prerendered list on mount. Derived from
+// SERVICE_ALIASES so there is no second list to keep in step.
+export const SERVICE_DB_LABELS = (() => {
+  const out = {}
+  for (const s of SERVICES) out[s] = [s]
+  for (const [label, services] of Object.entries(SERVICE_ALIASES)) {
+    for (const s of services) {
+      if (out[s] && !out[s].some(x => norm(x) === norm(label))) out[s].push(label)
+    }
+  }
+  return out
+})()
 
 // A company's area label -> the AREAS entry whose page should list it, or null.
 export function resolveArea(label) {
   const n = norm(label)
   if (!n) return null
-  return AREA_BY_NORM.get(n) || AREA_ALIASES[n] || null
+  return AREA_BY_NORM.get(n) || null
 }
 
 // A company's category labels -> the set of SERVICES entries whose pages should
@@ -123,9 +147,7 @@ export function resolveServices(company) {
   for (const label of labels) {
     const n = norm(label)
     if (!n) continue
-    const exact = SERVICE_BY_NORM.get(n)
-    if (exact) { out.add(exact); continue }
-    for (const s of SERVICE_ALIASES[n] || []) out.add(s)
+    for (const s of SERVICE_BY_NORM.get(n) || []) out.add(s)
   }
   return out
 }
@@ -150,7 +172,7 @@ export function auditVocabulary(rows) {
     for (const label of [c.category, ...(Array.isArray(c.categories) ? c.categories : [])]) {
       const n = norm(label)
       if (!n) continue
-      if (!SERVICE_BY_NORM.has(n) && !SERVICE_ALIASES[n]) bump(services, String(label).trim())
+      if (!SERVICE_BY_NORM.has(n)) bump(services, String(label).trim())
     }
   }
   const sort = (m) => [...m.entries()].sort((a, b) => b[1] - a[1]).map(([label, count]) => ({ label, count }))
