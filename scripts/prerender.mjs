@@ -15,7 +15,7 @@ import { readFileSync as readSync, promises as fs } from 'node:fs'
 import { join, dirname, extname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { cpus, totalmem } from 'node:os'
-import { resolveSlug, selectCompanies } from '../src/serviceAreas.js'
+import { resolveSlug, selectCompanies, auditVocabulary } from '../src/serviceAreas.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = resolve(__dirname, '..', 'dist')
@@ -186,6 +186,18 @@ async function fetchServiceSeeds(routes) {
     if (rows.length < 1000) break
   }
   if (!all.length) return {}
+
+  // Surface any company label the alias maps in serviceAreas.js don't cover, so
+  // a new category/area value shows up here instead of silently emptying a page.
+  const leftover = auditVocabulary(all)
+  if (leftover.areas.length || leftover.services.length) {
+    console.warn('   ! vocabulary leftovers (these companies match no page):')
+    for (const { label, count } of leftover.areas) console.warn(`       area     ${String(count).padStart(4)}  "${label}"`)
+    for (const { label, count } of leftover.services) console.warn(`       category ${String(count).padStart(4)}  "${label}"`)
+  } else {
+    console.log('   Vocabulary: every company area and category maps to a page.')
+  }
+
   const seeds = {}
   for (const path of routes) {
     if (!path.startsWith('/services/')) continue
