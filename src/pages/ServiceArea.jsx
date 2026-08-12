@@ -173,14 +173,22 @@ export default function ServiceArea() {
   }
 
   useEffect(() => {
-    applySEO([])                 // SEO up-front — never blocked on the fetch
+    // SEO up-front — never blocked on the fetch. Seed it with the prerendered
+    // list so the JSON-LD carries its ItemList (and the live count in the
+    // description) even when the snapshot is taken before the fetch returns.
+    applySEO(seeded || [])
     getCustomer().then(c => { if (c && !c.blocked) setCustomer(c) })
     if (service) load()
     else setLoading(false)
   }, [serviceArea])
 
   async function load() {
-    setLoading(true)
+    // Only show the spinner when there is nothing to show. With a seed the page
+    // already has the right list painted, so blanking it for the refetch threw
+    // away the prerendered markup — the crawl's bounded network wait then
+    // expired and 89 of 147 populated pages snapshotted as a spinner instead of
+    // their company list. Seeded routes now keep their list and refresh under it.
+    if (!seeded) setLoading(true)
     try {
       // Ask for every DB spelling that maps to this service, not just the page's
       // own name. companies.category holds the post-rename labels ('HVAC & AC'),

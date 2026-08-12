@@ -27,6 +27,9 @@ const CPU_COUNT = cpus().length
 // is largely IO/navigation-bound — over-subscribing the cores helps overlap it.
 const CONCURRENCY = Math.min(16, Math.max(8, CPU_COUNT * 2))
 const NAV_TIMEOUT = 25000
+// Phone viewport for the crawl — must stay under App.jsx's 481px mobile
+// breakpoint. 412x823 is the Pixel-class size Lighthouse mobile emulates.
+const MOBILE_VIEWPORT = { width: 412, height: 823, deviceScaleFactor: 1, isMobile: true, hasTouch: true }
 // Hard wall-clock budget for the whole crawl. If a slow/rate-limited DB drags
 // it out, we stop taking new pages and ship what we have (uncrawled routes fall
 // back to the SPA) — so the build always finishes well under Vercel's ~45min cap.
@@ -351,6 +354,20 @@ async function launchBrowser() {
 // GA / Meta / the visitor_sessions table. Supabase GETs (page data) pass.
 async function armPage(page, serverHost) {
   try { await page.setBypassServiceWorker(true) } catch { /* older puppeteer */ }
+  // Crawl at a phone viewport, not the launcher's default (@sparticuz ships
+  // 1920x1080; plain puppeteer 800x600 — both land on the desktop branch).
+  //
+  // App.jsx's useIsMobile() is `clientWidth < 481` and Home.jsx returns a
+  // COMPLETELY different tree below it, so the viewport the crawl runs at
+  // decides which tree gets baked into the HTML. Prerendering desktop and then
+  // being measured on a 412px phone meant the static HTML painted the desktop
+  // tree, React mounted and replaced it with the mobile one, and every element
+  // moved — which is what CLS measures (0.603 on PageSpeed mobile).
+  //
+  // Mobile is both the measured configuration and the majority of real traffic,
+  // so bake that tree. Desktop visitors still get a correct page: React renders
+  // the desktop tree on mount exactly as it does today.
+  await page.setViewport(MOBILE_VIEWPORT).catch(() => {})
   // Flag prerender (small, reliable). The app fetches the company map from the
   // crawl server itself (/__prerender_companies.json) — no per-page Supabase call.
   await page.evaluateOnNewDocument(() => { window.__PRERENDER__ = true }).catch(() => {})
