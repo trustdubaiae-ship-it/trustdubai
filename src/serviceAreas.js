@@ -18,6 +18,10 @@ export const AREAS = [
   'Mirdif','Al Barsha','Deira','Bur Dubai','Dubai Investment Park (DIP)',
   'Jumeirah Beach Residence (JBR)','DIFC','City Walk','Al Furjan','Discovery Gardens',
   'Motor City','Jumeirah Golf Estates','Dubailand','International City','Town Square',
+  // Added once the vocabulary audit showed them as the two largest blocks of
+  // companies with no page at all (Al Quoz 97, Jebel Ali 19+1). Only their
+  // populated combinations reach the sitemap — see scripts/gen-eligibility.mjs.
+  'Al Quoz','Jebel Ali',
 ]
 
 export const slugify = (s) => s.toLowerCase()
@@ -71,7 +75,11 @@ export const AREA_ALIASES = {
   'JLT': 'Jumeirah Lake Towers (JLT)',
   'Dubai Hills': 'Dubai Hills Estate',
   'Barsha': 'Al Barsha',
+  'Jabel Ali Industrial Area 1': 'Jebel Ali',
   // not seen in the data yet — abbreviations and long forms of the same places
+  'Al Qouz': 'Al Quoz',
+  'Jabel Ali': 'Jebel Ali',
+  'Jebel Ali Industrial Area': 'Jebel Ali',
   'DIP': 'Dubai Investment Park (DIP)',
   'Jumeirah Village Circle': 'Jumeirah Village Circle (JVC)',
   'Jumeirah Lake Towers': 'Jumeirah Lake Towers (JLT)',

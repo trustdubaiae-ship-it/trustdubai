@@ -15,7 +15,7 @@ import { readFileSync as readSync, promises as fs } from 'node:fs'
 import { join, dirname, extname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { cpus, totalmem } from 'node:os'
-import { resolveSlug, selectCompanies, auditVocabulary } from '../src/serviceAreas.js'
+import { SERVICES, AREAS, slugify, resolveSlug, selectCompanies, auditVocabulary } from '../src/serviceAreas.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = resolve(__dirname, '..', 'dist')
@@ -246,8 +246,25 @@ function readRoutes() {
   const paths = locs
     .map(u => { try { return new URL(u).pathname } catch { return null } })
     .filter(Boolean)
+
+  // The sitemap now carries only eligible pages, but ineligible combinations
+  // must still resolve properly — a real empty state and a noindex tag, not the
+  // prerendered homepage that Vercel's SPA rewrite would otherwise serve for an
+  // uncrawled path. So crawl them too; they are simply absent from the sitemap.
+  const inSitemap = new Set(paths)
+  const extra = []
+  for (const svc of SERVICES) {
+    const s = `/services/${slugify(svc)}`
+    if (!inSitemap.has(s)) extra.push(s)
+    for (const area of AREAS) {
+      const p = `/services/${slugify(svc)}-${slugify(area)}`
+      if (!inSitemap.has(p)) extra.push(p)
+    }
+  }
+  if (extra.length) console.log(`   + ${extra.length} ineligible /services routes (crawled for noindex, not in sitemap)`)
+
   // dedupe, keep '/' first
-  return [...new Set(paths)]
+  return [...new Set([...paths, ...extra])]
 }
 
 // Company SEO data, served to pages over localhost during the crawl. Each page

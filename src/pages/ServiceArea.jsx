@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, getCustomer } from '../customerAuth'
-import { SERVICES, AREAS, slugify, resolveSlug, selectCompanies, SERVICE_DB_LABELS } from '../serviceAreas'
+import { slugify, resolveSlug, selectCompanies, SERVICE_DB_LABELS } from '../serviceAreas'
+// Regenerated every build by scripts/gen-eligibility.mjs — the same file the
+// sitemap and the prerender read, so what we link to, what we let Google index
+// and what we submit can never disagree.
+import ELIGIBILITY from '../generated/eligibility.json'
 
 // Common ways people actually search for each service (from Search Console data).
 // Woven naturally into copy so pages also rank for these phrasings.
@@ -57,7 +61,7 @@ function buildFaqs(service, where) {
   ]
 }
 
-function setSEO({ title, description, url }) {
+function setSEO({ title, description, url, indexable }) {
   document.title = title
   const set = (n, c, p=false) => {
     const a = p ? 'property' : 'name'
@@ -66,6 +70,10 @@ function setSEO({ title, description, url }) {
     el.setAttribute('content', c)
   }
   set('description', description)
+  // A combination with no companies is a real page but not one worth indexing.
+  // "follow" so the links out of it still pass through. Always written, both
+  // ways, so a client-side navigation cannot leave a stale noindex behind.
+  set('robots', indexable ? 'index, follow' : 'noindex, follow')
   set('og:title', title, true); set('og:description', description, true)
   set('og:url', url, true); set('og:type', 'website', true); set('og:site_name', 'Quvera', true)
   set('twitter:card', 'summary_large_image'); set('twitter:title', title); set('twitter:description', description)
@@ -147,8 +155,24 @@ export default function ServiceArea() {
   // Seed only applies to the route it was generated for — a client-side
   // navigation to a different service page must not reuse the previous page's list.
   const seeded = SEED && SEED.slug === serviceArea ? SEED.companies : null
+
+  // Eligibility as decided at build time. An area page is eligible when the
+  // combination has companies; a broad service page when the service has any.
+  // Ineligible pages still render — they just carry noindex and are not linked.
+  const isEligible = area
+    ? Object.prototype.hasOwnProperty.call(ELIGIBILITY.combos, serviceArea)
+    : ELIGIBILITY.services.includes(service)
+  // Sibling links, uncapped: every area that has this service, and every service
+  // that has companies in this area. Previously both grids were sliced to the
+  // first 12 entries, so 18 areas and 8 services were never linked from anywhere.
+  const otherAreas    = (ELIGIBILITY.byService[service] || []).filter(a => a !== area)
+  const otherServices = area ? (ELIGIBILITY.byArea[area] || []).filter(s => s !== service) : []
   const [companies, setCompanies] = useState(seeded || [])
-  const [loading, setLoading]     = useState(!seeded)
+  // Spinner only when we actually expect a list: a seeded route already has one,
+  // and an ineligible route is known at build time to have none, so it should go
+  // straight to its empty state instead of racing a fetch that returns nothing.
+  // (If a supplier appeared since the build, the fetch still fills the list in.)
+  const [loading, setLoading]     = useState(!seeded && isEligible)
   const [customer, setCustomer]   = useState(null)
   const [dark, setDark] = useState(() => { try { return localStorage.getItem('td_theme') === 'dark' } catch { return false } })
 
@@ -168,7 +192,7 @@ export default function ServiceArea() {
       ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
       : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`) + syn
     const url   = `https://www.quvera.ae/services/${serviceArea}`
-    setSEO({ title, description: desc, url })
+    setSEO({ title, description: desc, url, indexable: isEligible })
     setJsonLD(service, area, rows, buildFaqs(service, where))
   }
 
@@ -188,7 +212,7 @@ export default function ServiceArea() {
     // away the prerendered markup — the crawl's bounded network wait then
     // expired and 89 of 147 populated pages snapshotted as a spinner instead of
     // their company list. Seeded routes now keep their list and refresh under it.
-    if (!seeded) setLoading(true)
+    if (!seeded && isEligible) setLoading(true)
     try {
       // Ask for every DB spelling that maps to this service, not just the page's
       // own name. companies.category holds the post-rename labels ('HVAC & AC'),
@@ -371,11 +395,12 @@ export default function ServiceArea() {
           </div>
         )}
 
-        {/* Nearby areas (internal linking for SEO) */}
+        {/* Nearby areas (internal linking for SEO) — eligible combinations only */}
+        {otherAreas.length > 0 && (
         <div style={{ background:card, border:`1px solid ${line}`, borderRadius:16, padding:'18px 20px', marginBottom:16 }}>
           <h2 style={{ fontFamily:"'Sora',sans-serif", fontSize:15, fontWeight:700, color:t1, marginBottom:12 }}>{service} in other areas</h2>
           <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
-            {AREAS.filter(a=>a!==area).slice(0,12).map(a=>(
+            {otherAreas.map(a=>(
               <a key={a} href={`/services/${slugify(service)}-${slugify(a)}`}
                 style={{ fontSize:12, padding:'5px 12px', borderRadius:99, background:soft, border:`1px solid ${line}`, color:t2, textDecoration:'none', fontWeight:600 }}>
                 {service} in {a}
@@ -383,13 +408,14 @@ export default function ServiceArea() {
             ))}
           </div>
         </div>
+        )}
 
-        {/* Other services in same area (internal linking) */}
-        {area && (
+        {/* Other services in same area (internal linking) — eligible only */}
+        {area && otherServices.length > 0 && (
           <div style={{ background:card, border:`1px solid ${line}`, borderRadius:16, padding:'18px 20px', marginBottom:16 }}>
             <h2 style={{ fontFamily:"'Sora',sans-serif", fontSize:15, fontWeight:700, color:t1, marginBottom:12 }}>Other services in {area}</h2>
             <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
-              {SERVICES.filter(s=>s!==service).slice(0,12).map(s=>(
+              {otherServices.map(s=>(
                 <a key={s} href={`/services/${slugify(s)}-${slugify(area)}`}
                   style={{ fontSize:12, padding:'5px 12px', borderRadius:99, background:soft, border:`1px solid ${line}`, color:t2, textDecoration:'none', fontWeight:600 }}>
                   {s}
