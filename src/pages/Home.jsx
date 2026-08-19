@@ -4,6 +4,11 @@ import { signInWithGoogle, signOut, getCustomer, upsertCustomer, updateCustomerP
 import CompanyCard from '../components/CompanyCard'
 import { SearchBar } from '../components/SearchBar'
 import { ThemeToggle } from '../components/ThemeToggle'
+// The homepage is the site's highest-authority page, and before this the phone
+// render — which is the render the crawl sees — contained no real <a href> at
+// all: category chips were divs calling navigate('search'), so the 175 service
+// landing pages received no internal links from anywhere on the site.
+import { serviceHrefFor } from '../serviceLinks'
 
 const DUBAI_AREAS = [
   'Downtown Dubai','Business Bay','Dubai Marina','Palm Jumeirah','Jumeirah Village Circle (JVC)',
@@ -974,13 +979,16 @@ function Sidebar({ navigate, scrollToSection }) {
       { icon:'ti-map-pin', name:'By Area',        action:()=>scrollToSection('by-area') },
       { icon:'ti-clock',   name:'Recently Added', action:()=>navigate('search',{sort:'recent'}) },
     ]},
+    // `svc` is the service page each item points at — the label is not always
+    // the service name ('Interior' vs 'Interior Design'), so it is kept separate
+    // rather than derived from `name`.
     { label:'Services', items:[
-      { icon:'ti-snowflake', name:'AC Service',  action:()=>navigate('search',{category:'AC Service'}) },
-      { icon:'ti-tool',      name:'Plumbing',    action:()=>navigate('search',{category:'Plumbing'}) },
-      { icon:'ti-brush',     name:'Painting',    action:()=>navigate('search',{category:'Painting'}) },
-      { icon:'ti-bolt',      name:'Electrical',  action:()=>navigate('search',{category:'Electrical'}) },
-      { icon:'ti-sofa',      name:'Interior',    action:()=>navigate('search',{category:'Interior Design'}) },
-      { icon:'ti-building',  name:'Renovation',  action:()=>navigate('search',{category:'Renovation'}) },
+      { icon:'ti-snowflake', name:'AC Service',  svc:'AC Service' },
+      { icon:'ti-tool',      name:'Plumbing',    svc:'Plumbing' },
+      { icon:'ti-brush',     name:'Painting',    svc:'Painting' },
+      { icon:'ti-bolt',      name:'Electrical',  svc:'Electrical' },
+      { icon:'ti-sofa',      name:'Interior',    svc:'Interior Design' },
+      { icon:'ti-building',  name:'Renovation',  svc:'Renovation' },
     ]},
     { label:'Explore', items:[
       { icon:'ti-map-2',      name:'City Map',      action:()=>scrollToSection('city-network') },
@@ -993,16 +1001,20 @@ function Sidebar({ navigate, scrollToSection }) {
       {sections.map(section => (
         <div key={section.label}>
           <div style={{ fontSize:8, fontWeight:700, color:'var(--text-muted)', letterSpacing:'0.08em', textTransform:'uppercase', padding:'8px 14px 3px' }}>{section.label}</div>
-          {section.items.map(item => (
-            <div key={item.name} onClick={item.action}
-              style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', fontSize:11, color:item.active?'#0099cc':'var(--text-secondary)', background:item.active?'#f0faff':'transparent', borderRight:item.active?'2px solid #0099cc':'none', fontWeight:item.active?600:400, cursor:item.action?'pointer':'default', transition:'all 0.15s' }}
+          {section.items.map(item => {
+            const href = item.svc ? serviceHrefFor(item.svc) : null
+            const Tag = href ? 'a' : 'div'
+            return (
+            <Tag key={item.name} {...(href ? { href } : { onClick:item.action })}
+              style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 14px', fontSize:11, color:item.active?'#0099cc':'var(--text-secondary)', background:item.active?'#f0faff':'transparent', borderRight:item.active?'2px solid #0099cc':'none', fontWeight:item.active?600:400, cursor:(href||item.action)?'pointer':'default', transition:'all 0.15s', textDecoration:'none' }}
               onMouseEnter={e=>{ if(!item.active) e.currentTarget.style.background='var(--bg-secondary)' }}
               onMouseLeave={e=>{ if(!item.active) e.currentTarget.style.background='transparent' }}
             >
               <i className={`ti ${item.icon}`} style={{ fontSize:13, flexShrink:0 }} />
               {item.name}
-            </div>
-          ))}
+            </Tag>
+            )
+          })}
         </div>
       ))}
     </div>
@@ -1744,15 +1756,22 @@ export default function Home({ navigate }) {
           <div style={{ display:'flex', gap:9, overflowX:'auto', paddingBottom:4, scrollbarWidth:'none', msOverflowStyle:'none' }}>
             {categories.length === 0 ? (
               [1,2,3,4,5,6].map(i => <div key={i} style={{ flexShrink:0, width:70, height:70, background:'var(--bg-card)', borderRadius:14 }} />)
-            ) : categories.map(c=>(
-              <div key={c.id} onClick={()=>navigate('search',{category:c.name})}
-                style={{ flexShrink:0, width:70, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:5 }}>
+            ) : categories.map(c=>{
+              // Chips backed by a real service page become links, so both the
+              // crawl and the user land on the page that actually has content,
+              // FAQ and verified companies. The rest keep the in-app search.
+              const href = serviceHrefFor(c.name)
+              const Tag = href ? 'a' : 'div'
+              return (
+              <Tag key={c.id} {...(href ? { href } : { onClick:()=>navigate('search',{category:c.name}) })}
+                style={{ flexShrink:0, width:70, cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', gap:5, textDecoration:'none', color:'inherit' }}>
                 <div style={{ width:70, height:70, background:'var(--bg-card)', border:'0.5px solid var(--border-default)', borderRadius:14, display:'flex', alignItems:'center', justifyContent:'center', fontSize:30 }}>
                   {c.icon || '🏷️'}
                 </div>
                 <span style={{ fontSize:9, color:'var(--text-secondary)', textAlign:'center', fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'100%' }}>{c.name}</span>
-              </div>
-            ))}
+              </Tag>
+              )
+            })}
           </div>
         </div>
 

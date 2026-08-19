@@ -62,6 +62,12 @@ async function fetchCompanyMap() {
         description: (r.description || '').slice(0, 160),
         phone: r.phone || '',
         location: r.location || r.area || 'Dubai',
+        // Kept as its own field, not just folded into `location` above: the
+        // profile's outbound link to its service x area page resolves through
+        // resolveArea(), and `location` frequently holds the city ('Dubai'),
+        // which maps to no area. Collapsing the two cost that link on ~1,000 of
+        // the 1,093 profiles.
+        area: r.area || '',
         avg_rating: r.avg_rating != null ? r.avg_rating : null,
         total_reviews: r.total_reviews || 0,
       }

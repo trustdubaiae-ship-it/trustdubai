@@ -255,10 +255,6 @@ export default function ServiceArea() {
   const bg = dark?'#070b15':'#f4f7fb', card = dark?'#0f1626':'#ffffff', line = dark?'rgba(255,255,255,0.08)':'#e4e9f0'
   const soft = dark?'rgba(255,255,255,0.04)':'#f4f7fb'
 
-  function goCompany(c) {
-    if (c.slug) window.location.href = '/'+c.slug
-  }
-
   if (!service) {
     return (
       <div style={{ minHeight:'100vh', background:bg, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
@@ -359,9 +355,16 @@ export default function ServiceArea() {
               Top {service.toLowerCase()} companies in {where}
             </h2>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))', gap:12, marginBottom:28 }}>
-              {companies.map(c => (
-                <div key={c.id} onClick={()=>goCompany(c)}
-                  style={{ background:card, border:`1px solid ${line}`, borderRadius:13, padding:15, cursor:'pointer' }}>
+              {companies.map(c => {
+                // A real <a href> rather than a click handler: this is the only
+                // path by which a crawler reaches the 1,089 company pages. As
+                // divs they were invisible in the link graph, so every profile
+                // was sitemap-discovered but received no internal links at all.
+                // Slug-less rows stay unclickable, exactly as goCompany was.
+                const Tag = c.slug ? 'a' : 'div'
+                return (
+                <Tag key={c.id} {...(c.slug ? { href:'/'+c.slug } : {})}
+                  style={{ background:card, border:`1px solid ${line}`, borderRadius:13, padding:15, cursor:c.slug?'pointer':'default', display:'block', textDecoration:'none', color:'inherit' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
                     <div style={{ width:38, height:38, borderRadius:9, background:'#e0f9ff', color:'#0077aa', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:14, flexShrink:0 }}>
                       {(c.name||'?').slice(0,2).toUpperCase()}
@@ -375,8 +378,9 @@ export default function ServiceArea() {
                     <span style={{ fontSize:13, color:'#f5a623', fontWeight:700 }}>{'★'.repeat(Math.round(c.avg_rating||0))||'—'} <span style={{ color:t2 }}>{c.avg_rating||'New'}</span></span>
                     <span style={{ fontSize:11, color:t3 }}>{c.total_reviews||0} reviews</span>
                   </div>
-                </div>
-              ))}
+                </Tag>
+                )
+              })}
             </div>
           </>
         ) : (

@@ -115,9 +115,16 @@ export default function CompanyCard({ company, onClick }) {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 2 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: plan === 'platinum' ? '#f1f5f9' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {/* The name is the anchor rather than the whole card: the card
+                  body holds WhatsApp/Claim buttons, and a <button> inside an <a>
+                  is invalid HTML. The company name is also the anchor text you
+                  would choose anyway. The card keeps its own onClick, so tapping
+                  anywhere still works. */}
+              <a href={company.slug ? '/' + company.slug : undefined}
+                onClick={e => { if (company.slug) e.stopPropagation() }}
+                style={{ fontSize: 14, fontWeight: 600, color: plan === 'platinum' ? '#f1f5f9' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: 'none' }}>
                 {company.name || company.company_name}
-              </div>
+              </a>
               <PlanBadge plan={plan} />
             </div>
             <div style={{ fontSize: 11, color: plan === 'platinum' ? '#a78bfa' : 'var(--text-secondary)' }}>{company.category || 'Business'}</div>

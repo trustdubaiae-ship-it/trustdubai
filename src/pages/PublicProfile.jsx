@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, signOut, getCustomer, upsertCustomer, updateCustomerProfile } from '../customerAuth'
+import { companyLinks } from '../serviceLinks'
 
 /* ===================== PLAN FEATURE MATRIX ===================== */
 const FEATURES = {
@@ -67,7 +68,7 @@ const SEO_OVERRIDES = {
   },
 }
 
-function setSEO({ title, description, image, url }) {
+function setSEO({ title, description, image, url, indexable = true }) {
   // Applied here rather than at each call site so every path that sets SEO for
   // this page (fallback, cached and fetched) picks the override up.
   const ov = SEO_OVERRIDES[(url || '').split('/').pop()]
@@ -75,6 +76,13 @@ function setSEO({ title, description, image, url }) {
   document.title = title
   const setMeta = (n, c, p = false) => { const a = p ? 'property' : 'name'; let el = document.querySelector(`meta[${a}="${n}"]`); if (!el) { el = document.createElement('meta'); el.setAttribute(a, n); document.head.appendChild(el) } el.setAttribute('content', c) }
   setMeta('description', description); setMeta('og:title', title, true); setMeta('og:description', description, true); setMeta('og:url', url, true); setMeta('og:type', 'business.business', true); setMeta('og:image', image, true); setMeta('og:site_name', 'Quvera', true)
+  // A slug with no approved company still answers 200 — the wildcard rewrite in
+  // vercel.json means every path does — so `noindex` is the only thing that
+  // keeps a dead URL out of the index instead of letting it become another
+  // duplicate of the homepage. Written both ways on every call, like
+  // ServiceArea does, so navigating from a dead slug to a real profile cannot
+  // leave a stale noindex behind.
+  setMeta('robots', indexable ? 'index, follow' : 'noindex, follow')
   // Canonical — without this the page inherits index.html's homepage canonical,
   // which tells Google every company page is a duplicate of the homepage.
   let link = document.querySelector('link[rel="canonical"]')
@@ -98,7 +106,23 @@ function setJsonLD(company, reviews) {
   const ratingValue = hasAgg ? Number(company.avg_rating).toFixed(1) : (reviews.length > 0 ? (reviews.reduce((a, r) => a + r.rating, 0) / reviews.length).toFixed(1) : null)
   const reviewCount = hasAgg ? company.total_reviews : reviews.length
   const s = document.createElement('script'); s.id = 'jsonld-business'; s.type = 'application/ld+json'
-  s.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://www.quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: ratingValue ? { '@type': 'AggregateRating', ratingValue, reviewCount, bestRating: 5, worstRating: 1 } : undefined })
+  // Emitted as a @graph so the BreadcrumbList ships in the same block as the
+  // business. It mirrors the visible breadcrumb exactly — the service pages are
+  // this page's real parents, and declaring that is what lets Google render the
+  // trail in the SERP instead of the bare URL.
+  const crumb = companyLinks(company)[0]
+  const graph = [
+    { '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://www.quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: ratingValue ? { '@type': 'AggregateRating', ratingValue, reviewCount, bestRating: 5, worstRating: 1 } : undefined },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.quvera.ae/' },
+        ...(crumb ? [{ '@type': 'ListItem', position: 2, name: crumb.label, item: 'https://www.quvera.ae' + crumb.href }] : []),
+        { '@type': 'ListItem', position: crumb ? 3 : 2, name: company.name, item: 'https://www.quvera.ae/' + company.slug },
+      ],
+    },
+  ]
+  s.text = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph })
   document.head.appendChild(s)
 }
 function analyzeReview(r) {
@@ -334,7 +358,7 @@ export default function PublicProfile() {
     // (not the homepage) and a sensible title even if the data fetch is slow or
     // unavailable. Enriched with the real name/rating once the company loads.
     const fallbackName = slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
-    setSEO({ title: `${fallbackName} — Dubai | Quvera`, description: `${fallbackName} — a verified business in Dubai on Quvera. See reviews, ratings, services and contact details.`, image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+    setSEO({ title: `${fallbackName} — Dubai | Quvera`, description: `${fallbackName} — a verified business in Dubai on Quvera. See reviews, ratings, services and contact details.`, image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
     // Prerender: read this company's SEO data from the map the crawler serves
     // over localhost (one bulk fetch for ALL pages) — zero per-page DB calls, so
     // the crawl can never overload Supabase and every company page gets full SEO.
@@ -345,7 +369,7 @@ export default function PublicProfile() {
       if (c) {
         setCompany(c)
         const avg = (c.avg_rating != null && c.total_reviews > 0) ? Number(c.avg_rating).toFixed(1) : null
-        setSEO({ title: c.name + ' — ' + (c.category || 'Business') + ' Dubai | Quvera', description: (c.description ? c.description.slice(0, 140) : c.name + ' is a verified ' + (c.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+        setSEO({ title: c.name + ' — ' + (c.category || 'Business') + ' Dubai | Quvera', description: (c.description ? c.description.slice(0, 140) : c.name + ' is a verified ' + (c.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
         setJsonLD(c, [])
         setLoading(false)
         return
@@ -354,14 +378,20 @@ export default function PublicProfile() {
     }
 
     const { data, error } = await supabase.from('companies').select('*').eq('slug', slug).eq('status', 'approved').single()
-    if (error || !data) { setNotFound(true); setLoading(false); return }
+    if (error || !data) {
+      // Overrides the indexable SEO the fallback above already wrote from the
+      // slug — without this a typo'd or delisted URL keeps that page's title
+      // and `index, follow`.
+      setSEO({ title: 'Company not found — Quvera', description: 'This company is not listed on Quvera. Browse verified home and interior service companies in Dubai instead.', image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug, indexable: false })
+      setNotFound(true); setLoading(false); return
+    }
     setCompany(data)
     // Prerender fallback (no map hit): the company row already carries
     // avg_rating/total_reviews, so no extra fetch is needed for full SEO.
     if (typeof window !== 'undefined' && window.__PRERENDER__) {
       setPrerenderPath('fetch-fallback')
       const avg = (data.avg_rating != null && data.total_reviews > 0) ? Number(data.avg_rating).toFixed(1) : null
-      setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+      setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
       setJsonLD(data, [])
       setLoading(false)
       return
@@ -389,7 +419,7 @@ export default function PublicProfile() {
     if (data.category) { const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, total_reviews, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(6); setRelated(rel || []) }
     const reviewData = reviewRes.data || []
     const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
-    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://www.quvera.ae/og-image.png', url: 'https://www.quvera.ae/' + slug })
+    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
     setJsonLD(data, reviewData); trackProfileView(data.id); setLoading(false)
   }
   async function refreshTeam() {
@@ -491,14 +521,34 @@ export default function PublicProfile() {
   if (typeof window !== 'undefined' && window.__PRERENDER__) {
     const where = company.location || 'Dubai'
     const hasRating = company.avg_rating != null && company.total_reviews > 0
+    // The only links a crawler ever sees on a profile. Without them these 1,089
+    // pages were a dead end in both directions: sitemap-discovered, linked from
+    // nowhere, and passing nothing back to the service pages that need it.
+    const links = companyLinks(company)
+    const crumb = links[0]
     return (
       <div style={{ minHeight: '100vh', background: '#f4f7fb', fontFamily: "'Manrope',sans-serif", color: '#16233a' }}>
         <div style={{ maxWidth: 820, margin: '0 auto', padding: '22px 16px' }}>
           <a href="/" style={{ color: '#0099cc', textDecoration: 'none', fontWeight: 800, fontFamily: "'Sora',sans-serif", fontSize: 17 }}>Quvera</a>
+          <nav style={{ fontSize: 13, color: '#56657c', margin: '12px 0 0' }}>
+            <a href="/" style={{ color: '#0099cc', textDecoration: 'none' }}>Home</a>
+            {crumb && <> › <a href={crumb.href} style={{ color: '#0099cc', textDecoration: 'none' }}>{crumb.label}</a></>}
+            {' › '}<span>{company.name}</span>
+          </nav>
           <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, margin: '14px 0 6px', lineHeight: 1.2 }}>{company.name}</h1>
           <div style={{ color: '#56657c', fontSize: 15, marginBottom: 12 }}>{company.category || 'Verified business'} in {where}, Dubai</div>
           <p style={{ color: '#56657c', fontSize: 15, lineHeight: 1.65 }}>{company.description || `${company.name} is a verified ${(company.category || 'business').toLowerCase()} in ${where}, Dubai on Quvera. See reviews, ratings, services and contact details, and request a free quote.`}</p>
           {hasRating && <div style={{ marginTop: 10, fontWeight: 700 }}>★ {Number(company.avg_rating).toFixed(1)} · {company.total_reviews} reviews</div>}
+          {links.length > 0 && (
+            <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid #e4e9f0' }}>
+              <h2 style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Compare more verified companies</h2>
+              <ul style={{ margin: 0, paddingLeft: 18, color: '#56657c', fontSize: 14, lineHeight: 1.9 }}>
+                {links.map((l) => (
+                  <li key={l.href}><a href={l.href} style={{ color: '#0099cc', textDecoration: 'none' }}>{l.label}</a></li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -1031,13 +1081,18 @@ export default function PublicProfile() {
               <Card TH={TH}>
                 <H2 TH={TH}>🔗 Related Businesses</H2>
                 <div style={{ display: 'grid', gap: 8 }}>
-                  {related.slice(0, 5).map((rc, i) => (
-                    <div key={i} onClick={() => { if (rc.slug) window.location.href = '/' + rc.slug }} style={{ border: `1px solid ${TH.line}`, borderRadius: 10, padding: 11, background: TH.soft, cursor: 'pointer' }}>
+                  {related.slice(0, 5).map((rc, i) => {
+                    // Anchors, not click handlers, so these count as links to
+                    // the sibling profiles. Slug-less rows stay unclickable.
+                    const Tag = rc.slug ? 'a' : 'div'
+                    return (
+                    <Tag key={i} {...(rc.slug ? { href: '/' + rc.slug } : {})} style={{ display: 'block', border: `1px solid ${TH.line}`, borderRadius: 10, padding: 11, background: TH.soft, cursor: rc.slug ? 'pointer' : 'default', textDecoration: 'none', color: 'inherit' }}>
                       <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 13, fontWeight: 700, marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rc.name}</div>
                       <div style={{ color: TH.gold, fontSize: 12 }}>{'★'.repeat(Math.round(rc.avg_rating || 0))} <span style={{ fontWeight: 800, color: TH.t1 }}>{rc.avg_rating || '—'}</span></div>
                       <div style={{ fontSize: 9, color: TH.t3, marginTop: 3 }}>{rc.category || '—'}{rc.is_verified && ' · ✓ Verified'}</div>
-                    </div>
-                  ))}
+                    </Tag>
+                    )
+                  })}
                 </div>
               </Card>
             )}
