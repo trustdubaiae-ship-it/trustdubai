@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, signOut, getCustomer, upsertCustomer, updateCustomerProfile } from '../customerAuth'
 import { companyLinks } from '../serviceLinks'
+import { displayRating } from '../serviceAreas'
 
 /* ===================== PLAN FEATURE MATRIX ===================== */
 const FEATURES = {
@@ -520,7 +521,7 @@ export default function PublicProfile() {
   // the title/canonical/OG + LocalBusiness JSON-LD, so SEO is complete.
   if (typeof window !== 'undefined' && window.__PRERENDER__) {
     const where = company.location || 'Dubai'
-    const hasRating = company.avg_rating != null && company.total_reviews > 0
+    const rating = displayRating(company)
     // The only links a crawler ever sees on a profile. Without them these 1,089
     // pages were a dead end in both directions: sitemap-discovered, linked from
     // nowhere, and passing nothing back to the service pages that need it.
@@ -538,7 +539,17 @@ export default function PublicProfile() {
           <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, margin: '14px 0 6px', lineHeight: 1.2 }}>{company.name}</h1>
           <div style={{ color: '#56657c', fontSize: 15, marginBottom: 12 }}>{company.category || 'Verified business'} in {where}, Dubai</div>
           <p style={{ color: '#56657c', fontSize: 15, lineHeight: 1.65 }}>{company.description || `${company.name} is a verified ${(company.category || 'business').toLowerCase()} in ${where}, Dubai on Quvera. See reviews, ratings, services and contact details, and request a free quote.`}</p>
-          {hasRating && <div style={{ marginTop: 10, fontWeight: 700 }}>★ {Number(company.avg_rating).toFixed(1)} · {company.total_reviews} reviews</div>}
+          {rating && (
+            <div style={{ marginTop: 10, fontWeight: 700 }}>
+              ★ {rating.value.toFixed(1)} · {rating.count} {rating.source === 'google' ? 'Google reviews' : 'reviews'}
+              {/* Attribution is required, not cosmetic: this rating was imported
+                  with the listing, so presenting it unlabelled would claim it as
+                  ours. It is also why it never reaches AggregateRating. */}
+              {rating.source === 'google' && (
+                <span style={{ fontWeight: 400, color: '#56657c', fontSize: 13 }}> (from Google)</span>
+              )}
+            </div>
+          )}
           {links.length > 0 && (
             <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid #e4e9f0' }}>
               <h2 style={{ fontFamily: "'Sora',sans-serif", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>Compare more verified companies</h2>

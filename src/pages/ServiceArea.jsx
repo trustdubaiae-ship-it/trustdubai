@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, getCustomer } from '../customerAuth'
-import { slugify, resolveSlug, selectCompanies, SERVICE_DB_LABELS } from '../serviceAreas'
+import { slugify, resolveSlug, selectCompanies, displayRating, SERVICE_DB_LABELS } from '../serviceAreas'
 // Regenerated every build by scripts/gen-eligibility.mjs — the same file the
 // sitemap and the prerender read, so what we link to, what we let Google index
 // and what we submit can never disagree.
@@ -223,7 +223,7 @@ export default function ServiceArea() {
         .map(l => `category.eq.${l},categories.cs.{"${l}"}`)
         .join(',')
       let q = supabase.from('companies')
-        .select('id,name,slug,category,categories,area,location,avg_rating,total_reviews,plan,is_verified,logo_url')
+        .select('id,name,slug,category,categories,area,location,avg_rating,total_reviews,google_rating,google_reviews_count,plan,is_verified,logo_url')
         .eq('status','approved')
         .or(orFilter)
       const { data } = await q
@@ -374,10 +374,24 @@ export default function ServiceArea() {
                       <div style={{ fontSize:11, color:t3 }}>{c.area||c.location||'Dubai'}</div>
                     </div>
                   </div>
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <span style={{ fontSize:13, color:'#f5a623', fontWeight:700 }}>{'★'.repeat(Math.round(c.avg_rating||0))||'—'} <span style={{ color:t2 }}>{c.avg_rating||'New'}</span></span>
-                    <span style={{ fontSize:11, color:t3 }}>{c.total_reviews||0} reviews</span>
-                  </div>
+                  {(() => {
+                    // Most listings have no on-site review yet but do carry an
+                    // imported Google rating, so the card showed "— New / 0
+                    // reviews" for nearly every company on a page titled "Top
+                    // …". Show the real rating, labelled with its source.
+                    const r = displayRating(c)
+                    if (!r) return (
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <span style={{ fontSize:12, color:t3 }}>No rating yet</span>
+                      </div>
+                    )
+                    return (
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <span style={{ fontSize:13, color:'#f5a623', fontWeight:700 }}>{'★'.repeat(Math.round(r.value))} <span style={{ color:t2 }}>{r.value.toFixed(1)}</span></span>
+                        <span style={{ fontSize:11, color:t3 }}>{r.count} {r.source === 'google' ? 'Google reviews' : 'reviews'}</span>
+                      </div>
+                    )
+                  })()}
                 </Tag>
                 )
               })}

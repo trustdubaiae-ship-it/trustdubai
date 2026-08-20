@@ -44,7 +44,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 async function fetchCompanyMap() {
   const map = {}
-  const fields = 'slug,name,category,description,phone,location,area,avg_rating,total_reviews'
+  const fields = 'slug,name,category,description,phone,location,area,avg_rating,total_reviews,google_rating,google_reviews_count'
   const pageSize = 1000
   for (let offset = 0; ; offset += pageSize) {
     const res = await fetch(
@@ -70,6 +70,13 @@ async function fetchCompanyMap() {
         area: r.area || '',
         avg_rating: r.avg_rating != null ? r.avg_rating : null,
         total_reviews: r.total_reviews || 0,
+        // The imported Google rating. Carried so the profile can show the one
+        // rating signal that actually exists at scale (1,075 of 1,093 rows).
+        // Displayed as attributed third-party content only — it must never feed
+        // the page's own AggregateRating, which has to describe reviews
+        // collected here. That distinction is enforced in setJsonLD.
+        google_rating: r.google_rating != null ? r.google_rating : null,
+        google_reviews_count: r.google_reviews_count || 0,
       }
     }
     if (rows.length < pageSize) break
@@ -180,7 +187,7 @@ let HOME_SEED = null
 //
 // One bulk fetch here, then each route's list is computed with the same
 // selectCompanies() the page uses at runtime, so seed and fetch agree.
-const SA_FIELDS = 'id,name,slug,category,categories,area,location,avg_rating,total_reviews,plan,is_verified,logo_url'
+const SA_FIELDS = 'id,name,slug,category,categories,area,location,avg_rating,total_reviews,google_rating,google_reviews_count,plan,is_verified,logo_url'
 // Enough to fill the visible list; the client fetch fills in the rest. Keeps the
 // seed off pages that match hundreds of companies (a service with no area).
 const SEED_MAX = 30

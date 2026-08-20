@@ -160,12 +160,62 @@ export function resolveServices(company) {
   return out
 }
 
+/* ---------------------------------------------------------------------------
+ * Ranking. These pages are titled "Top <service> companies in <area>", so the
+ * order has to mean something. It previously sorted on avg_rating alone, which
+ * is null for 1,091 of the 1,093 approved companies — so the sort was a no-op
+ * and "Top" was whatever order the rows arrived in.
+ *
+ * 1,075 companies do carry a real rating: google_rating / google_reviews_count,
+ * imported with the listing. That is the only rating signal that exists at any
+ * scale, so it is what ranks the list.
+ *
+ * A plain rating sort would put a lone 5.0 above a 4.7 with 500 reviews, so the
+ * score is a Bayesian average: ratings pull toward the prior until enough
+ * reviews back them up. PRIOR_N is the review count at which a company's own
+ * rating carries half the weight.
+ * ------------------------------------------------------------------------- */
+const PRIOR_N = 20
+const PRIOR_RATING = 4.3
+
+export function rankScore(c) {
+  // Both sources score on one scale. An earlier version gave first-party reviews
+  // a flat boost, which put a 3.5 rated by 4 people above a 5.0 rated by 280 on
+  // a page titled "Top …". Where the rating came from is a labelling question,
+  // not a quality one — so it does not move the company up the page.
+  const ownN = Number(c.total_reviews) || 0
+  const r = ownN > 0 ? Number(c.avg_rating) || 0 : Number(c.google_rating) || 0
+  const n = ownN > 0 ? ownN : Number(c.google_reviews_count) || 0
+  if (!(n > 0) || !(r > 0)) return 0
+  return (n / (n + PRIOR_N)) * r + (PRIOR_N / (n + PRIOR_N)) * PRIOR_RATING
+}
+
+// What a card or profile should show as the rating, and where it came from.
+// `source` is not decoration: an imported rating has to be labelled as Google's
+// wherever it appears, both because presenting it as our own would be false and
+// because only first-party reviews may be marked up as AggregateRating.
+export function displayRating(c) {
+  const ownN = Number(c.total_reviews) || 0
+  if (ownN > 0 && c.avg_rating != null) {
+    return { value: Number(c.avg_rating), count: ownN, source: 'site' }
+  }
+  const n = Number(c.google_reviews_count) || 0
+  if (n > 0 && c.google_rating != null) {
+    return { value: Number(c.google_rating), count: n, source: 'google' }
+  }
+  return null
+}
+
 // The company set a /services/:slug page lists. Kept here so prerender.mjs can
 // produce byte-identical results to what ServiceArea.jsx renders at runtime.
 export function selectCompanies(rows, service, area) {
   let out = (rows || []).filter(c => resolveServices(c).has(service))
   if (area) out = out.filter(c => resolveArea(c.area || c.location) === area)
-  return out.sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0))
+  // Tie-break on review volume so equal scores are not left in arrival order.
+  return out.sort((a, b) =>
+    (rankScore(b) - rankScore(a)) ||
+    ((Number(b.google_reviews_count) || 0) - (Number(a.google_reviews_count) || 0))
+  )
 }
 
 // Every distinct area / category label in `rows` that still maps to nothing.
