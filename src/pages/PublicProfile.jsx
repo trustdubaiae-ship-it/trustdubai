@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, signOut, getCustomer, upsertCustomer, updateCustomerProfile } from '../customerAuth'
 import { companyLinks } from '../serviceLinks'
-import { displayRating } from '../serviceAreas'
+import { displayRating, resolveArea } from '../serviceAreas'
 
 /* ===================== PLAN FEATURE MATRIX ===================== */
 const FEATURES = {
@@ -69,6 +69,61 @@ const SEO_OVERRIDES = {
   },
 }
 
+/* ---------------------------------------------------------------------------
+ * Search snippet, built from data instead of the stored description.
+ *
+ * Search Console shows two profiles sitting on page 1 with 0% CTR across 317
+ * impressions: "lux renov8" at position 9.7 (230 impressions) and "brick design
+ * technical services llc" at 6.6 (87). Both are people searching a company by
+ * name, so the listing was found — it just wasn't worth clicking.
+ *
+ * The stored description explains why. Every seeded row reads
+ *   "<name> — <category> services in <area>, Dubai. Listed on TrustDubai."
+ * so the snippet ends in a brand that no longer exists, and never mentions the
+ * rating. Lux Renov8 is 5.0 from 27 Google reviews and none of it was shown.
+ *
+ * That boilerplate carries no information this page doesn't already hold, so it
+ * is dropped and the snippet is composed from name, category, area and rating.
+ * A genuinely written description (no TrustDubai marker) is still preferred.
+ * ------------------------------------------------------------------------- */
+const SEEDED_DESC = /listed on trustdubai/i
+
+// `location` frequently holds a full street address ("Azizi Riviera 48 Shop 24
+// - المركاض - ند الشبا 1 - دبي"), which is unusable in a title. `area` is the
+// clean value, so it wins; location is only consulted through resolveArea.
+function placeOf(c) {
+  return (c.area && String(c.area).trim()) || resolveArea(c.location) || 'Dubai'
+}
+
+function buildSnippet(c) {
+  const name = (c.name || '').trim()
+  const cat = c.category || 'Business'
+  const where = placeOf(c)
+  const r = displayRating(c)
+  const stored = (c.description || '').trim()
+  const written = stored && !SEEDED_DESC.test(stored) ? stored : ''
+
+  // Title: keep it inside roughly what Google renders, shedding the least
+  // useful part first rather than letting the tail get cut mid-word.
+  const suffix = ' | Quvera'
+  const rating = r ? ` | ${r.value.toFixed(1)}★ ${r.count} reviews` : ''
+  // The rating is the part that earns the click, so the area is shed before it
+  // rather than after — dropping the area first keeps "5.0★ 27 reviews" in a
+  // title that would otherwise lose it by two characters.
+  let title = `${name} — ${cat} in ${where}${rating}${suffix}`
+  if (title.length > 70) title = `${name} — ${cat}${rating}${suffix}`
+  if (title.length > 70) title = `${name}${rating}${suffix}`
+  if (title.length > 70) title = `${name}${suffix}`
+
+  const lead = written
+    ? written.slice(0, 150)
+    : r
+      ? `${name} — ${cat.toLowerCase()} in ${where}, Dubai. Rated ${r.value.toFixed(1)}/5 from ${r.count} ${r.source === 'google' ? 'Google reviews' : 'reviews'}. See services, contact details and get free quotes.`
+      : `${name} — ${cat.toLowerCase()} in ${where}, Dubai. See services, contact details and compare free quotes from verified companies on Quvera.`
+
+  return { title, description: lead.slice(0, 160) }
+}
+
 function setSEO({ title, description, image, url, indexable = true }) {
   // Applied here rather than at each call site so every path that sets SEO for
   // this page (fallback, cached and fetched) picks the override up.
@@ -113,7 +168,10 @@ function setJsonLD(company, reviews) {
   // trail in the SERP instead of the bare URL.
   const crumb = companyLinks(company)[0]
   const graph = [
-    { '@type': 'LocalBusiness', name: company.name, description: company.description || '', url: 'https://www.quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: company.location || 'Dubai', addressCountry: 'AE' }, aggregateRating: ratingValue ? { '@type': 'AggregateRating', ratingValue, reviewCount, bestRating: 5, worstRating: 1 } : undefined },
+    // description/addressLocality go through the same cleaning as the visible
+    // copy: the seeded text names a dead brand, and `location` is often a full
+    // street address where schema wants the locality.
+    { '@type': 'LocalBusiness', name: company.name, description: buildSnippet(company).description, url: 'https://www.quvera.ae/' + company.slug, telephone: company.phone || '', address: { '@type': 'PostalAddress', addressLocality: placeOf(company), addressCountry: 'AE' }, aggregateRating: ratingValue ? { '@type': 'AggregateRating', ratingValue, reviewCount, bestRating: 5, worstRating: 1 } : undefined },
     {
       '@type': 'BreadcrumbList',
       itemListElement: [
@@ -369,8 +427,7 @@ export default function PublicProfile() {
       setPrerenderPath(c ? 'inject' : (fetched ? 'no-slug' : 'no-map'))
       if (c) {
         setCompany(c)
-        const avg = (c.avg_rating != null && c.total_reviews > 0) ? Number(c.avg_rating).toFixed(1) : null
-        setSEO({ title: c.name + ' — ' + (c.category || 'Business') + ' Dubai | Quvera', description: (c.description ? c.description.slice(0, 140) : c.name + ' is a verified ' + (c.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
+        setSEO({ ...buildSnippet(c), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
         setJsonLD(c, [])
         setLoading(false)
         return
@@ -391,8 +448,7 @@ export default function PublicProfile() {
     // avg_rating/total_reviews, so no extra fetch is needed for full SEO.
     if (typeof window !== 'undefined' && window.__PRERENDER__) {
       setPrerenderPath('fetch-fallback')
-      const avg = (data.avg_rating != null && data.total_reviews > 0) ? Number(data.avg_rating).toFixed(1) : null
-      setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avg ? ' Rated ' + avg + '/5.' : ''), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
+      setSEO({ ...buildSnippet(data), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
       setJsonLD(data, [])
       setLoading(false)
       return
@@ -419,8 +475,7 @@ export default function PublicProfile() {
     if (formRes.data) { setLeadForm(formRes.data); const { data: q } = await supabase.from('lead_form_questions').select('*').eq('form_id', formRes.data.id).order('order_num'); setQuestions(q || []) }
     if (data.category) { const { data: rel } = await supabase.from('companies').select('id, name, category, avg_rating, total_reviews, plan, slug, logo_url, is_verified').eq('status', 'approved').eq('category', data.category).neq('id', data.id).order('avg_rating', { ascending: false }).limit(6); setRelated(rel || []) }
     const reviewData = reviewRes.data || []
-    const avgRating = reviewData.length > 0 ? (reviewData.reduce((s, r) => s + r.rating, 0) / reviewData.length).toFixed(1) : null
-    setSEO({ title: data.name + ' — ' + (data.category || 'Business') + ' Dubai | Quvera', description: (data.description ? data.description.slice(0, 140) : data.name + ' is a verified ' + (data.category || 'business') + ' in Dubai.') + (avgRating ? ' Rated ' + avgRating + '/5.' : ''), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
+    setSEO({ ...buildSnippet(data), image: 'https://www.quvera.ae/og-card.png', url: 'https://www.quvera.ae/' + slug })
     setJsonLD(data, reviewData); trackProfileView(data.id); setLoading(false)
   }
   async function refreshTeam() {
@@ -520,8 +575,25 @@ export default function PublicProfile() {
   // Real users have no flag → they get the full page below. The head already has
   // the title/canonical/OG + LocalBusiness JSON-LD, so SEO is complete.
   if (typeof window !== 'undefined' && window.__PRERENDER__) {
-    const where = company.location || 'Dubai'
+    const where = placeOf(company)
     const rating = displayRating(company)
+    // Same reasoning as buildSnippet: the seeded description is boilerplate
+    // ending in a dead brand name, and it is the visible copy on the page, not
+    // just the meta tag. Replaced with a sentence built from the real values.
+    const stored = (company.description || '').trim()
+    // Categories are kept in their own casing — lowercasing turned "HVAC & AC"
+    // into "hvac & ac", which reads as a typo. Acronyms also take "an" when the
+    // letter name opens with a vowel sound ("an HVAC company"), which a plain
+    // first-letter vowel test gets wrong.
+    const kind = company.category || 'business'
+    const acronym = /^[A-Z&\s]+$/.test(kind.split(' ')[0])
+    const article = (acronym ? /^[AEFHILMNORSX]/ : /^[AEIOUaeiou]/).test(kind) ? 'an' : 'a'
+    const blurb = stored && !SEEDED_DESC.test(stored)
+      ? stored
+      // "a interior design company" reads as broken English on a page whose
+      // whole pitch is trustworthiness, and this is the visible copy on ~1,000
+      // pages, so the article agrees with the category it precedes.
+      : `${company.name} is ${article} ${kind} company operating in ${where}, Dubai. See services, contact details and verified reviews, and request a free quote through Quvera.`
     // The only links a crawler ever sees on a profile. Without them these 1,089
     // pages were a dead end in both directions: sitemap-discovered, linked from
     // nowhere, and passing nothing back to the service pages that need it.
@@ -538,7 +610,7 @@ export default function PublicProfile() {
           </nav>
           <h1 style={{ fontFamily: "'Sora',sans-serif", fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, margin: '14px 0 6px', lineHeight: 1.2 }}>{company.name}</h1>
           <div style={{ color: '#56657c', fontSize: 15, marginBottom: 12 }}>{company.category || 'Verified business'} in {where}, Dubai</div>
-          <p style={{ color: '#56657c', fontSize: 15, lineHeight: 1.65 }}>{company.description || `${company.name} is a verified ${(company.category || 'business').toLowerCase()} in ${where}, Dubai on Quvera. See reviews, ratings, services and contact details, and request a free quote.`}</p>
+          <p style={{ color: '#56657c', fontSize: 15, lineHeight: 1.65 }}>{blurb}</p>
           {rating && (
             <div style={{ marginTop: 10, fontWeight: 700 }}>
               ★ {rating.value.toFixed(1)} · {rating.count} {rating.source === 'google' ? 'Google reviews' : 'reviews'}
