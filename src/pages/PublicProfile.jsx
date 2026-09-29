@@ -99,10 +99,24 @@ function buildSnippet(c) {
   // The rating is the part that earns the click, so the area is shed before it
   // rather than after — dropping the area first keeps "5.0★ 27 reviews" in a
   // title that would otherwise lose it by two characters.
+  // 65, not 70: the weekly audit measures against what Google actually renders,
+  // and 70-character titles were being cut in the results.
+  const MAX = 65
   let title = `${name} — ${cat} in ${where}${rating}${suffix}`
-  if (title.length > 70) title = `${name} — ${cat}${rating}${suffix}`
-  if (title.length > 70) title = `${name}${rating}${suffix}`
-  if (title.length > 70) title = `${name}${suffix}`
+  if (title.length > MAX) title = `${name} — ${cat}${rating}${suffix}`
+  if (title.length > MAX) title = `${name}${rating}${suffix}`
+  if (title.length > MAX) title = `${name}${suffix}`
+  // Some imported names run past 100 characters on their own — "Workman
+  // Technical Services AC Works AC Repair AC Maintenance AC Installation Duct
+  // Works" is a real row — so the last rung trims the name itself at a word
+  // boundary. Google would cut it anyway; this cuts it somewhere readable and
+  // keeps the brand on the end.
+  if (title.length > MAX) {
+    const room = MAX - suffix.length - 1
+    const cut = name.slice(0, room)
+    const lastSpace = cut.lastIndexOf(' ')
+    title = `${(lastSpace > room * 0.6 ? cut.slice(0, lastSpace) : cut).trim()}…${suffix}`
+  }
 
   const lead = written
     ? written.slice(0, 150)

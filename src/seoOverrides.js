@@ -19,17 +19,14 @@ export const SERVICE_OVERRIDES = {
     title: 'Interior Design Al Barsha Dubai | Verified Companies – Quvera',
     description: 'Get matched with top interior design companies in Al Barsha, Dubai. Compare verified fit-out & décor specialists and request a free quote today.',
   },
-  // 215 impressions, avg position 24.4, 0.5% CTR — second-highest service page.
-  'interior-design-dubai-marina': {
-    title: 'Interior Design Dubai Marina | Verified Interior Designers & Fit-Out Companies – Quvera',
-    description: 'Compare verified interior design companies in Dubai Marina. Get quotes for apartment & villa interior fit-out, styling and renovation from vetted Quvera contractors — fast, free, no obligation.',
-  },
-  // 135 impressions, avg position 88.3, 0.7% CTR — also competing with the
-  // "joinery companies in dubai" query, which the title now names explicitly.
-  'carpentry-and-joinery-downtown-dubai': {
-    title: 'Carpentry & Joinery Companies in Downtown Dubai | Custom Woodwork – Quvera',
-    description: 'Find verified carpentry and joinery companies in Downtown Dubai for custom furniture, kitchen cabinets, doors and woodwork. Compare quotes from trusted local contractors on Quvera.',
-  },
+  // interior-design-dubai-marina and carpentry-and-joinery-downtown-dubai were
+  // hand-written here too, and were removed once the template caught up. Both
+  // were written to say "verified companies" in a way the old template did not;
+  // the template now leads with a real count ("Top 10 Interior Design Companies
+  // in Dubai Marina"), which is both the shape that holds page 1 and inside the
+  // length Google renders. The hand-written pair had run to 87 and 74 characters
+  // with 193- and 180-character descriptions, so they were being cut in the
+  // results — the weekly audit is what surfaced that.
 }
 
 // /<company-slug> profile pages. The weekly job never generates these — a
@@ -42,6 +39,6 @@ export const COMPANY_OVERRIDES = {
   // company name, so the override keeps it — dropping it would cost that query.
   'osta-services-ac-repair-maintenance': {
     title: 'Osta Services خدمات آسطا | AC Repair & Maintenance Dubai – Quvera',
-    description: 'Book trusted Osta AC repair and maintenance services in Dubai. Verified technicians, transparent pricing, same-day service across Dubai. Get a free quote today.',
+    description: 'Book trusted Osta AC repair and maintenance in Dubai. Verified technicians, transparent pricing and same-day service across Dubai. Get a free quote.',
   },
 }

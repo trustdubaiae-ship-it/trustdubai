@@ -141,7 +141,10 @@ export default function ClaimCompany({ navigate, prefillSlug }) {
   const Header = ({ title }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border-default)', background: 'var(--bg-primary)', position: 'sticky', top: 0, zIndex: 100 }}>
       <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text-secondary)' }}><i className="ti ti-arrow-left" /></button>
-      <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{title}</span>
+      {/* An h1 rather than a span: /claim-company is in the sitemap and shipped
+          with no heading at all, which the weekly audit flagged. Same styles,
+          margin reset, so nothing moves. */}
+      <h1 style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', margin: 0 }}>{title}</h1>
       <div style={{ width: 32 }} />
     </div>
   )
