@@ -4,19 +4,16 @@
   "sitemapUrls": 1279,
   "checked": 265,
   "errors": 0,
-  "warnings": 44,
+  "warnings": 1,
   "byRule": {
-    "h1-missing": 1,
-    "title-too-long": 37,
-    "description-too-long": 5,
-    "og-image-missing": 1
+    "title-too-long": 1
   },
   "search": {
     "available": false
   },
   "overrides": {},
   "build": {
-    "builtAt": "2026-09-29T20:43:04.806Z",
+    "builtAt": "2026-09-29T21:42:09.849Z",
     "prerendered": 1759,
     "partial": 0,
     "failed": 0,

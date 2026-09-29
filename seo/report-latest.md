@@ -1,7 +1,7 @@
 # Quvera — weekly SEO report
 
 **2026-09-29** · https://www.quvera.ae · 265 pages checked · 1279 URLs in sitemap
-_Previous run 2026-09-29: 1271 sitemap URLs, 2 errors, 443 warnings._
+_Previous run 2026-09-29: 1279 sitemap URLs, 0 errors, 44 warnings._
 
 ## 1. Search performance
 
@@ -11,54 +11,22 @@ Search Console data unavailable: `GSC_SERVICE_ACCOUNT_JSON` is not set. See SEO.
 
 No override refresh this run (no Search Console credentials). Pages are on their templates, which is the safe default.
 
-- Sitemap: **1279** URLs (+8 vs last week), regenerated every build from live company data
+- Sitemap: **1279** URLs (0 vs last week), regenerated every build from live company data
 - Live build: 1759/1759 routes prerendered (1759 full, 0 partial, 0 failed), built 1h ago
 
 ## 3. Technical audit
 
-**0 errors · 44 warnings** across 265 pages.
+**0 errors · 1 warnings** across 265 pages.
 
 No errors. Every checked page has a self-referencing canonical, a title, a description and valid structured data.
 
 | Warning | Count |
 |---|---|
-| `title-too-long` | 37 |
-| `description-too-long` | 5 |
-| `h1-missing` | 1 |
-| `og-image-missing` | 1 |
+| `title-too-long` | 1 |
 
 <details><summary>First 30 warnings in detail</summary>
 
-- `h1-missing` — `/claim-company`
-- `title-too-long` — `/for-business.html` — 66 chars
-- `description-too-long` — `/for-business.html` — 171 chars
-- `description-too-long` — `/how-we-verify.html` — 183 chars
-- `description-too-long` — `/os/` — 178 chars
-- `og-image-missing` — `/os/`
-- `title-too-long` — `/services/interior-design-dubai-marina` — 87 chars
-- `description-too-long` — `/services/interior-design-dubai-marina` — 193 chars
-- `title-too-long` — `/services/carpentry-and-joinery-downtown-dubai` — 74 chars
-- `description-too-long` — `/services/carpentry-and-joinery-downtown-dubai` — 180 chars
 - `title-too-long` — `/services/false-ceiling-and-partition-jumeirah-village-circle-jvc` — 67 chars
-- `title-too-long` — `/bravacasa-interior-l-l-c-qik5o` — 69 chars
-- `title-too-long` — `/ceiling-gate-maintenance-and-decoration-llc` — 69 chars
-- `title-too-long` — `/gemco-group` — 66 chars
-- `title-too-long` — `/matsmall-design-lounge` — 67 chars
-- `title-too-long` — `/grout-expert-dubai` — 66 chars
-- `title-too-long` — `/workman-technical-services-ac-works-ac-repair-ac-maintenance-ac-installation-duct-works` — 127 chars
-- `title-too-long` — `/novotech-construction-for-building-contracting-co-llc-jotun-approved-applicator-contractor` — 104 chars
-- `title-too-long` — `/crew-master` — 70 chars
-- `title-too-long` — `/prime-painters` — 70 chars
-- `title-too-long` — `/dar-al-montazah-technical-services-llc` — 66 chars
-- `title-too-long` — `/amh-interior-design-l-l-c` — 70 chars
-- `title-too-long` — `/green-team-renovation-technical-services` — 67 chars
-- `title-too-long` — `/al-shirawi-electrical-and-mechanical-engineering-co-l-l-c` — 68 chars
-- `title-too-long` — `/covering-concepts-furniture-trading-llc` — 66 chars
-- `title-too-long` — `/floorworld` — 68 chars
-- `title-too-long` — `/fitout-renovation-m-a-technical-contracting-company` — 66 chars
-- `title-too-long` — `/aseel-renovation-technical-services-l-l-c` — 67 chars
-- `title-too-long` — `/stalwart-studio-interior-design-fitout` — 67 chars
-- `title-too-long` — `/amazon-wood-carpentry` — 69 chars
 
 </details>
 
