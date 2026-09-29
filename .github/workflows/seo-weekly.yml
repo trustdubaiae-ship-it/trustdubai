@@ -38,6 +38,12 @@ jobs:
   seo:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # Hoisted to job level because a step-level `if:` cannot read the `secrets`
+    # context — GitHub rejects the whole workflow file with "Unrecognized
+    # named-value: 'secrets'". `env` is readable there, so the deploy steps test
+    # this instead, and an unset secret simply leaves it empty.
+    env:
+      VERCEL_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -77,9 +83,9 @@ jobs:
       # prerendered HTML and any refreshed override all reach production. Without
       # this a week with no commits ships a month-old sitemap.
       - name: Trigger a Vercel rebuild
-        if: ${{ !inputs.skip_deploy && secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
+        if: ${{ !inputs.skip_deploy && env.VERCEL_HOOK != '' }}
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}")
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "$VERCEL_HOOK")
           echo "deploy hook responded $code"
           [ "$code" = "200" ] || [ "$code" = "201" ] || echo "::warning::deploy hook returned $code — auditing whatever is live"
 
@@ -88,7 +94,7 @@ jobs:
       # of minutes — otherwise the audit reads last week's HTML and reports it as
       # this week's. Gives up after 35 minutes and audits whatever is live.
       - name: Wait for the deploy to land
-        if: ${{ !inputs.skip_deploy && secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
+        if: ${{ !inputs.skip_deploy && env.VERCEL_HOOK != '' }}
         run: |
           started=$(date -u +%s)
           for i in $(seq 1 70); do
