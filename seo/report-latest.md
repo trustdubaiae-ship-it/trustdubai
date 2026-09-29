@@ -1,6 +1,7 @@
 # Quvera — weekly SEO report
 
-**2026-09-29** · https://www.quvera.ae · 257 pages checked · 1271 URLs in sitemap
+**2026-09-29** · https://www.quvera.ae · 265 pages checked · 1279 URLs in sitemap
+_Previous run 2026-09-29: 1271 sitemap URLs, 2 errors, 443 warnings._
 
 ## 1. Search performance
 
@@ -10,71 +11,59 @@ Search Console data unavailable: `GSC_SERVICE_ACCOUNT_JSON` is not set. See SEO.
 
 No override refresh this run (no Search Console credentials). Pages are on their templates, which is the safe default.
 
-- Sitemap: **1271** URLs, regenerated every build from live company data
-- Live build: 1756/1756 routes prerendered (1756 full, 0 partial, 0 failed)
+- Sitemap: **1279** URLs (+8 vs last week), regenerated every build from live company data
+- Live build: 1759/1759 routes prerendered (1759 full, 0 partial, 0 failed), built 1h ago
 
 ## 3. Technical audit
 
-**2 errors · 443 warnings** across 257 pages.
+**0 errors · 44 warnings** across 265 pages.
 
-| Error | Count |
-|---|---|
-| `canonical-mismatch` | 2 |
-
-<details><summary>First 40 errors in detail</summary>
-
-- `canonical-mismatch` — `/partner` — points at https://www.quvera.ae/
-- `canonical-mismatch` — `/claim-company` — points at https://www.quvera.ae/
-
-</details>
+No errors. Every checked page has a self-referencing canonical, a title, a description and valid structured data.
 
 | Warning | Count |
 |---|---|
-| `og-image-square` | 178 |
-| `title-too-long` | 153 |
-| `description-too-long` | 109 |
+| `title-too-long` | 37 |
+| `description-too-long` | 5 |
 | `h1-missing` | 1 |
-| `duplicate-title` | 1 |
-| `duplicate-description` | 1 |
+| `og-image-missing` | 1 |
 
 <details><summary>First 30 warnings in detail</summary>
 
-- `title-too-long` — `/` — 69 chars
-- `og-image-square` — `/` — https://www.quvera.ae/icon-512.png with a wide card
-- `title-too-long` — `/partner` — 69 chars
-- `og-image-square` — `/partner` — https://www.quvera.ae/icon-512.png with a wide card
-- `title-too-long` — `/claim-company` — 69 chars
-- `og-image-square` — `/claim-company` — https://www.quvera.ae/icon-512.png with a wide card
 - `h1-missing` — `/claim-company`
-- `og-image-square` — `/services/interior-design` — https://www.quvera.ae/icon-512.png with a wide card
-- `og-image-square` — `/services/renovation` — https://www.quvera.ae/icon-512.png with a wide card
-- `description-too-long` — `/services/fit-out` — 194 chars
-- `og-image-square` — `/services/fit-out` — https://www.quvera.ae/icon-512.png with a wide card
-- `description-too-long` — `/services/kitchen-renovation` — 204 chars
-- `og-image-square` — `/services/kitchen-renovation` — https://www.quvera.ae/icon-512.png with a wide card
-- `description-too-long` — `/services/bathroom-renovation` — 207 chars
-- `og-image-square` — `/services/bathroom-renovation` — https://www.quvera.ae/icon-512.png with a wide card
-- `title-too-long` — `/services/carpentry-and-joinery` — 66 chars
-- `description-too-long` — `/services/carpentry-and-joinery` — 223 chars
-- `og-image-square` — `/services/carpentry-and-joinery` — https://www.quvera.ae/icon-512.png with a wide card
-- `og-image-square` — `/services/flooring` — https://www.quvera.ae/icon-512.png with a wide card
-- `og-image-square` — `/services/painting` — https://www.quvera.ae/icon-512.png with a wide card
-- `title-too-long` — `/services/false-ceiling-and-partition` — 72 chars
-- `description-too-long` — `/services/false-ceiling-and-partition` — 211 chars
-- `og-image-square` — `/services/false-ceiling-and-partition` — https://www.quvera.ae/icon-512.png with a wide card
-- `description-too-long` — `/services/ac-service` — 203 chars
-- `og-image-square` — `/services/ac-service` — https://www.quvera.ae/icon-512.png with a wide card
-- `og-image-square` — `/services/plumbing` — https://www.quvera.ae/icon-512.png with a wide card
-- `og-image-square` — `/services/electrical` — https://www.quvera.ae/icon-512.png with a wide card
-- `og-image-square` — `/services/waterproofing` — https://www.quvera.ae/icon-512.png with a wide card
-- `title-too-long` — `/services/interior-design-downtown-dubai` — 74 chars
-- `og-image-square` — `/services/interior-design-downtown-dubai` — https://www.quvera.ae/icon-512.png with a wide card
+- `title-too-long` — `/for-business.html` — 66 chars
+- `description-too-long` — `/for-business.html` — 171 chars
+- `description-too-long` — `/how-we-verify.html` — 183 chars
+- `description-too-long` — `/os/` — 178 chars
+- `og-image-missing` — `/os/`
+- `title-too-long` — `/services/interior-design-dubai-marina` — 87 chars
+- `description-too-long` — `/services/interior-design-dubai-marina` — 193 chars
+- `title-too-long` — `/services/carpentry-and-joinery-downtown-dubai` — 74 chars
+- `description-too-long` — `/services/carpentry-and-joinery-downtown-dubai` — 180 chars
+- `title-too-long` — `/services/false-ceiling-and-partition-jumeirah-village-circle-jvc` — 67 chars
+- `title-too-long` — `/bravacasa-interior-l-l-c-qik5o` — 69 chars
+- `title-too-long` — `/ceiling-gate-maintenance-and-decoration-llc` — 69 chars
+- `title-too-long` — `/gemco-group` — 66 chars
+- `title-too-long` — `/matsmall-design-lounge` — 67 chars
+- `title-too-long` — `/grout-expert-dubai` — 66 chars
+- `title-too-long` — `/workman-technical-services-ac-works-ac-repair-ac-maintenance-ac-installation-duct-works` — 127 chars
+- `title-too-long` — `/novotech-construction-for-building-contracting-co-llc-jotun-approved-applicator-contractor` — 104 chars
+- `title-too-long` — `/crew-master` — 70 chars
+- `title-too-long` — `/prime-painters` — 70 chars
+- `title-too-long` — `/dar-al-montazah-technical-services-llc` — 66 chars
+- `title-too-long` — `/amh-interior-design-l-l-c` — 70 chars
+- `title-too-long` — `/green-team-renovation-technical-services` — 67 chars
+- `title-too-long` — `/al-shirawi-electrical-and-mechanical-engineering-co-l-l-c` — 68 chars
+- `title-too-long` — `/covering-concepts-furniture-trading-llc` — 66 chars
+- `title-too-long` — `/floorworld` — 68 chars
+- `title-too-long` — `/fitout-renovation-m-a-technical-contracting-company` — 66 chars
+- `title-too-long` — `/aseel-renovation-technical-services-l-l-c` — 67 chars
+- `title-too-long` — `/stalwart-studio-interior-design-fitout` — 67 chars
+- `title-too-long` — `/amazon-wood-carpentry` — 69 chars
 
 </details>
 
 ## 4. What to do next
 
-- Fix the 2 error-level finding(s) above — those cost indexing, not just ranking.
 - Add the `GSC_SERVICE_ACCOUNT_JSON` secret so the ranking half of this report and the automatic title tuning can run (SEO.md).
 
 ---
