@@ -215,6 +215,14 @@ export default function ServiceArea() {
       `${service} Companies in ${where} | Quvera`,
       `${service} in ${where} | Quvera`,
       area ? `${service} in ${area} | Quvera` : `${service} Dubai | Quvera`,
+      // Four areas carry their own abbreviation — "Jumeirah Village Circle
+      // (JVC)", JLT, JBR, DIP — and it is what people actually type. Using it is
+      // better than letting the longest service and the longest area together
+      // push the title past what Google renders, which is the one page the audit
+      // still flagged at 67 characters.
+      area && /\(([A-Z]{2,5})\)/.test(area)
+        ? `${service} in ${area.match(/\(([A-Z]{2,5})\)/)[1]} | Quvera`
+        : `${service} | Quvera`,
     ]
     const title = ov
       ? ov.title
