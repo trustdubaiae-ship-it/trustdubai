@@ -7,6 +7,9 @@ import { slugify, resolveSlug, selectCompanies, displayRating, SERVICE_DB_LABELS
 // sitemap and the prerender read, so what we link to, what we let Google index
 // and what we submit can never disagree.
 import ELIGIBILITY from '../generated/eligibility.json'
+import { SOCIAL_CARD } from '../pageSeo'
+import { SERVICE_OVERRIDES } from '../seoOverrides'
+import GENERATED_OVERRIDES from '../generated/seoOverrides.json'
 
 // Common ways people actually search for each service (from Search Console data).
 // Woven naturally into copy so pages also rank for these phrasings.
@@ -23,27 +26,11 @@ const SYNONYMS = {
   'Curtains & Blinds': 'curtains, blinds and window-treatment companies',
 }
 
-// Hand-written title/meta for the few pages where Search Console shows real
-// impressions but a weak click-through rate — these beat the generic template.
-// Keyed by URL slug; every other page falls back to the template in applySEO().
-const SEO_OVERRIDES = {
-  // 447 impressions, avg position 27.2, 1.8% CTR — highest-impression page on
-  // the site. Ranking is stuck on page 3, so the snippet is doing the work here.
-  'interior-design-al-barsha': {
-    title: 'Interior Design Al Barsha Dubai | Verified Companies – Quvera',
-    description: 'Get matched with top interior design companies in Al Barsha, Dubai. Compare verified fit-out & décor specialists and request a free quote today.',
-  },
-  // 215 impressions, avg position 24.4, 0.5% CTR — second-highest service page.
-  'interior-design-dubai-marina': {
-    title: 'Interior Design Dubai Marina | Verified Interior Designers & Fit-Out Companies – Quvera',
-    description: 'Compare verified interior design companies in Dubai Marina. Get quotes for apartment & villa interior fit-out, styling and renovation from vetted Quvera contractors — fast, free, no obligation.',
-  },
-  // 135 impressions, avg position 88.3, 0.7% CTR — also competing with the
-  // "joinery companies in dubai" query, which the title now names explicitly.
-  'carpentry-and-joinery-downtown-dubai': {
-    title: 'Carpentry & Joinery Companies in Downtown Dubai | Custom Woodwork – Quvera',
-    description: 'Find verified carpentry and joinery companies in Downtown Dubai for custom furniture, kitchen cabinets, doors and woodwork. Compare quotes from trusted local contractors on Quvera.',
-  },
+// Title/meta overrides, in precedence order: hand-written first, then the set
+// scripts/gen-seo-overrides.mjs regenerates weekly from Search Console query
+// data. A page with neither falls back to the template in applySEO().
+function overrideFor(slug) {
+  return SERVICE_OVERRIDES[slug] || GENERATED_OVERRIDES.overrides?.[slug] || null
 }
 
 // Single source of truth for FAQs (used by both the page and FAQPage schema)
@@ -76,7 +63,11 @@ function setSEO({ title, description, url, indexable }) {
   set('robots', indexable ? 'index, follow' : 'noindex, follow')
   set('og:title', title, true); set('og:description', description, true)
   set('og:url', url, true); set('og:type', 'website', true); set('og:site_name', 'Quvera', true)
+  // Written explicitly: without it the page inherits index.html's image, and a
+  // service page shared on WhatsApp rendered the square app icon.
+  set('og:image', SOCIAL_CARD, true)
   set('twitter:card', 'summary_large_image'); set('twitter:title', title); set('twitter:description', description)
+  set('twitter:image', SOCIAL_CARD)
   let link = document.querySelector('link[rel="canonical"]')
   if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link) }
   link.href = url
@@ -185,8 +176,20 @@ export default function ServiceArea() {
     if (!service) return
     const where = area ? `${area}, Dubai` : 'Dubai'
     const cnt = rows.length
-    const ov = SEO_OVERRIDES[serviceArea]
-    const title = ov ? ov.title : `${service} Companies in ${where} — Top Verified | Quvera`
+    const ov = overrideFor(serviceArea)
+    // Shed the least useful part first rather than letting Google truncate the
+    // tail mid-word — the same ladder PublicProfile uses for its titles. The
+    // full form is 69 characters for a service and area of average length, so
+    // the second rung is what most pages actually ship.
+    const titles = [
+      `${service} Companies in ${where} — Top Verified | Quvera`,
+      `${service} Companies in ${where} | Quvera`,
+      `${service} in ${where} | Quvera`,
+      area ? `${service} in ${area} | Quvera` : `${service} Dubai | Quvera`,
+    ]
+    const title = ov
+      ? ov.title
+      : titles.find((t) => t.length <= 65) || titles.reduce((a, b) => (a.length <= b.length ? a : b))
     const syn = SYNONYMS[service] ? ` Also covering ${SYNONYMS[service]}.` : ''
     const desc  = ov ? ov.description : (cnt > 0
       ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
