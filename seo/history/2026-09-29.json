@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-29",
+  "base": "https://www.quvera.ae",
+  "sitemapUrls": 1271,
+  "checked": 257,
+  "errors": 2,
+  "warnings": 443,
+  "byRule": {
+    "title-too-long": 153,
+    "og-image-square": 178,
+    "canonical-mismatch": 2,
+    "h1-missing": 1,
+    "description-too-long": 109,
+    "duplicate-title": 1,
+    "duplicate-description": 1
+  },
+  "search": {
+    "available": false
+  },
+  "overrides": {},
+  "build": {
+    "builtAt": null,
+    "prerendered": 1756,
+    "partial": 0,
+    "failed": 0,
+    "budgetHit": false
+  }
+}
