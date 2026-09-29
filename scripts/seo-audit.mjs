@@ -90,6 +90,15 @@ const metaContent = (html, name, asProperty = false) => {
   return m ? attr(m[0], 'content') : null
 }
 
+// Titles and descriptions arrive HTML-escaped, so "Carpentry &amp; Joinery"
+// measured five characters longer than it renders. That inflated the
+// title-too-long count — the homepage reads 65 characters and was reported as 69.
+const decodeEntities = (s) => (s || '')
+  .replace(/&(amp|lt|gt|quot|apos|nbsp|#39);/g, (_, e) => ({
+    amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'",
+  }[e]))
+  .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+
 export function parsePage(html) {
   const titleM = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
   const canonM = html.match(/<link[^>]*rel\s*=\s*["']canonical["'][^>]*>/i)
@@ -105,8 +114,8 @@ export function parsePage(html) {
   }
   const body = html.replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '')
   return {
-    title: titleM ? titleM[1].replace(/\s+/g, ' ').trim() : null,
-    description: metaContent(html, 'description'),
+    title: titleM ? decodeEntities(titleM[1]).replace(/\s+/g, ' ').trim() : null,
+    description: decodeEntities(metaContent(html, 'description')) || null,
     robots: metaContent(html, 'robots'),
     canonical: canonM ? attr(canonM[0], 'href') : null,
     ogImage: metaContent(html, 'og:image', true),

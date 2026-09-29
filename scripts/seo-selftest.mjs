@@ -118,6 +118,15 @@ test('parsePage reads the head it is given', () => {
   assert.ok(p.textLength > 600)
 })
 
+test('HTML entities are decoded before lengths are measured', () => {
+  const html = GOOD.replace(/<title>[\s\S]*?<\/title>/, '<title>Quvera | Verified Home &amp; Interior Service Companies in Dubai, UAE</title>')
+  const p = parsePage(html)
+  assert.equal(p.title, 'Quvera | Verified Home & Interior Service Companies in Dubai, UAE')
+  assert.equal(p.title.length, 65, 'renders as 65, not the 69 the raw entity counts')
+  const f = checkPage({ path: '/', status: 200, page: p, kind: 'static' })
+  assert.ok(!f.some((x) => x.rule === 'title-too-long'), 'findings: ' + JSON.stringify(f))
+})
+
 test('a healthy page produces no findings', () => {
   const f = checkPage({ path: '/services/interior-design-al-barsha', status: 200, page: parsePage(GOOD), kind: 'service' })
   assert.deepEqual(f, [], 'findings: ' + JSON.stringify(f))

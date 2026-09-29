@@ -191,6 +191,8 @@ export default function ServiceArea() {
     // The count is NEVER a claim we cannot back: it is banded down from the
     // number of companies this page actually renders, so a page showing 6 says
     // "Top 5" and a page showing 2 says nothing at all.
+    // 'AC Service'.toLowerCase() would read as "ac service companies" in prose.
+    const serviceProse = service.toLowerCase().replace(/\bac\b/g, 'AC')
     const band = cnt >= 10 ? 10 : cnt >= 5 ? 5 : cnt >= 3 ? 3 : 0
     const lead = band ? `Top ${band} ` : ''
     // Year is a freshness signal Google rewards here, and it is only honest
@@ -217,10 +219,19 @@ export default function ServiceArea() {
     const title = ov
       ? ov.title
       : titles.find((t) => t.length <= 65) || titles.reduce((a, b) => (a.length <= b.length ? a : b))
+    // The synonym clause used to be appended unconditionally, which ran 109 live
+    // descriptions past 160 characters — one to 223. Google cuts the snippet at
+    // roughly 160, and a meta description is not a ranking signal, so everything
+    // past the cut is spent for nothing. Take the longest form that still fits.
     const syn = SYNONYMS[service] ? ` Also covering ${SYNONYMS[service]}.` : ''
-    const desc  = ov ? ov.description : (cnt > 0
-      ? `Compare ${cnt} verified ${service.toLowerCase()} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
-      : `Find verified ${service.toLowerCase()} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`) + syn
+    const base = cnt > 0
+      ? `Compare ${cnt} verified ${serviceProse} companies in ${where}. Real reviews, trust scores & up to 3 free quotes from trusted professionals.`
+      : `Find verified ${serviceProse} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes from trusted professionals.`
+    const shortBase = cnt > 0
+      ? `Compare ${cnt} verified ${serviceProse} companies in ${where}. Real reviews, trust scores and up to 3 free quotes.`
+      : `Find verified ${serviceProse} companies in ${where}. Compare reviews, ratings and get up to 3 free quotes.`
+    const descs = [shortBase + syn, base, shortBase]
+    const desc = ov ? ov.description : (descs.find((d) => d.length <= 158) || base.slice(0, 158))
     const url   = `https://www.quvera.ae/services/${serviceArea}`
     setSEO({ title, description: desc, url, indexable: isEligible })
     setJsonLD(service, area, rows, buildFaqs(service, where))
