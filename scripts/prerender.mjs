@@ -11,7 +11,7 @@
 // Safety: prerender never breaks the deploy — on any fatal error it logs loudly
 // and exits 0, leaving the working SPA (dist/index.html + assets) in place.
 import { createServer } from 'node:http'
-import { readFileSync as readSync, promises as fs } from 'node:fs'
+import { readFileSync as readSync, existsSync, statSync, promises as fs } from 'node:fs'
 import { join, dirname, extname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { cpus, totalmem } from 'node:os'
@@ -19,6 +19,7 @@ import { SERVICES, AREAS, slugify, resolveSlug, selectCompanies, auditVocabulary
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DIST = resolve(__dirname, '..', 'dist')
+const PUBLIC = resolve(__dirname, '..', 'public')
 // Since company pages render from injected data (no Supabase per page), the crawl
 // is CPU/render-bound, so scale concurrency with the container's cores. Vercel's
 // build box is bigger than its Lambda runtime, so this unblocks real parallelism.
@@ -256,9 +257,24 @@ function bail(msg, err) {
 function readRoutes() {
   const xml = readSync(join(DIST, 'sitemap.xml'), 'utf8')
   const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1])
-  const paths = locs
+  const allPaths = locs
     .map(u => { try { return new URL(u).pathname } catch { return null } })
     .filter(Boolean)
+
+  // The sitemap now also carries the marketing pages that ship as real files in
+  // public/ (/for-business.html, /os/, ...). Those must not be crawled: they are
+  // not SPA routes, and writePage() would replace /os/index.html — the page
+  // itself — with a snapshot of the SPA shell. A path is a static file when dist
+  // already holds a file for it, which is true before the crawl writes anything.
+  // Checked against public/, not dist/: dist/index.html is the SPA shell, so a
+  // dist-based test would classify '/' itself as a static file and skip the
+  // homepage. public/ holds exactly the files that ship verbatim.
+  const isStaticFile = (p) =>
+    existsSync(join(PUBLIC, p)) && statSync(join(PUBLIC, p)).isFile() ||
+    existsSync(join(PUBLIC, p, 'index.html'))
+  const staticFiles = allPaths.filter(isStaticFile)
+  const paths = allPaths.filter((p) => !staticFiles.includes(p))
+  if (staticFiles.length) console.log(`   - ${staticFiles.length} static file(s) in the sitemap, served as-is (not crawled)`)
 
   // The sitemap now carries only eligible pages, but ineligible combinations
   // must still resolve properly — a real empty state and a noindex tag, not the
@@ -568,6 +584,9 @@ async function main() {
   // site (/__prerender_stats.json) — the only window into what happened on Vercel.
   try {
     await fs.writeFile(join(DIST, '__prerender_stats.json'), JSON.stringify({
+      // Read by .github/workflows/seo-weekly.yml to wait for its own deploy, and
+      // reported by scripts/seo-audit.mjs so a stale live build is visible.
+      builtAt: new Date().toISOString(),
       routes: routes.length, prerendered: buffer.length,
       full: results.ok, partial: results.partial, failed: results.failed,
       skipped: queue.length, budgetHit: queue.length > 0, seconds: Number(secs),

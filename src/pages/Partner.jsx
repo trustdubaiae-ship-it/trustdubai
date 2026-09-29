@@ -1,5 +1,6 @@
 // trustdubai/src/pages/Partner.jsx
 import { useState, useEffect } from 'react'
+import { applyStaticPageSEO } from '../pageSeo'
 import { supabase } from '../supabase'
 
 /* ============================================================================
@@ -47,6 +48,9 @@ const FAQS = [
 export default function Partner() {
   const [dark, setDark] = useState(true)
   const [vw, setVw] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+
+  // Without this the page keeps index.html's homepage canonical and title.
+  useEffect(() => { applyStaticPageSEO('/partner') }, [])
 
   useEffect(() => {
     const saved = localStorage.getItem('td_theme')

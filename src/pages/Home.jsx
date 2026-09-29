@@ -1071,7 +1071,12 @@ function SiteFooter() {
   const linkStyle = { fontSize:10.5, fontWeight:600, color:'var(--text-secondary)', textDecoration:'none', cursor:'pointer' }
   return (
     <div style={{ background:'var(--bg-card)', borderTop:'0.5px solid var(--border-default)', padding:'14px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
+      {/* The three landing pages were orphans — in no sitemap and linked from
+          nowhere, so nothing crawled them. The footer is how they get reached. */}
       <div style={{ display:'flex', alignItems:'center', gap:18, flexWrap:'wrap' }}>
+        <a href="/for-customers.html" style={linkStyle}>For Customers</a>
+        <a href="/for-business.html" style={linkStyle}>For Business</a>
+        <a href="/how-we-verify.html" style={linkStyle}>How We Verify</a>
         <a href="/terms" style={linkStyle}>Terms of Service</a>
         <a href="/privacy" style={linkStyle}>Privacy Policy</a>
         <a href="/refund" style={linkStyle}>Refund Policy</a>
