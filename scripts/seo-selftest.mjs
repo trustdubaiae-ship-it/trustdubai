@@ -153,6 +153,19 @@ test('broken structured data is an error', () => {
   assert.ok(f.some((x) => x.rule === 'jsonld-invalid' && x.severity === 'error'))
 })
 
+test('a title carrying last year is flagged as stale', () => {
+  const withYear = GOOD.replace(/<title>[\s\S]*?<\/title>/, '<title>Top 10 Interior Design Companies in Al Barsha (2019) | Quvera</title>')
+  const f = checkPage({ path: '/services/interior-design-al-barsha', status: 200, page: parsePage(withYear), kind: 'service' })
+  assert.ok(f.some((x) => x.rule === 'stale-year-in-title'), 'findings: ' + JSON.stringify(f))
+})
+
+test('a title carrying the current year is not flagged', () => {
+  const y = new Date().getFullYear()
+  const fresh = GOOD.replace(/<title>[\s\S]*?<\/title>/, `<title>Top 10 Interior Design Companies in Al Barsha (${y}) | Quvera</title>`)
+  const f = checkPage({ path: '/services/interior-design-al-barsha', status: 200, page: parsePage(fresh), kind: 'service' })
+  assert.ok(!f.some((x) => x.rule === 'stale-year-in-title'), 'findings: ' + JSON.stringify(f))
+})
+
 test('the square-icon social card is flagged', () => {
   const html = GOOD.replace('og-card.png', 'icon-512.png')
   const f = checkPage({ path: '/', status: 200, page: parsePage(html), kind: 'static' })

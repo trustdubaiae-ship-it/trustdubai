@@ -136,6 +136,15 @@ export function checkPage({ path, status, page, kind }) {
   else if (page.title.length > 65) add('warn', 'title-too-long', `${page.title.length} chars`)
   else if (page.title.length < 15) add('warn', 'title-too-short', `${page.title.length} chars`)
 
+  // Service page titles carry the current year ("Top 10 Fit-Out Companies in
+  // Dubai (2026)"), which is a freshness signal while it is true and a liability
+  // the moment it is not. The prerendered HTML only changes on a deploy, so this
+  // is what catches a site that has not been rebuilt since December.
+  const yearInTitle = (page.title || '').match(/\((20\d{2})\)/)
+  if (yearInTitle && Number(yearInTitle[1]) !== new Date().getFullYear()) {
+    add('warn', 'stale-year-in-title', `title says ${yearInTitle[1]} — redeploy to refresh it`)
+  }
+
   if (!page.description) add('error', 'description-missing', '')
   else if (page.description.length > 160) add('warn', 'description-too-long', `${page.description.length} chars`)
   else if (page.description.length < 70) add('warn', 'description-too-short', `${page.description.length} chars`)

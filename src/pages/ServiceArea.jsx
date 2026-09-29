@@ -174,15 +174,42 @@ export default function ServiceArea() {
   // company ItemList and the live count in the description.
   function applySEO(rows) {
     if (!service) return
-    const where = area ? `${area}, Dubai` : 'Dubai'
+    // Six of the areas already carry the city ('Downtown Dubai', 'Dubai Marina',
+    // 'Dubai Hills Estate'...), and "Downtown Dubai, Dubai" both reads badly and
+    // costs seven characters the title needs for its count and year.
+    const where = area ? (/dubai/i.test(area) ? area : `${area}, Dubai`) : 'Dubai'
     const cnt = rows.length
     const ov = overrideFor(serviceArea)
+    // Title shape follows what actually holds page 1 for these queries. Checking
+    // the live SERP for "fit out companies in dubai", "renovation companies
+    // dubai" and "joinery companies dubai", every single result is an editorial
+    // listicle — "Top 10 Fit Out Companies in Dubai 2026", "Top 13 Home
+    // Renovation Companies", "12 Best Renovation Companies". Not one is a bare
+    // listing page, which is exactly what "X Companies in Y — Top Verified" read
+    // as. So lead with the count and the year.
+    //
+    // The count is NEVER a claim we cannot back: it is banded down from the
+    // number of companies this page actually renders, so a page showing 6 says
+    // "Top 5" and a page showing 2 says nothing at all.
+    const band = cnt >= 10 ? 10 : cnt >= 5 ? 5 : cnt >= 3 ? 3 : 0
+    const lead = band ? `Top ${band} ` : ''
+    // Year is a freshness signal Google rewards here, and it is only honest
+    // while the site is rebuilt regularly — the prerendered HTML is what a
+    // crawler reads, so it carries whatever year the last deploy stamped. The
+    // weekly deploy hook in .github/workflows/seo-weekly.yml is what keeps it
+    // current, and seo-audit.mjs fails a `stale-year-in-title` finding if a live
+    // title is ever caught carrying last year's.
+    const year = new Date().getFullYear()
     // Shed the least useful part first rather than letting Google truncate the
-    // tail mid-word — the same ladder PublicProfile uses for its titles. The
-    // full form is 69 characters for a service and area of average length, so
-    // the second rung is what most pages actually ship.
+    // tail mid-word — the same ladder PublicProfile uses for its titles. Search
+    // results already show the old 69-character form losing its "| Quvera".
     const titles = [
-      `${service} Companies in ${where} — Top Verified | Quvera`,
+      `${lead}${service} Companies in ${where} (${year}) | Quvera`,
+      `${lead}${service} Companies in ${where} | Quvera`,
+      // Drops the word "Companies" before it drops the count: the SERP evidence
+      // says the count is the part doing the work, and "Companies" is implied.
+      `${lead}${service} in ${where} | Quvera`,
+      `${service} Companies in ${where} (${year}) | Quvera`,
       `${service} Companies in ${where} | Quvera`,
       `${service} in ${where} | Quvera`,
       area ? `${service} in ${area} | Quvera` : `${service} Dubai | Quvera`,
