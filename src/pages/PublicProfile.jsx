@@ -4,6 +4,9 @@ import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { signInWithGoogle, signOut, getCustomer, upsertCustomer, updateCustomerProfile } from '../customerAuth'
 import { companyLinks } from '../serviceLinks'
+// Moved to src/seoOverrides.js so the hand-written and the weekly generated
+// overrides live side by side with one precedence rule.
+import { COMPANY_OVERRIDES } from '../seoOverrides'
 import { displayRating, resolveArea } from '../serviceAreas'
 
 /* ===================== PLAN FEATURE MATRIX ===================== */
@@ -53,20 +56,6 @@ function makeTheme(dark) {
     shadow: '0 1px 2px rgba(20,40,80,0.05), 0 10px 34px rgba(20,40,80,0.08)',
     blur: 'blur(12px)',
   }
-}
-
-// Hand-written title/meta for company pages where Search Console shows real
-// demand the DB-derived template below doesn't serve well. Keyed by URL slug;
-// every other company page keeps the generic name/category template.
-const SEO_OVERRIDES = {
-  // Two queries land here: "osta services" (73 impr, pos 7, 12.3% CTR) and the
-  // Arabic "خدمات آسطا | osta services – ac repair & maintenance" (37 impr, pos
-  // 9.7). The Arabic one ranks because the DB-derived title carried the Arabic
-  // company name, so the override keeps it — dropping it would cost that query.
-  'osta-services-ac-repair-maintenance': {
-    title: 'Osta Services خدمات آسطا | AC Repair & Maintenance Dubai – Quvera',
-    description: 'Book trusted Osta AC repair and maintenance services in Dubai. Verified technicians, transparent pricing, same-day service across Dubai. Get a free quote today.',
-  },
 }
 
 /* ---------------------------------------------------------------------------
@@ -127,7 +116,7 @@ function buildSnippet(c) {
 function setSEO({ title, description, image, url, indexable = true }) {
   // Applied here rather than at each call site so every path that sets SEO for
   // this page (fallback, cached and fetched) picks the override up.
-  const ov = SEO_OVERRIDES[(url || '').split('/').pop()]
+  const ov = COMPANY_OVERRIDES[(url || '').split('/').pop()]
   if (ov) { title = ov.title; description = ov.description }
   document.title = title
   const setMeta = (n, c, p = false) => { const a = p ? 'property' : 'name'; let el = document.querySelector(`meta[${a}="${n}"]`); if (!el) { el = document.createElement('meta'); el.setAttribute(a, n); document.head.appendChild(el) } el.setAttribute('content', c) }
