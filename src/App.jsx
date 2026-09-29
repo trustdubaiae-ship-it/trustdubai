@@ -18,6 +18,7 @@ import Legal from './pages/Legal'
 import Partner from './pages/Partner'
 import BottomNav from './components/BottomNav'
 import { startSessionTracking } from './sessionTracker'
+import { applyStaticPageSEO } from './pageSeo'
 function useIsMobile() {
   const [mobile, setMobile] = useState(
     () => document.documentElement.clientWidth < 481
@@ -38,6 +39,9 @@ function useIsMobile() {
 function ClaimCompanyPage() {
   let slug = ''
   try { slug = new URLSearchParams(window.location.search).get('slug') || '' } catch (e) {}
+  // Canonical is the bare path on purpose: ?slug= is a prefill, not a separate
+  // page, and every variant must point at one URL.
+  useEffect(() => { applyStaticPageSEO('/claim-company') }, [])
   function navigate(to) {
     if (to === 'home') window.location.href = '/'
     else window.location.href = '/?screen=' + encodeURIComponent(to)

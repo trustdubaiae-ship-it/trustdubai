@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { applyStaticPageSEO } from '../pageSeo'
 
 /* ============================================================================
    Quvera — Legal pages (Terms / Privacy / Refund)
@@ -47,7 +48,12 @@ export default function Legal({ page = 'terms' }) {
   const navigate = useNavigate()
   const [dark, setDark] = useState(() => { try { return localStorage.getItem('td_theme') === 'dark' } catch { return false } })
   useEffect(() => { try { localStorage.setItem('td_theme', dark ? 'dark' : 'light') } catch (e) {} }, [dark])
-  useEffect(() => { window.scrollTo(0, 0); document.title = (TABS.find(t => t.key === page)?.label || 'Legal') + ' — Quvera' }, [page])
+  // Sets the title too — applyStaticPageSEO owns it, along with the canonical
+  // these three routes were missing.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    applyStaticPageSEO(TABS.find(t => t.key === page)?.path || '/terms')
+  }, [page])
 
   const TH = makeTheme(dark)
   const F = "'Manrope',sans-serif"

@@ -30,6 +30,19 @@ const add = (path, priority, changefreq = 'weekly', lastmod = null) =>
 add('/', '1.0', 'daily')
 add('/partner', '0.6', 'monthly')
 add('/claim-company', '0.6', 'monthly')
+// Marketing landing pages served straight from public/ as real .html files.
+// They carry their own <head> (see the canonical added to each), and the Home
+// footer links them, but nothing submitted them until now.
+add('/for-customers.html', '0.7', 'monthly')
+add('/for-business.html', '0.7', 'monthly')
+add('/business.html', '0.6', 'monthly')
+add('/how-we-verify.html', '0.6', 'monthly')
+add('/os/', '0.6', 'monthly')
+// Legal routes. Low priority, but leaving them out of the sitemap also left
+// them out of the prerender, so they shipped the SPA shell's homepage canonical.
+add('/terms', '0.3', 'yearly')
+add('/privacy', '0.3', 'yearly')
+add('/refund', '0.3', 'yearly')
 
 let all = []
 try {
