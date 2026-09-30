@@ -156,6 +156,36 @@ licensed and what customers say.
 Desktop ranks far worse than mobile (43.6 against 14.8) on three times the
 impressions. Worth investigating before spending effort anywhere else.
 
+## The target, and the biggest thing standing in its way
+
+`seo/targets.json` holds ten queries to get onto page 1 by 30 November 2026, with
+a checkpoint on 31 October. They were chosen from the Search Console export
+because each already sits between position 10 and 26 — one page of movement, on a
+page that exists. Head terms like "renovation companies dubai" (position 45-75,
+first page held by Clutch, Sortlist, MyBayut and agency listicles) are
+deliberately excluded.
+
+Three of the ten point at pages that are currently **noindex**, and that is the
+single biggest finding in the export:
+
+| | Pages | Impressions | Avg position |
+|---|---|---|---|
+| Service pages in the sitemap | 108 | 2,508 | 43.6 |
+| Service pages withheld as noindex | 188 | **1,969** | 63.4 |
+
+Forty-four per cent of all service-page demand is landing on pages Quvera tells
+Google not to index. `/services/interior-design-emirates-hills` is the clearest
+case: 141 impressions at **position 14.5**, the best-placed service page on the
+site, and it carries noindex because no company row has "Emirates Hills" as its
+area.
+
+The eligibility rule that does this is correct in intent — never index a page
+with nothing on it. What the data shows is that the rule is measuring the wrong
+thing: a Dubai contractor's area field is where its office is, not where it will
+work. Whether those pages should list the same service's companies from nearby
+areas is a product decision about what a customer is promised, not a technical
+one, so it is not made here.
+
 ## Things measured and deliberately not done
 
 Recorded so they are not re-attempted blind — see the long comments in
