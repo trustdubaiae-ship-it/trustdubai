@@ -121,6 +121,41 @@ what silently removed `/partner` and `/claim-company` from the index),
 Everything else (`title-too-long`, `duplicate-title`, `og-image-square`,
 `h1-missing`, `thin-content`, …) is a warning: worth working through, not urgent.
 
+## Where the site actually stood, 30 September 2026
+
+A Search Console export is recorded in `seo/gsc-baseline-2026-09-30.json` — by
+hand, because the API credentials are not connected. Three months to 27 Sep:
+
+| | Clicks | Impressions | CTR | Position |
+|---|---|---|---|---|
+| Whole site | 32 | 7,812 | 0.41% | 36.0 |
+| Service pages | 9 | 4,477 | 0.20% | 52.3 |
+| Company profiles | 23 | 3,864 | 0.60% | 20.6 |
+| Desktop | 17 | 5,733 | 0.30% | 43.6 |
+| Mobile | 15 | 2,066 | 0.73% | 14.8 |
+
+Two things in that data drive most of the decisions above.
+
+**Impressions fell every week, from 2,307 to 18.** Not a cliff on one day, which
+would point at a deploy or a robots change — a steady quarter-long slide, which
+is what it looks like when Google shows a new site broadly, then withdraws as it
+decides the pages are not worth showing. Average position improved over the same
+period (36 to 18), because what is left showing is the part that genuinely fits.
+The 175 service pages shipped identical FAQ and intro copy with only the service
+and area swapped, so the set read as one page repeated; that is what the
+data-carrying FAQs in ServiceArea.jsx are there to fix.
+
+**35 company-name queries sat at position 6 to 12 with 1,066 impressions and
+zero clicks** — "lux renov8" alone had 230 at position 9.7. The single exception
+is "osta services", the one profile with a hand-written title, at 11% CTR. These
+are navigational searches where the company's own site and its Google Business
+Profile are also on the page, so they are hard to win; the profile snippet has to
+answer the question the searcher actually has, which is whether the company is
+licensed and what customers say.
+
+Desktop ranks far worse than mobile (43.6 against 14.8) on three times the
+impressions. Worth investigating before spending effort anywhere else.
+
 ## Things measured and deliberately not done
 
 Recorded so they are not re-attempted blind — see the long comments in

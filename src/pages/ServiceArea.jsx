@@ -34,19 +34,62 @@ function overrideFor(slug) {
 }
 
 // Single source of truth for FAQs (used by both the page and FAQPage schema)
-function buildFaqs(service, where) {
+function buildFaqs(service, where, rows = []) {
   const s = service.toLowerCase()
-  return [
+  const n = rows.length
+  const verified = rows.filter((c) => c.is_verified).length
+
+  // Search Console for the three months to 27 Sep 2026: the 296 service pages
+  // with data took 4,477 impressions and returned 9 clicks, and weekly
+  // impressions fell from 2,307 to 18 across the quarter. These four answers
+  // were identical on all 175 pages with only the service and area swapped, so
+  // the set read as one page repeated — which is what a slow, site-wide pullback
+  // looks like.
+  //
+  // The answers now carry this page's own facts: how many companies it lists,
+  // how many are verified, and who is rated highest. Every number comes from the
+  // rows actually rendered, and a page with no data falls back to the copy
+  // below, which claims nothing it cannot show.
+  const rated = rows
+    .map((c) => ({ name: c.name, r: displayRating(c) }))
+    .filter((x) => x.r && x.name)
+    .sort((a, b) => b.r.value - a.r.value)
+  const top = rated[0]
+  // A Google-imported rating is attributed as one, never presented as Quvera's
+  // own — the same line setJsonLD draws for AggregateRating.
+  const cite = (x) => `${x.name} (${x.r.value.toFixed(1)}\u2605${x.r.source === 'google' ? ' on Google' : ` from ${x.r.count} Quvera reviews`})`
+
+  if (!n) return [
     { q:`How do I find the best ${s} company in ${where}?`,
       a:`Browse verified ${s} companies in ${where} on Quvera. Compare real customer reviews, ratings and trust scores, then request up to 3 free quotes to choose the right professional.` },
     { q:`Are these ${s} companies in ${where} verified?`,
       a:`Yes. Quvera verifies every business through trade licence, Emirates ID and document checks, so you only deal with trusted, legitimate ${s} companies in ${where}.` },
     { q:`How much does ${s} cost in ${where}?`,
-      a:`Pricing depends on your project size, materials and finish. The easiest way is to request free quotes from multiple verified ${s} companies in ${where} and compare them side by side — with no obligation.` },
+      a:`Pricing depends on your project size, materials and finish. The easiest way is to request free quotes from multiple verified ${s} companies in ${where} and compare them side by side \u2014 with no obligation.` },
     { q:`How quickly can I get quotes for ${s} in ${where}?`,
       a:`Most customers are matched with trusted ${s} companies in ${where} within minutes. Share a few project details and verified companies will reach out with their quotes.` },
   ]
+
+  return [
+    { q:`How many ${s} companies are listed in ${where}?`,
+      a:`Quvera lists ${n} ${s} ${n === 1 ? 'company' : 'companies'} in ${where}` +
+        (verified ? `, ${verified} of them verified through trade licence and Emirates ID checks` : '') +
+        `. Compare them side by side and request up to 3 free quotes.` },
+    { q:`Which ${s} company in ${where} is rated highest?`,
+      a: top
+        ? `${cite(top)} currently leads the ${where} list` +
+          (rated[1] ? `, followed by ${cite(rated[1])}` : '') +
+          `. Ratings change as new reviews come in, so the order on this page is always current.`
+        : `These ${n} ${s} ${n === 1 ? 'company has' : 'companies have'} no reviews on Quvera yet. Be the first to review one after your project and help the next customer in ${where} choose.` },
+    { q:`Are these ${s} companies in ${where} verified?`,
+      a: verified
+        ? `${verified} of the ${n} are verified: Quvera checks the trade licence against official records and verifies the team by Emirates ID before a business carries the badge.`
+        : `Quvera verifies businesses through trade licence and Emirates ID checks. None of the ${n} in ${where} have completed verification yet, so check each profile before you commit.` },
+    { q:`How much does ${s} cost in ${where}?`,
+      a:`Pricing depends on your project size, materials and finish, so there is no single rate. Request free quotes from several of the ${n} ${s} ${n === 1 ? 'company' : 'companies'} listed here and compare them side by side \u2014 no obligation.` },
+  ]
 }
+
 
 function setSEO({ title, description, url, indexable }) {
   document.title = title
@@ -242,7 +285,7 @@ export default function ServiceArea() {
     const desc = ov ? ov.description : (descs.find((d) => d.length <= 158) || base.slice(0, 158))
     const url   = `https://www.quvera.ae/services/${serviceArea}`
     setSEO({ title, description: desc, url, indexable: isEligible })
-    setJsonLD(service, area, rows, buildFaqs(service, where))
+    setJsonLD(service, area, rows, buildFaqs(service, where, rows))
   }
 
   useEffect(() => {
@@ -318,7 +361,7 @@ export default function ServiceArea() {
   }
 
   const where = area || 'Dubai'
-  const FAQS = buildFaqs(service, where)
+  const FAQS = buildFaqs(service, where, companies)
 
   return (
     <div style={{ minHeight:'100vh', background:bg, fontFamily:"'Manrope',sans-serif", color:t1 }}>
