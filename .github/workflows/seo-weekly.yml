@@ -18,7 +18,7 @@ name: Weekly SEO
 #   VERCEL_DEPLOY_HOOK_URL     Vercel -> Project -> Settings -> Git -> Deploy Hooks
 on:
   schedule:
-    - cron: '0 4 * * 1'
+        - cron: '0 4 * * *'
   workflow_dispatch:
     inputs:
       skip_deploy:
