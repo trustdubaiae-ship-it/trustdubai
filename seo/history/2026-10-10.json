@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-10",
+  "base": "https://www.quvera.ae",
+  "sitemapUrls": 1279,
+  "checked": 265,
+  "errors": 0,
+  "warnings": 0,
+  "byRule": {},
+  "search": {
+    "available": false
+  },
+  "overrides": {},
+  "build": {
+    "builtAt": "2026-10-09T11:07:28.655Z",
+    "prerendered": 1759,
+    "partial": 0,
+    "failed": 0,
+    "budgetHit": false
+  }
+}
